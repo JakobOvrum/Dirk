@@ -37,14 +37,14 @@ abstract class IrcClient
 	{
 	}
 	
-	bool connected() @property
+	@property bool connected() const
 	{
 		return m_connected;
 	}
 	
 	@property
 	{
-		string realName()
+		string realName() const
 		{
 			return m_user;
 		}
@@ -61,7 +61,7 @@ abstract class IrcClient
 	
 	@property
 	{
-		string userName()
+		string userName() const
 		{
 			return m_user;
 		}
@@ -78,7 +78,7 @@ abstract class IrcClient
 	
 	@property
 	{
-		string nick()
+		string nick() const
 		{
 			return m_nick;
 		}
