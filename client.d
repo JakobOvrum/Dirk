@@ -26,9 +26,11 @@ class IrcClient
 	string m_nick = "dirkuser";
 	string m_user = "dirk";
 	string m_name = "dirk";
-	InternetAddress m_address;
+	InternetAddress m_address = null;
 	Socket socket = null;
+	
 	RingBuffer* buffer = null;
+	char[] parseBuffer = null;
 	
 	public:
 	void connect(InternetAddress addr)
@@ -40,6 +42,7 @@ class IrcClient
 		write("NICK %s", nick);
 		
 		buffer = rb_new(512);
+		parseBuffer = new char[512];
 	}
 	
 	~this()
@@ -48,25 +51,92 @@ class IrcClient
 			rb_free(buffer);
 	}
 	
-	void receive()
+	//TODO: use ringbuffer
+	void read()
 	{
-		// TODO: ringbuffer magic
+		auto receivedLen = socket.receive(parseBuffer);
+		
+		if(receivedLen == Socket.ERROR)
+		{
+			throw new Exception("Socket read operation failed");
+		}
+		else if(receivedLen == 0)
+		{
+			debug(Dirk) writeln("Remote ended connection");
+			socket.close();
+			return;
+		}
+		
+		
+		
+		rb_write(buffer, parseBuffer.ptr, receivedLen);
+		
+		const(char)[] rawline;
+		while((rawline = eatLine()) !is null)
+		{
+			debug(Dirk) writefln(`>> "%s"`, rawline);
+				
+			IrcLine line;
+			enforce(parse(rawline, line), "invalid IRC line");
+			handle(line);
+		}
+	}
+	
+	const(char)[] eatLine()
+	{
+		size_t lineLen = 0;
+		size_t bufferLen = 0;
+		bool wasCr = false;
+		foreach(n; 0..2)
+		{
+			const(char)* p = rb_read_pointer(buffer, lineLen, &bufferLen);
+			
+			foreach(i; 0..bufferLen)
+			{
+				lineLen++;
+				if(wasCr && p[i] == '\n')
+				{
+					if(n == 0)
+					{
+						rb_read_commit(buffer, lineLen);
+						return p[0..lineLen - 2];
+					}
+					else
+					{
+						rb_read(buffer, parseBuffer.ptr, lineLen);
+						return parseBuffer[0..lineLen - 2];
+					}
+				}
+				else
+				{
+					wasCr = p[i] == '\r';
+				}
+			}
+		}
+		return null;
 	}
 	
 	void run()
 	{
 		while(connected)
-			receive();
+			read();
 	}
 	
 	void write(T...)(in char[] rawline, T fmtArgs)
 	{
 		enforce(connected, new Exception("cannot write to unconnected IRC connection"));
-			
+		
 		static if(fmtArgs.length == 0)
+		{
+			debug(Dirk) writefln(`<< "%s"`, rawline);
 			socket.send(rawline);
+		}
 		else
-			socket.send(format(rawline, fmtArgs));
+		{
+			auto fmtRawline = format(rawline, fmtArgs);
+			debug(Dirk) writefln(`<< "%s"`, fmtRawline);
+			socket.send(fmtRawline);
+		}
 			
 		socket.send("\r\n");
 	}

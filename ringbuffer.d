@@ -247,7 +247,7 @@ void rb_read(RingBuffer *buf, char *to, size_t bytes)
 /// Get a pointer to directly readable space in buffer.
 /**
  * @remark The number of bytes given by readable may be less than the total number used by
- * the buffer, but the rest will be writable from a second call to this function
+ * the buffer, but the rest will be readable from a second call to this function
  * that will return a different pointer. This is because of the 'wrap around' from 
  * the end to the beginning of the buffer's memory block.
  *
