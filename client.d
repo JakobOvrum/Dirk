@@ -92,12 +92,6 @@ class IrcClient
 		return lineBuffer[0 .. len - 1];
 	}
 	
-	void run()
-	{
-		while(connected)
-			read();
-	}
-	
 	void write(T...)(in char[] rawline, T fmtArgs)
 	{
 		enforce(connected, new Exception("cannot write to unconnected IRC connection"));
@@ -197,6 +191,12 @@ class IrcClient
 	void part(string channel, string message)
 	{
 		write("PART %s :%s", channel, message);
+	}
+	
+	void quit(string message)
+	{
+		write("QUIT :%s", message);
+		socket.close();
 	}
 	
 	void delegate()[] onConnect;
