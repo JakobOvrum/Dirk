@@ -2,7 +2,6 @@ module irc.protocol;
 
 import std.string;
 
-
 struct IrcLine
 {
 	const(char)[] prefix; // Optional
@@ -95,10 +94,13 @@ IrcUser parseUser(const(char)[] prefix)
 	if(prefix !is null)
 	{
 		user.nick = prefix.munch("^!");
-		prefix = prefix[1..$];
-		user.userName = prefix.munch("^@");
-		prefix = prefix[1..$];
-		user.hostName = prefix;
+		if(prefix.length > 0)
+		{
+			prefix = prefix[1..$];
+			user.userName = prefix.munch("^@");
+			prefix = prefix[1..$];
+			user.hostName = prefix;
+		}
 	}
 	
 	return user;

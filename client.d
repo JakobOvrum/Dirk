@@ -14,9 +14,12 @@ debug(Dirk) import std.stdio;
 
 class IrcErrorException : Exception
 {
-	this(string message)
+	IrcClient client;
+	
+	this(IrcClient client, string message)
 	{
 		super(message);
+		this.client = client;
 	}
 }
 
@@ -27,11 +30,11 @@ class IrcClient
 	string m_user = "dirk";
 	string m_name = "dirk";
 	InternetAddress m_address = null;
+	char[1024] lineBuffer;
+	
+	package:
 	Socket socket = null;
-	
-	RingBuffer* buffer = null;
-	char[] parseBuffer = null;
-	
+
 	public:
 	void connect(InternetAddress addr)
 	{
@@ -40,80 +43,53 @@ class IrcClient
 		
 		write("USER %s * * :%s", userName, realName);
 		write("NICK %s", nick);
-		
-		buffer = rb_new(512);
-		parseBuffer = new char[512];
 	}
 	
-	~this()
-	{
-		if(buffer)
-			rb_free(buffer);
-	}
+	IrcLine parsedLine;
 	
 	//TODO: use ringbuffer
 	void read()
 	{
-		auto receivedLen = socket.receive(parseBuffer);
+		auto rawline = simpleReadLine();
 		
-		if(receivedLen == Socket.ERROR)
-		{
-			throw new Exception("Socket read operation failed");
-		}
-		else if(receivedLen == 0)
-		{
-			debug(Dirk) writeln("Remote ended connection");
-			socket.close();
-			return;
-		}
+		debug(Dirk) writefln(`>> "%s"`, rawline);
 		
+		enforce(parse(rawline, parsedLine), new Exception("error parsing line"));
 		
-		
-		rb_write(buffer, parseBuffer.ptr, receivedLen);
-		
-		const(char)[] rawline;
-		while((rawline = eatLine()) !is null)
-		{
-			debug(Dirk) writefln(`>> "%s"`, rawline);
-				
-			IrcLine line;
-			enforce(parse(rawline, line), "invalid IRC line");
-			handle(line);
-		}
+		handle(parsedLine);
 	}
 	
-	const(char)[] eatLine()
+	private const(char)[] simpleReadLine()
 	{
-		size_t lineLen = 0;
-		size_t bufferLen = 0;
-		bool wasCr = false;
-		foreach(n; 0..2)
+		char c = 0;
+		char[] buffer = (&c)[0..1];
+		
+		size_t len = 0;
+		
+		while(c != '\n')
 		{
-			const(char)* p = rb_read_pointer(buffer, lineLen, &bufferLen);
-			
-			foreach(i; 0..bufferLen)
+			auto received = socket.receive(buffer);
+		
+			if(received == Socket.ERROR)
 			{
-				lineLen++;
-				if(wasCr && p[i] == '\n')
-				{
-					if(n == 0)
-					{
-						rb_read_commit(buffer, lineLen);
-						return p[0..lineLen - 2];
-					}
-					else
-					{
-						rb_read(buffer, parseBuffer.ptr, lineLen);
-						return parseBuffer[0..lineLen - 2];
-					}
-				}
-				else
-				{
-					wasCr = p[i] == '\r';
-				}
+				throw new Exception("Socket read operation failed");
 			}
+			else if(received == 0)
+			{
+				debug(Dirk) writeln("Remote ended connection");
+				socket.close();
+				return null;
+			}
+			
+			lineBuffer[len++] = c;
 		}
-		return null;
+		
+		if(len > 1 && lineBuffer[len - 2] == '\r')
+		{
+			--len;
+		}
+		
+		return lineBuffer[0 .. len - 1];
 	}
 	
 	void run()
@@ -137,7 +113,7 @@ class IrcClient
 			debug(Dirk) writefln(`<< "%s"`, fmtRawline);
 			socket.send(fmtRawline);
 		}
-			
+		
 		socket.send("\r\n");
 	}
 	
@@ -151,7 +127,7 @@ class IrcClient
 		return socket !is null && (cast(Socket)socket).isAlive();
 	}
 	
-	@property const(InternetAddress) address() const
+	@property InternetAddress serverAddress()
 	{
 		return m_address;
 	}
@@ -197,7 +173,7 @@ class IrcClient
 		{
 			enforce(nick !is null && nick.length != 0);
 			if(connected)
-				write(format("NICK %s\r\n", nick));
+				write("NICK %s\r\n", nick);
 			else
 				m_nick = nick;
 		}
@@ -223,18 +199,10 @@ class IrcClient
 		write("PART %s :%s", channel, message);
 	}
 	
-	const(char)[] delegate(in char[] newnick)[] onNickInUse;
+	void delegate()[] onConnect;
 	void delegate(IrcUser user, in char[] channel, in char[] message)[] onMessage;
 	void delegate(IrcUser user, in char[] channel, in char[] message)[] onNotice;
-	
-	void fireEvent(string event, T...)(T args)
-	{
-		auto callbacks = mixin("on" ~ event);
-		foreach(cb; callbacks)
-		{
-			cb(args);
-		}
-	}
+	const(char)[] delegate(in char[] newnick)[] onNickInUse;
 	
 	protected:
 	IrcUser getUser(const(char)[] prefix)
@@ -243,7 +211,15 @@ class IrcClient
 	}
 	
 	private:
-	void handle(IrcLine line)
+	void fireEvent(T, U...)(T event, U args)
+	{
+		foreach(cb; event)
+		{
+			cb(args);
+		}
+	}
+	
+	void handle(ref IrcLine line)
 	{
 		switch(line.command)
 		{
@@ -251,23 +227,35 @@ class IrcClient
 				write("PONG :%s", line.parameters[0]);
 				break;
 			case "433":
+				bool handled = false;
+				
 				foreach(cb; onNickInUse)
 				{
 					if(auto newNick = cb(line.parameters[1]))
 					{
 						write("NICK %s", newNick);
+						handled = true;
 						break;
 					}
 				}
+				
+				if(!handled)
+				{
+					socket.close();
+					throw new Exception(`"Nick already in use" was unhandled`);
+				}
 				break;
 			case "PRIVMSG":
-				fireEvent!("Message")(getUser(line.prefix), line.parameters[0], line.parameters[1]);
+				fireEvent(onMessage, getUser(line.prefix), line.parameters[0], line.parameters[1]);
 				break;
 			case "NOTICE":
-				fireEvent!("Notice")(getUser(line.prefix), line.parameters[0], line.parameters[1]);
+				fireEvent(onNotice, getUser(line.prefix), line.parameters[0], line.parameters[1]);
 				break;
 			case "ERROR":
-				throw new IrcErrorException(line.parameters[0].idup);
+				throw new IrcErrorException(this, line.parameters[0].idup);
+			case "001":
+				fireEvent(onConnect);
+				break;
 			default:
 				debug(Dirk) writefln(`Unhandled command "%s"`, line.command);
 				break;
