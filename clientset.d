@@ -4,13 +4,13 @@ import irc.client;
 
 import std.socket;
 
-class IrcClientSet
+struct IrcClientSet
 {
 	private:
 	IrcClient[] clients;
 	SocketSet set;
 	
-	void remove(int i)
+	void remove(size_t i)
 	{
 		clients[i] = clients[$ - 1];
 		clients.length = clients.length - 1;
@@ -26,7 +26,7 @@ class IrcClientSet
 	{
 		if(!client.connected)
 		{
-			throw new Exception("clients in ClientSet must be connected");
+			throw new Exception("clients in IrcClientSet must be connected");
 		}
 		else if(!set.isSet(client.socket))
 		{
@@ -37,9 +37,9 @@ class IrcClientSet
 	
 	void remove(IrcClient client)
 	{
-		for(int i = 0; i < clients.length; ++i)
+		foreach(i, cl; clients)
 		{
-			if(clients[i] == client)
+			if(cl == client)
 			{
 				remove(i);
 				break;
@@ -51,11 +51,17 @@ class IrcClientSet
 	{
 		while(clients.length > 0)
 		{
+			foreach(client; clients)
+			{
+				if(!set.isSet(client.socket))
+					set.add(client.socket);
+			}
+			
 			int eventCount = Socket.select(set, null, null, null);
 			if(eventCount != 0)
 			{
-				int handled = 0;
-				for(int i = 0; i < clients.length; ++i)
+				size_t handled = 0;
+				for(size_t i = 0; i < clients.length; ++i)
 				{
 					IrcClient client = clients[i];
 					if(set.isSet(client.socket))
