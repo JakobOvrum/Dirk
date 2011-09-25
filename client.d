@@ -16,10 +16,21 @@ class IrcErrorException : Exception
 {
 	IrcClient client;
 	
-	this(IrcClient client, string message)
+	this(IrcClient client, string message, string file = __FILE__, uint line = __LINE__)
 	{
-		super(message);
+		super(message, file, line);
 		this.client = client;
+	}
+}
+
+/**
+ * Thrown if an unconnected client is added to a set.
+ */
+class UnconnectedClientException : Exception
+{
+	this(string msg, string file = __FILE__, uint line = __LINE__)
+	{
+		super(msg, file, line);
 	}
 }
 
@@ -36,13 +47,18 @@ class IrcClient
 	Socket socket = null;
 
 	public:
-	void connect(InternetAddress addr)
+	/**
+	 * Connect this client to a server.
+	 * Params:
+	 *   address = _address of server
+	 */
+	void connect(InternetAddress address)
 	{
-		socket = new TcpSocket(addr);
-		m_address = addr;
+		socket = new TcpSocket(address);
+		m_address = address;
 		
-		write("USER %s * * :%s", userName, realName);
-		write("NICK %s", nick);
+		sendfln("USER %s * * :%s", userName, realName);
+		sendfln("NICK %s", nick);
 	}
 	
 	IrcLine parsedLine;
@@ -50,9 +66,11 @@ class IrcClient
 	//TODO: use ringbuffer
 	void read()
 	{
+		enforce(connected, new UnconnectedClientException("cannot read from an unconnected IrcClient"));
+		
 		auto rawline = simpleReadLine();
 		
-		debug(Dirk) writefln(`>> "%s"`, rawline);
+		debug(Dirk) .writefln(`>> "%s"`, rawline);
 		
 		enforce(parse(rawline, parsedLine), new Exception("error parsing line"));
 		
@@ -76,7 +94,7 @@ class IrcClient
 			}
 			else if(received == 0)
 			{
-				debug(Dirk) writeln("Remote ended connection");
+				debug(Dirk) .writeln("Remote ended connection");
 				socket.close();
 				return null;
 			}
@@ -92,36 +110,34 @@ class IrcClient
 		return lineBuffer[0 .. len - 1];
 	}
 	
-	void write(T...)(in char[] rawline, T fmtArgs)
+	void sendfln(T...)(const(char)[] rawline, T fmtArgs)
 	{
-		enforce(connected, new Exception("cannot write to unconnected IRC connection"));
+		enforce(connected, new UnconnectedClientException("cannot write to unconnected IrcClient"));
 		
-		static if(fmtArgs.length == 0)
-		{
-			debug(Dirk) writefln(`<< "%s"`, rawline);
-			socket.send(rawline);
-		}
-		else
-		{
-			auto fmtRawline = format(rawline, fmtArgs);
-			debug(Dirk) writefln(`<< "%s"`, fmtRawline);
-			socket.send(fmtRawline);
-		}
+		static if(fmtArgs.length > 0)
+			rawline = format(rawline, fmtArgs);
 		
+		debug(Dirk) .writefln(`<< "%s"`, rawline);
+		socket.send(rawline);
 		socket.send("\r\n");
 	}
 	
 	void send(in char[] channel, in char[] message)
 	{
-		write("PRIVMSG %s :%s", channel, message);
+		sendfln("PRIVMSG %s :%s", channel, message);
 	}
 	
 	@property bool connected() const
 	{
-		return socket !is null && (cast(Socket)socket).isAlive();
+		return socket !is null && (cast()socket).isAlive();
 	}
 	
 	@property InternetAddress serverAddress()
+	{
+		return m_address;
+	}
+	
+	@property const(InternetAddress) serverAddress() const
 	{
 		return m_address;
 	}
@@ -167,7 +183,7 @@ class IrcClient
 		{
 			enforce(nick !is null && nick.length != 0);
 			if(connected)
-				write("NICK %s\r\n", nick);
+				sendfln("NICK %s\r\n", nick);
 			else
 				m_nick = nick;
 		}
@@ -175,27 +191,27 @@ class IrcClient
 	
 	void join(string channel)
 	{
-		write("JOIN %s", channel);
+		sendfln("JOIN %s", channel);
 	}
 	
 	void join(string channel, string key)
 	{
-		write("JOIN %s :%s", channel, key);
+		sendfln("JOIN %s :%s", channel, key);
 	}
 	
 	void part(string channel)
 	{
-		write("PART %s", channel);
+		sendfln("PART %s", channel);
 	}
 	
 	void part(string channel, string message)
 	{
-		write("PART %s :%s", channel, message);
+		sendfln("PART %s :%s", channel, message);
 	}
 	
 	void quit(string message)
 	{
-		write("QUIT :%s", message);
+		sendfln("QUIT :%s", message);
 		socket.close();
 	}
 	
@@ -224,7 +240,7 @@ class IrcClient
 		switch(line.command)
 		{
 			case "PING":
-				write("PONG :%s", line.parameters[0]);
+				sendfln("PONG :%s", line.parameters[0]);
 				break;
 			case "433":
 				bool handled = false;
@@ -233,7 +249,7 @@ class IrcClient
 				{
 					if(auto newNick = cb(line.parameters[1]))
 					{
-						write("NICK %s", newNick);
+						sendfln("NICK %s", newNick);
 						handled = true;
 						break;
 					}
