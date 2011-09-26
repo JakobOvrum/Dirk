@@ -9,9 +9,13 @@ public import std.socket : InternetAddress;
 
 import std.exception;
 import std.algorithm;
+import std.range;
 import std.string : format;
 debug(Dirk) import std.stdio;
 
+/**
+ * Thrown if the server sends an error message to the client.
+ */
 class IrcErrorException : Exception
 {
 	IrcClient client;
@@ -24,7 +28,7 @@ class IrcErrorException : Exception
 }
 
 /**
- * Thrown if an unconnected client is added to a set.
+ * Thrown if an unconnected client was passed when a connected client was expected.
  */
 class UnconnectedClientException : Exception
 {
@@ -34,6 +38,9 @@ class UnconnectedClientException : Exception
 	}
 }
 
+/**
+ * Represents an IRC client connection.
+ */
 class IrcClient
 {
 	private:
@@ -110,6 +117,17 @@ class IrcClient
 		return lineBuffer[0 .. len - 1];
 	}
 	
+	/**
+	 * Send a raw IRC message to the server.
+	 *
+	 * If there are more than one argument, then the first argument is formatted with the subsequent ones.
+	 * Arguments must not contain newlines.
+	 * Params:
+	 *   rawline = line to send
+	 *   fmtArgs = format arguments for the first argument
+	 * Throws:
+	 *   UnconnectedClientException if this client is not connected.
+	 */
 	void sendfln(T...)(const(char)[] rawline, T fmtArgs)
 	{
 		enforce(connected, new UnconnectedClientException("cannot write to unconnected IrcClient"));
@@ -122,112 +140,195 @@ class IrcClient
 		socket.send("\r\n");
 	}
 	
-	void send(in char[] channel, in char[] message)
+	/**
+	 * Send a line of chat to a channel or user.
+	 * Params:
+	 *   target = channel or nick to send to
+	 *   message = _message to send
+	 */
+	void send(in char[] target, in char[] message)
 	{
-		sendfln("PRIVMSG %s :%s", channel, message);
+		sendfln("PRIVMSG %s :%s", target, message);
 	}
 	
-	@property bool connected() const
+	/**
+	 * Check if this client is connected.
+	 * Returns:
+	 *   true if this client is connected.
+	 */
+	bool connected() const @property
 	{
 		return socket !is null && (cast()socket).isAlive();
 	}
 	
-	@property InternetAddress serverAddress()
+	/**
+	 * Address of the server currently connected to, or null if this client is not connected.
+	 */
+	InternetAddress serverAddress() @property
 	{
 		return m_address;
 	}
 	
-	@property const(InternetAddress) serverAddress() const
+	/// Ditto
+	const(InternetAddress) serverAddress() const @property
 	{
 		return m_address;
 	}
 	
-	@property
+	/**
+	 * Real name of the user for this client.
+	 *
+	 * Cannot be changed after connecting.
+	 */
+	string realName() const @property
 	{
-		string realName() const
-		{
-			return m_user;
-		}
-		
-		void realName(string realName)
-		{
-			enforce(realName !is null && realName.length != 0);
-			enforce(connected, "Cannot change real name while connected");
-			m_name = realName;
-		}
+		return m_user;
 	}
 	
-	@property
+	/// Ditto	
+	void realName(string realName) @property
 	{
-		string userName() const
-		{
-			return m_user;
-		}
-		
-		void userName(string userName)
-		{
-			enforce(userName !is null && userName.length != 0);
-			enforce(connected, "Cannot change user-name while connected");
-			m_user = userName;
-		}
+		enforce(connected, "cannot change real name while connected");
+		enforce(!realName.empty);
+		m_name = realName;
 	}
 	
-	@property
+	/**
+	 * User name of the user for this client.
+	 *
+	 * Cannot be changed after connecting.
+	 */
+	string userName() const @property
 	{
-		string nick() const
+		return m_user;
+	}
+	
+	/// Ditto
+	void userName(string userName) @property
+	{
+		enforce(!connected, "cannot change user-name while connected");
+		enforce(!userName.empty);
+		m_user = userName;
+	}
+	
+	/**
+	 * Nick name of the user for this client.
+	 *
+	 * Setting this property when connected can cause the onNickInUse event to fire.
+	 */
+	string nick() const @property
+	{
+		return m_nick;
+	}
+	
+	private void setNickImpl(T : const(char)[])(T nick) @property
+	{
+		enforce(!nick.empty);
+		if(connected) // m_nick will be set later if the nick is accepted.
+			sendfln("NICK %s", nick);
+		else
 		{
-			return m_nick;
-		}
-		
-		void nick(string nick)
-		{
-			enforce(nick !is null && nick.length != 0);
-			if(connected)
-				sendfln("NICK %s\r\n", nick);
-			else
+			static if(is(T : string)) // don't copy nick if it's already immutable.
 				m_nick = nick;
+			else
+				m_nick = nick.idup;
 		}
 	}
 	
-	void join(string channel)
+	alias setNickImpl!(string) nick; /// Ditto
+	alias setNickImpl!(const(char)[]) nick; /// Ditto
+	
+	/**
+	 * Join a _channel.
+	 * Params:
+	 *   channel = _channel to join
+	 */
+	void join(in char[] channel)
 	{
 		sendfln("JOIN %s", channel);
 	}
 	
-	void join(string channel, string key)
+	/**
+	 * Join a passworded _channel.
+	 * Params:
+	 *   channel = _channel to join
+	 *   key = _channel password
+	 */
+	void join(in char[] channel, in char[] key)
 	{
 		sendfln("JOIN %s :%s", channel, key);
 	}
 	
-	void part(string channel)
+	/**
+	 * Leave a _channel.
+	 * Params:
+	 *   channel = _channel to leave
+	 */
+	void part(in char[] channel)
 	{
 		sendfln("PART %s", channel);
 	}
 	
-	void part(string channel, string message)
+	/**
+	 * Leave a _channel with a parting message.
+	 * Params:
+	 *   channel = _channel to leave
+	 *   message = parting _message
+	 */
+	void part(in char[] channel, in char[] message)
 	{
 		sendfln("PART %s :%s", channel, message);
 	}
 	
-	void quit(string message)
+	/**
+	 * Leave and disconnect from the server.
+	 * Params:
+	 *   message = _quit _message
+	 */
+	void quit(in char[] message)
 	{
 		sendfln("QUIT :%s", message);
 		socket.close();
 	}
 	
+	/// Invoked when this client has successfully connected to a server.
 	void delegate()[] onConnect;
-	void delegate(IrcUser user, in char[] channel, in char[] message)[] onMessage;
-	void delegate(IrcUser user, in char[] channel, in char[] message)[] onNotice;
+	
+	/**
+	 * Invoked when a message is picked up by the user for this client.
+	 * Params:
+	 *   user = _user who sent the message
+	 *   target = message _target. This is either the nick of this client in the case of a personal
+	 *   message, or the name of the channel which the message was sent to.
+	 */
+	void delegate(IrcUser user, in char[] target, in char[] message)[] onMessage;
+	
+	/**
+	 * Invoked when a notice is picked up by the user for this client.
+	 * Params:
+	 *   user = _user who sent the notice
+	 *   target = notice _target. This is either the nick of this client in the case of a personal
+	 *   notice, or the name of the channel which the notice was sent to.
+	 */
+	void delegate(IrcUser user, in char[] target, in char[] message)[] onNotice;
+	
+	/**
+	 * Invoked when the requested nick name of the user for this client is already in use.
+	 * Params:
+	 *   newnick = the nick name that was requested.
+	 * Note:
+	 *   The current nick name can be read from the nick property of this client.
+	 */
 	const(char)[] delegate(in char[] newnick)[] onNickInUse;
 	
 	protected:
-	IrcUser getUser(const(char)[] prefix)
+	IrcUser getUser(in char[] prefix)
 	{
 		return parseUser(prefix);
 	}
 	
 	private:
-	void fireEvent(T, U...)(T event, U args)
+	void fireEvent(U...)(void delegate(U)[] event, U args)
 	{
 		foreach(cb; event)
 		{
