@@ -48,12 +48,28 @@ class IrcClient
 	string m_user = "dirk";
 	string m_name = "dirk";
 	InternetAddress m_address = null;
+	
+	IrcParser parser;
+	IrcLine parsedLine;
 	char[1024] lineBuffer;
+	size_t lineBufferPos;
 	
 	package:
 	Socket socket = null;
 
 	public:
+	/**
+	 * Create a new unconnected IrcClient.
+	 *
+	 * Callbacks can be added before connecting.
+	 * See_Also:
+	 *   connect
+	 */
+	this()
+	{
+		parser = IrcParser(lineBuffer[]);
+	}
+	
 	/**
 	 * Connect this client to a server.
 	 * Params:
@@ -68,20 +84,33 @@ class IrcClient
 		sendfln("NICK %s", nick);
 	}
 	
-	IrcLine parsedLine;
-	
-	//TODO: use ringbuffer
 	void read()
 	{
 		enforce(connected, new UnconnectedClientException("cannot read from an unconnected IrcClient"));
 		
-		auto rawline = simpleReadLine();
+		auto received = socket.receive(lineBuffer[lineBufferPos .. $]);
+		if(received == Socket.ERROR)
+		{
+			throw new Exception("socket read operation failed");
+		}
+		else if(received == 0)
+		{
+			debug(Dirk) .writeln("remote ended connection");
+			socket.close();
+			return;
+		}
 		
-		debug(Dirk) .writefln(`>> "%s"`, rawline);
+		lineBufferPos += received;
 		
-		enforce(parse(rawline, parsedLine), new Exception("error parsing line"));
-		
-		handle(parsedLine);
+		if(parser.parse(received, parsedLine))
+		{
+			handle(parsedLine);
+			lineBufferPos = 0;
+		}
+		else if(lineBufferPos == lineBuffer.length)
+		{
+			throw new Exception("line too long for 1024 byte buffer");
+		}
 	}
 	
 	private const(char)[] simpleReadLine()
@@ -328,7 +357,7 @@ class IrcClient
 	}
 	
 	private:
-	void fireEvent(U...)(void delegate(U)[] event, U args)
+	void fireEvent(T, U...)(T[] event, U args)
 	{
 		foreach(cb; event)
 		{
@@ -341,14 +370,14 @@ class IrcClient
 		switch(line.command)
 		{
 			case "PING":
-				sendfln("PONG :%s", line.parameters[0]);
+				sendfln("PONG :%s", line.arguments[0]);
 				break;
 			case "433":
 				bool handled = false;
 				
 				foreach(cb; onNickInUse)
 				{
-					if(auto newNick = cb(line.parameters[1]))
+					if(auto newNick = cb(line.arguments[1]))
 					{
 						sendfln("NICK %s", newNick);
 						handled = true;
@@ -363,13 +392,13 @@ class IrcClient
 				}
 				break;
 			case "PRIVMSG":
-				fireEvent(onMessage, getUser(line.prefix), line.parameters[0], line.parameters[1]);
+				fireEvent(onMessage, getUser(line.prefix), line.arguments[0], line.arguments[1]);
 				break;
 			case "NOTICE":
-				fireEvent(onNotice, getUser(line.prefix), line.parameters[0], line.parameters[1]);
+				fireEvent(onNotice, getUser(line.prefix), line.arguments[0], line.arguments[1]);
 				break;
 			case "ERROR":
-				throw new IrcErrorException(this, line.parameters[0].idup);
+				throw new IrcErrorException(this, line.arguments[0].idup);
 			case "001":
 				fireEvent(onConnect);
 				break;
