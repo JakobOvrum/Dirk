@@ -175,13 +175,7 @@ class IrcClient
 	/**
 	 * Address of the server currently connected to, or null if this client is not connected.
 	 */
-	InternetAddress serverAddress() @property
-	{
-		return m_address;
-	}
-	
-	/// Ditto
-	const(InternetAddress) serverAddress() const @property
+	inout(InternetAddress) serverAddress() inout @property
 	{
 		return m_address;
 	}
