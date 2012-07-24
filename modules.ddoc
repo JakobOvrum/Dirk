@@ -3,4 +3,3 @@ MODULES =
 	$(MODULE irc.cachingclient)
 	$(MODULE irc.clientset)
 	$(MODULE irc.protocol)
-	$(MODULE irc.user)
