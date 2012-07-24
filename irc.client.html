@@ -142,7 +142,7 @@
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>this();
 </h3></div>
-<div class="declaration-content"><dl><p>Create a new unconnected IrcClient.
+<div class="declaration-content"><dl><p>Create a new unconnected IRC client.
 </p>
 
 <p>Callbacks can be added before connecting.
@@ -161,9 +161,15 @@
 </table></dd>
 </dl>
 </div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="read" href="#read">read</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Read once from the socket, parse all complete messages and invoke registered callbacks.</p>
+
+</dl>
+</div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="sendfln" href="#sendfln">sendfln</a>(T...)(const(char)[] <i>rawline</i>, T <i>fmtArgs</i>);
 </h3></div>
-<div class="declaration-content"><dl><p>Send a raw IRC message to the server.
+<div class="declaration-content"><dl><p>Send a raw message to the server.
 </p>
 
 <p>If there are more than one argument, then the first argument is formatted with the subsequent ones.
@@ -185,29 +191,43 @@
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
-<td>channel or nick to <a class="symbol symbol-anchor" name="send" href="#send">send</a> to</td>
+<td>channel or nick name to send to</td>
 </tr>
 <tr><td>char[] <i>message</i></td>
-<td>message to <a class="symbol symbol-anchor" name="send" href="#send">send</a></td>
+<td>message to send</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="sendNotice" href="#sendNotice">sendNotice</a>(in char[] <i>target</i>, in char[] <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a notice to a channel or user.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
+<td>channel or nick name to notice</td>
+</tr>
+<tr><td>char[] <i>message</i></td>
+<td>message to send</td>
 </tr>
 </table></dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>const @property bool <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>();
 </h3></div>
-<div class="declaration-content"><dl><p>Check if this client is <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>.
+<div class="declaration-content"><dl><p>Check if this client is connected.
 </p>
 
-<dt>Returns</dt><dd><span class="d_keyword">true</span> if this client is <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>.</dd>
+<dt>Returns</dt><dd><span class="d_keyword">true</span> if this client is connected.</dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>inout @property inout(InternetAddress) <a class="symbol symbol-anchor" name="serverAddress" href="#serverAddress">serverAddress</a>();
+<hr><div class="row-fluid declaration"><h3>inout pure @property inout(InternetAddress) <a class="symbol symbol-anchor" name="serverAddress" href="#serverAddress">serverAddress</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Address of the server currently connected to, or <span class="d_keyword">null</span> if this client is not connected.</p>
 
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>const @property string <a class="symbol symbol-anchor" name="realName" href="#realName">realName</a>();
+<hr><div class="row-fluid declaration"><h3>const pure @property string <a class="symbol symbol-anchor" name="realName" href="#realName">realName</a>();
 <br>@property void <a class="symbol symbol-anchor" name="realName" href="#realName">realName</a>(string <a class="symbol symbol-anchor" name="realName" href="#realName">realName</a>);
 </h3></div>
 <div class="declaration-content"><dl><p>Real name of the user for this client.
@@ -216,7 +236,7 @@
 <p>Cannot be changed after connecting.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>const @property string <a class="symbol symbol-anchor" name="userName" href="#userName">userName</a>();
+<hr><div class="row-fluid declaration"><h3>const pure @property string <a class="symbol symbol-anchor" name="userName" href="#userName">userName</a>();
 <br>@property void <a class="symbol symbol-anchor" name="userName" href="#userName">userName</a>(string <a class="symbol symbol-anchor" name="userName" href="#userName">userName</a>);
 </h3></div>
 <div class="declaration-content"><dl><p>User name of the user for this client.
@@ -225,14 +245,14 @@
 <p>Cannot be changed after connecting.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>const @property string <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>();
-<br>alias <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>;
-<br>alias <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>;
+<hr><div class="row-fluid declaration"><h3>const pure @property string <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>();
+<br>@property void <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>(in char[] <i>newNick</i>);
+<br>@property void <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>(string <i>newNick</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Nick name of the user for this client.
 </p>
 
-<p>Setting this property when connected can cause the onNickInUse event to fire.</p>
+<p>Setting this property when connected can cause the <span class="inlinecode">onNickInUse</span> event to fire.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="join" href="#join">join</a>(in char[] <i>channel</i>);
@@ -241,7 +261,7 @@
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
-<td>channel to <a class="symbol symbol-anchor" name="join" href="#join">join</a></td>
+<td>channel to join</td>
 </tr>
 </table></dd>
 </dl>
@@ -252,7 +272,7 @@
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
-<td>channel to <a class="symbol symbol-anchor" name="join" href="#join">join</a></td>
+<td>channel to join</td>
 </tr>
 <tr><td>char[] <i>key</i></td>
 <td>channel password</td>
@@ -273,7 +293,7 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="part" href="#part">part</a>(in char[] <i>channel</i>, in char[] <i>message</i>);
 </h3></div>
-<div class="declaration-content"><dl><p>Leave a channel with a parting <i>message</i>.
+<div class="declaration-content"><dl><p>Leave a channel with a parting message.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
@@ -337,12 +357,15 @@
 <div class="declaration-content"><dl><p>Invoked when the requested nick name of the user for this client is already in use.
 </p>
 
+<p>Return a non-<span class="d_keyword">null</span> string to provide a new nick. No further callbacks in the list
+ are called once a callback provides a nick.
+</p>
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>newnick</td>
 <td>the nick name that was requested.</td>
 </tr>
 </table></dd>
 <dt>Note:</dt><dd>
-The current nick name can be read from the nick property of this client.</dd>
+The current nick name can be read from the <span class="inlinecode">nick</span> property of this client.</dd>
 </dl>
 </div>
 </div>
