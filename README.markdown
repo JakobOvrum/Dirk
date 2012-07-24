@@ -1,11 +1,10 @@
 Dirk
 ============================================
-Dirk is an IRC library for D.
+Dirk is an IRC library for the D programming language.
 
-Todo
---------------------------------------------
-
- * Use a ringbuffer for buffering input (possibly with continuous parsing?)
+Documentation
+============================================
+Online DDoc documentation coming soon.
 
 License
 ============================================
