@@ -158,6 +158,8 @@ class IrcClient
 	 * Params:
 	 *   target = channel or nick name to _send to
 	 *   message = _message to _send
+	 * Throws:
+	 *   UnconnectedClientException if this client is not connected.
 	 */
 	void send(in char[] target, in char[] message)
 	{
@@ -169,6 +171,8 @@ class IrcClient
 	* Params:
 	*   target = channel or nick name to _notice
 	*   message = _message to send
+	* Throws:
+	*   UnconnectedClientException if this client is not connected.
 	*/
 	void sendNotice(in char[] target, in char[] message)
 	{
@@ -264,6 +268,8 @@ class IrcClient
 	 * Join a _channel.
 	 * Params:
 	 *   channel = _channel to _join
+	 * Throws:
+	 *   UnconnectedClientException if this client is not connected.
 	 */
 	void join(in char[] channel)
 	{
@@ -275,6 +281,8 @@ class IrcClient
 	 * Params:
 	 *   channel = _channel to _join
 	 *   key = _channel password
+	 * Throws:
+	 *   UnconnectedClientException if this client is not connected.
 	 */
 	void join(in char[] channel, in char[] key)
 	{
@@ -285,6 +293,8 @@ class IrcClient
 	 * Leave a _channel.
 	 * Params:
 	 *   channel = _channel to leave
+	 * Throws:
+	 *   UnconnectedClientException if this client is not connected.
 	 */
 	void part(in char[] channel)
 	{
@@ -296,6 +306,8 @@ class IrcClient
 	 * Params:
 	 *   channel = _channel to leave
 	 *   message = parting _message
+	 * Throws:
+	 *   UnconnectedClientException if this client is not connected.
 	 */
 	void part(in char[] channel, in char[] message)
 	{
@@ -306,6 +318,8 @@ class IrcClient
 	 * Leave and disconnect from the server.
 	 * Params:
 	 *   message = _quit _message
+	 * Throws:
+	 *   UnconnectedClientException if this client is not connected.
 	 */
 	void quit(in char[] message)
 	{
