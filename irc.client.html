@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="utf-8">
+	<title>irc.client - Dirk documentation</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<!-- styles -->
+	<link href="assets/css/bootstrap.css" rel="stylesheet">
+	<style type="text/css">
+		body {
+		padding-top: 60px;
+		padding-bottom: 40px;
+		}
+		.sidebar-nav {
+		padding: 9px 0;
+		}
+	</style>
+	<link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+	<link href="bootdoc.css" rel="stylesheet">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<!-- fav and touch icons -->
+	<link rel="shortcut icon" href="assets/ico/favicon.ico">
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/ico/apple-touch-icon-114-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="assets/ico/apple-touch-icon-72-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" href="assets/ico/apple-touch-icon-57-precomposed.png">
+	
+	<!-- Introduce DDoc settings required by JavaScript -->
+	<script type="text/javascript">
+		var Title = 'irc.client';
+		var SourceRepository = 'https://github.com/JakobOvrum/Dirk/tree/master';
+		var PackageSeparator = '.';
+	</script>
+	
+	<style type="text/css">
+		.ddoc-icon-variable { background-image: url('ddoc-icons/var.png'); }
+		.ddoc-icon-function { background-image: url('ddoc-icons/func.png'); }
+		.ddoc-icon-property { background-image: url('ddoc-icons/property.png'); }
+		.ddoc-icon-struct { background-image: url('ddoc-icons/struct.png'); }
+		.ddoc-icon-class { background-image: url('ddoc-icons/class.png'); }
+		.ddoc-icon-enum { background-image: url('ddoc-icons/enum.png'); }
+		.ddoc-icon-template { background-image: url('ddoc-icons/template.png'); }
+	</style>
+	</head>
+
+	<body>
+	<!--
+	JavaScript reaps the module list from this element.
+	This is required for the MODULES macro to be reusable
+	in a noscript element later.
+	-->
+	<ul id="module-list-source" class="hidden">
+		
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.cachingclient.html" title="irc.cachingclient"><i class="icon-th"></i>irc.cachingclient</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.clientset.html" title="irc.clientset"><i class="icon-th"></i>irc.clientset</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.user.html" title="irc.user"><i class="icon-th"></i>irc.user</a></li>
+	</ul>
+	
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="irc.client.html">Dirk</a>
+				<div class="nav-collapse">
+					<ul class="nav">
+						<li class="active"><a href="irc.client.html">Reference</a></li>
+					</ul>
+					
+					<form id="gotosymbol" class="navbar-search pull-left hidden">
+						<input type="text" class="search-query" placeholder="Go to symbol in irc.client" data-provide="typeahead" data-items="4">
+					</form>
+					
+					<p class="navbar-text pull-right"><a href="https://github.com/JakobOvrum/Dirk">Github Page</a></p>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+
+	<div class="container-fluid">
+		<div class="row-fluid">
+			<div class="span2">
+				<div class="well sidebar-nav">
+				<ul class="nav nav-list">
+					<li id="module-list" class="nav-header sidebar-list-entry">Modules<li>
+					<noscript>
+						
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.cachingclient.html" title="irc.cachingclient"><i class="icon-th"></i>irc.cachingclient</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.clientset.html" title="irc.clientset"><i class="icon-th"></i>irc.clientset</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.user.html" title="irc.user"><i class="icon-th"></i>irc.user</a></li>
+					</noscript>
+					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">irc.client</li>
+				</ul>
+				</div><!--/.well -->
+			</div><!--/span-->
+			
+			<div class="span10">
+				<div class="row-fluid">
+					<div class="span11">
+						<ul id="module-breadcrumb" class="breadcrumb">
+							<noscript><h1>irc.client</h1></noscript>
+						</ul>
+						
+					</div>
+					<div class="span1 offset11">
+						<a href="irc.client.html"><img src="assets/img/icon-github.png" alt="Dirk"/></a>
+					</div>
+				</div>
+				<div id="declaration-list">
+					<!-- Generated by Ddoc from ..\irc\client.d -->
+<br><br>
+<hr><div class="row-fluid declaration"><h3>class <a class="symbol symbol-anchor" name="IrcErrorException" href="#IrcErrorException">IrcErrorException</a>: object.Exception;
+</h3></div>
+<div class="declaration-content"><dl><p>Thrown if the server sends an error message to the client.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>class <a class="symbol symbol-anchor" name="UnconnectedClientException" href="#UnconnectedClientException">UnconnectedClientException</a>: object.Exception;
+</h3></div>
+<div class="declaration-content"><dl><p>Thrown if an unconnected client was passed when a connected client was expected.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>class <a class="symbol symbol-anchor" name="IrcClient" href="#IrcClient">IrcClient</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Represents an IRC client connection.</p>
+
+</dl>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>this();
+</h3></div>
+<div class="declaration-content"><dl><p>Create a new unconnected IrcClient.
+</p>
+
+<p>Callbacks can be added before connecting.
+</p>
+<dt>See Also</dt><dd>connect</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="connect" href="#connect">connect</a>(InternetAddress <i>address</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Connect this client to a server.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>InternetAddress <i>address</i></td>
+<td>address of server</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="sendfln" href="#sendfln">sendfln</a>(T...)(const(char)[] <i>rawline</i>, T <i>fmtArgs</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a raw IRC message to the server.
+</p>
+
+<p>If there are more than one argument, then the first argument is formatted with the subsequent ones.
+ Arguments must not contain newlines.
+</p>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>rawline</td>
+<td>line to send</td>
+</tr>
+<tr><td>fmtArgs</td>
+<td>format arguments for the first argument</td>
+</tr>
+</table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="send" href="#send">send</a>(in char[] <i>target</i>, in char[] <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a line of chat to a channel or user.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
+<td>channel or nick to <a class="symbol symbol-anchor" name="send" href="#send">send</a> to</td>
+</tr>
+<tr><td>char[] <i>message</i></td>
+<td>message to <a class="symbol symbol-anchor" name="send" href="#send">send</a></td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const @property bool <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Check if this client is <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>.
+</p>
+
+<dt>Returns</dt><dd><span class="d_keyword">true</span> if this client is <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>inout @property inout(InternetAddress) <a class="symbol symbol-anchor" name="serverAddress" href="#serverAddress">serverAddress</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Address of the server currently connected to, or <span class="d_keyword">null</span> if this client is not connected.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const @property string <a class="symbol symbol-anchor" name="realName" href="#realName">realName</a>();
+<br>@property void <a class="symbol symbol-anchor" name="realName" href="#realName">realName</a>(string <a class="symbol symbol-anchor" name="realName" href="#realName">realName</a>);
+</h3></div>
+<div class="declaration-content"><dl><p>Real name of the user for this client.
+</p>
+
+<p>Cannot be changed after connecting.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const @property string <a class="symbol symbol-anchor" name="userName" href="#userName">userName</a>();
+<br>@property void <a class="symbol symbol-anchor" name="userName" href="#userName">userName</a>(string <a class="symbol symbol-anchor" name="userName" href="#userName">userName</a>);
+</h3></div>
+<div class="declaration-content"><dl><p>User name of the user for this client.
+</p>
+
+<p>Cannot be changed after connecting.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const @property string <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>();
+<br>alias <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>;
+<br>alias <a class="symbol symbol-anchor" name="nick" href="#nick">nick</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Nick name of the user for this client.
+</p>
+
+<p>Setting this property when connected can cause the onNickInUse event to fire.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="join" href="#join">join</a>(in char[] <i>channel</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Join a channel.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
+<td>channel to <a class="symbol symbol-anchor" name="join" href="#join">join</a></td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="join" href="#join">join</a>(in char[] <i>channel</i>, in char[] <i>key</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Join a passworded channel.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
+<td>channel to <a class="symbol symbol-anchor" name="join" href="#join">join</a></td>
+</tr>
+<tr><td>char[] <i>key</i></td>
+<td>channel password</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="part" href="#part">part</a>(in char[] <i>channel</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Leave a channel.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
+<td>channel to leave</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="part" href="#part">part</a>(in char[] <i>channel</i>, in char[] <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Leave a channel with a parting <i>message</i>.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
+<td>channel to leave</td>
+</tr>
+<tr><td>char[] <i>message</i></td>
+<td>parting message</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="quit" href="#quit">quit</a>(in char[] <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Leave and disconnect from the server.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>message</i></td>
+<td>quit message</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate()[] <a class="symbol symbol-anchor" name="onConnect" href="#onConnect">onConnect</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when this client has successfully connected to a server.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, const(char[]) target, const(char[]) message)[] <a class="symbol symbol-anchor" name="onMessage" href="#onMessage">onMessage</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a message is picked up by the user for this client.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
+<td>user who sent the message</td>
+</tr>
+<tr><td>target</td>
+<td>message target. This is either the nick of this client in the case of a personal
+   message, or the name of the channel which the message was sent to.</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, const(char[]) target, const(char[]) message)[] <a class="symbol symbol-anchor" name="onNotice" href="#onNotice">onNotice</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a notice is picked up by the user for this client.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
+<td>user who sent the notice</td>
+</tr>
+<tr><td>target</td>
+<td>notice target. This is either the nick of this client in the case of a personal
+   notice, or the name of the channel which the notice was sent to.</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const(char)[] delegate(const(char[]) newnick)[] <a class="symbol symbol-anchor" name="onNickInUse" href="#onNickInUse">onNickInUse</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when the requested nick name of the user for this client is already in use.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>newnick</td>
+<td>the nick name that was requested.</td>
+</tr>
+</table></dd>
+<dt>Note:</dt><dd>
+The current nick name can be read from the nick property of this client.</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+				</div>
+				
+				<hr>
+				
+				<footer class="pull-left">
+					<p>Page generated with <a href="https://github.com/JakobOvrum/bootDoc">bootDoc</a>.</p>
+				</footer>
+				
+				<footer class="pull-right">
+					<p>&copy; Jakob Ovrum 2011-2012</p>
+				</footer>
+			</div>
+		</div>
+	</div><!--/.fluid-container-->
+
+	<!-- Bootstrap javascript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="assets/js/jquery.min.js"></script>
+	<script src="assets/js/bootstrap.min.js"></script>
+	
+	<!-- bootDoc javascript
+	================================================== -->
+	<script src="bootdoc.js"></script>
+	
+	</body>
+</html>
+
