@@ -132,7 +132,15 @@
 <div class="declaration-content"><dl><p>IRC parser automata that can start from where it left off last time.</p>
 
 </dl>
-<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>pure bool <a class="symbol symbol-anchor" name="parse" href="#parse">parse</a>(size_t <i>incoming</i>, ref IrcLine <i>line</i>);
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>this(char[] <i>buffer</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Construct a new parser with the specified <i>buffer</i>.
+</p>
+
+<p>Call <span class="inlinecode">parse</span> after writing to the buffer to parse.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>pure bool <a class="symbol symbol-anchor" name="parse" href="#parse">parse</a>(size_t <i>incoming</i>, ref IrcLine <i>line</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Parse an additional <i>incoming</i> number of characters from the buffer
  and store the results in <i>line</i>.
@@ -143,6 +151,12 @@
 
 </p>
 <dt>Returns</dt><dd>True when parsing into <i>line</i> has completed.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="moveDown" href="#moveDown">moveDown</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Move unparsed data down to the beginning of the buffer.</p>
+
 </dl>
 </div>
 </div>
