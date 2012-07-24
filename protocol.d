@@ -2,6 +2,7 @@ module irc.protocol;
 
 import std.string;
 import std.exception;
+import core.stdc.string : memmove;
 
 struct IrcLine
 {
@@ -18,36 +19,64 @@ class IrcParseErrorException : Exception
 	}
 }
 
+enum ParseState
+{
+	Begin, // -> Prefix | Command
+	Prefix, // -> Command
+	Command, // -> Argument | LastArgument | End
+	Argument, // -> LastArgument | End
+	LastArgument, // -> End
+	End
+}
+
 struct IrcParser
 {
 	private:
-	enum ParseState
-	{
-		Begin, // -> Prefix | Command
-		Prefix, // -> Command
-		Command, // -> Argument | LastArgument | End
-		Argument, // -> LastArgument | End
-		LastArgument, // -> End
-		End
-	}
-	
 	ParseState state;
-	const(char)[] buffer, pos;
-	size_t leftOver;
-	
+	char[] buffer;
+	size_t headPos, tailPos;
+
 	public:
-	this(const(char)[] buffer)
+	this(char[] buffer)
 	{
 		this.buffer = buffer;
-		this.pos = buffer;
+	}
+
+	size_t head() const pure @property
+	{
+		return headPos;
+	}
+
+	size_t tail() const pure @property
+	{
+		return tailPos;
+	}
+
+	ParseState currentState() const pure @property
+	{
+		return state;
 	}
 	
-	bool parse(size_t incoming, ref IrcLine line)
+	// TODO: what happens if it stops just before the last-argument colon?
+	bool parse(size_t incoming, ref IrcLine line) pure
 	{
-		size_t length = leftOver + incoming;
-		assert((pos.ptr - buffer.ptr) + length <= buffer.length);
+		tailPos += incoming;
+		auto pos = buffer[headPos .. tailPos];
+
+		void eat(size_t n)
+		{
+			pos = pos[n .. $];
+			headPos += n;
+		}
+
+		bool isEnd()
+		{
+			return pos.length > 0 && pos[0] == '\r';
+		}
 		
-		while(length)
+		auto lastHead = headPos;
+		auto lastState = state;
+		while(tailPos - headPos > 0)
 		{
 			fsm:
 			final switch(state) with(ParseState)
@@ -55,8 +84,7 @@ struct IrcParser
 				case Begin:
 					if(pos[0] == ':')
 					{
-						pos = pos[1..$];
-						--length;
+						eat(1);
 						state = Prefix;
 					}
 					else
@@ -65,93 +93,99 @@ struct IrcParser
 					}
 					break;
 				case Prefix:
-					foreach(i; leftOver .. length)
+					foreach(i, char c; pos)
 					{
-						if(pos[i] == ' ')
+						if(c == ' ')
 						{
 							line.prefix = pos[0 .. i];
-							pos = pos[i + 1..$];
+							eat(i + 1);
 							
 							state = Command;
-							leftOver = 0;
-							length -= i;
 							break fsm;
 						}
 					}
-					leftOver += incoming;
 					break;
 				case Command:
-					foreach(i; leftOver .. length)
+					foreach(i, char c; pos)
 					{
-						if(pos[i] == ' ')
+						if(c == ' ' || c == ':' || c == '\r')
 						{
 							line.command = pos[0 .. i];
-							pos = pos[i + 1 .. $];
+							eat(c == '\r'? i : i + 1);
 							
-							if(i != length-1 && pos[0] == '\r')
+							if(isEnd())
 								state = End;
+							else if(pos.length > 0 && pos[0] == ':')
+								state = LastArgument;
 							else
 								state = Argument;
-							
-							leftOver = 0;
-							length -= i;
+
 							break fsm;
 						}
 					}
-					leftOver += incoming;
 					break;
 				case Argument:
-					foreach(i; leftOver .. length)
+					foreach(i, char c; pos)
 					{
-						writefln("i: %s", i);
-						if(pos[i] == ' ' || pos[i] == ':')
+						if(c == ' ' || c == ':' || c == '\r')
 						{
 							line.arguments ~= pos[0 .. i];
+							eat(c == '\r'? i : i + 1);
 							
-							if(i != length-1 && pos[0] == '\r')
+							if(isEnd())
 								state = End;
+							else if(pos.length > 0 && pos[0] == ':')
+								state = LastArgument;
 							else
-								state = pos[i] == ':'? LastArgument : Argument;
-							
-							pos = pos[i + 1 .. $];
-							leftOver = 0;
-							length -= i;
+								state = Argument;
+
 							break fsm;
 						}
 					}
-					leftOver += incoming;
 					break;
 				case LastArgument:
-					foreach(i; leftOver .. length)
+					foreach(i, char c; pos)
 					{
-						if(pos[i] == '\r')
+						if(c == '\r')
 						{
-							line.arguments ~= pos[0 .. i];
-							pos = pos[i + 1 .. $];
+							line.arguments ~= pos[1 .. i]; // Don't include leading colon
+							eat(i); // Leave '\r' like the other paths leading to End
 							
 							state = End;
-							
-							leftOver = 0;
-							length -= i;
+							break fsm;
 						}
 					}
-					leftOver += incoming;
 					break;
 				case End:
-					if(length >= 2)
+					if(pos.length >= 2)
 					{
 						if(pos[0..2] == "\r\n")
 						{
+							eat(2);
 							state = Begin;
 							return true;
 						}
 						else
-							throw new Exception("CR must be followed by LF");
+							throw new IrcParseErrorException("CR must be followed by LF");
 					}
 					break;
 			}
+
+			if(state == lastState && headPos == lastHead)
+				break;
+
+			lastState = state;
+			lastHead = headPos;
 		}
 		return false;
+	}
+
+	void moveDown()
+	{
+		auto len = tailPos - headPos;
+		memmove(buffer.ptr, buffer.ptr + headPos, len);
+		headPos = 0;
+		tailPos = len;
 	}
 }
 
@@ -182,7 +216,7 @@ bool parse(const(char)[] raw, out IrcLine line)
 	return true;
 }+/
 
-bool parse(const(char)[] raw, out IrcLine line)
+bool parse(char[] raw, out IrcLine line)
 {
 	auto parser = IrcParser(raw);
 	enforce(parser.parse(raw.length, line), "incomplete raw IRC line");
@@ -198,22 +232,22 @@ unittest
 {
 	struct InputOutput
 	{
-		string input;
+		char[] input;
 		IrcLine output;
 		bool valid = true;
 	}
 	
 	static InputOutput[] testData = [
 		{
-			input: "PING 123456",
+			input: "PING 123456\r\n".dup,
 			output: {command: "PING", arguments: ["123456"]}
 		},
 		{
-			input: ":foo!bar@baz PRIVMSG #channel hi!",
+			input: ":foo!bar@baz PRIVMSG #channel hi!\r\n".dup,
 			output: {prefix: "foo!bar@baz", command: "PRIVMSG", arguments: ["#channel", "hi!"]}
 		},
 		{
-			input: ":foo!bar@baz PRIVMSG #channel :hello, world!",
+			input: ":foo!bar@baz PRIVMSG #channel :hello, world!\r\n".dup,
 			output: {prefix: "foo!bar@baz", command: "PRIVMSG", arguments: ["#channel", "hello, world!"]}
 		}
 	];

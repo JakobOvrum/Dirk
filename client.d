@@ -12,6 +12,7 @@ import std.algorithm;
 import std.range;
 import std.string : format;
 debug(Dirk) import std.stdio;
+debug(Dirk) import std.conv;
 
 /**
  * Thrown if the server sends an error message to the client.
@@ -51,8 +52,7 @@ class IrcClient
 	
 	IrcParser parser;
 	IrcLine parsedLine;
-	char[1024] lineBuffer;
-	size_t lineBufferPos;
+	char[] lineBuffer;
 	
 	package:
 	Socket socket = null;
@@ -67,7 +67,8 @@ class IrcClient
 	 */
 	this()
 	{
-		parser = IrcParser(lineBuffer[]);
+		lineBuffer = new char[1024];
+		parser = IrcParser(lineBuffer);
 	}
 	
 	/**
@@ -88,7 +89,7 @@ class IrcClient
 	{
 		enforce(connected, new UnconnectedClientException("cannot read from an unconnected IrcClient"));
 		
-		auto received = socket.receive(lineBuffer[lineBufferPos .. $]);
+		auto received = socket.receive(lineBuffer[parser.tail .. $]);
 		if(received == Socket.ERROR)
 		{
 			throw new Exception("socket read operation failed");
@@ -99,15 +100,29 @@ class IrcClient
 			socket.close();
 			return;
 		}
+
+		debug(Dirk_Parsing) .writeln("==== got data ====");
 		
-		lineBufferPos += received;
-		
-		if(parser.parse(received, parsedLine))
+		while(parser.parse(received, parsedLine))
 		{
+			debug(Dirk_Parsing) .writef(`prefix: "%s" cmd: "%s" `, parsedLine.prefix, parsedLine.command);
+			debug(Dirk_Parsing) foreach(i, arg; parsedLine.arguments)
+			{
+				.writef(`arg%s: "%s" `, i, arg);
+			}
+
+			debug(Dirk_Parsing) .writeln();
+
 			handle(parsedLine);
-			lineBufferPos = 0;
+			parsedLine = IrcLine();
+			debug(Dirk_Parsing) .writefln(`done handling line - state: %s, head: %s tail: %s`, parser.currentState, parser.head, parser.tail);
+			received = 0;
 		}
-		else if(lineBufferPos == lineBuffer.length)
+
+		parser.moveDown();
+		debug(Dirk_Parsing) .writefln("==== end of data, moved down (state: %s head: %s tail: %s) ====", parser.currentState, parser.head, parser.tail);
+		
+		if(parser.tail == lineBuffer.length)
 		{
 			throw new Exception("line too long for 1024 byte buffer");
 		}
@@ -187,7 +202,7 @@ class IrcClient
 	 */
 	bool connected() const @property
 	{
-		return socket !is null && (cast()socket).isAlive();
+		return socket !is null && socket.isAlive();
 	}
 	
 	/**
