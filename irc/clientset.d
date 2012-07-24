@@ -40,7 +40,7 @@ struct IrcClientSet
 	}
 	
 	/**
-	 * Add a connected client to the set.
+	 * Add a connected _client to the set.
 	 * Params:
 	 *   client = _client to add
 	 * Throws:
@@ -60,7 +60,7 @@ struct IrcClientSet
 	}
 	
 	/**
-	 * Remove a client from the set, or do nothing if the client is not in the set.
+	 * Remove a _client from the set, or do nothing if the _client is not in the set.
 	 * Params:
 	 *   client = _client to remove
 	 */

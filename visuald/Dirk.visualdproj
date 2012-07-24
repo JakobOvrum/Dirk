@@ -283,7 +283,6 @@
    <File path="..\irc\clientset.d" />
    <File path="..\irc\protocol.d" />
    <File path="..\irc\testing.d" />
-   <File path="..\irc\user.d" />
   </Folder>
  </Folder>
 </DProject>
