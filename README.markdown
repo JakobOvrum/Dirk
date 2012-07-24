@@ -2,6 +2,14 @@ Dirk
 ============================================
 Dirk is an IRC library for the D programming language.
 
+Directory Structure
+============================================
+
+ * `irc` - the Dirk package.
+ * `visuald` - [VisualD](http://www.dsource.org/projects/visuald) project files.
+ * `test` - unittest executable (when built).
+ * `lib` - Dirk library files (when built).
+
 Documentation
 ============================================
 Online DDoc documentation coming soon.
