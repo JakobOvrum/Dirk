@@ -1,5 +1,5 @@
 PROJECTNAME = Dirk
-REFERENCETOP = irc.client.html
+REFERENCETOP = index.html
 REPOSRCTREE = https://github.com/JakobOvrum/Dirk/tree/master
 TITLEBARTEXT = <a href="https://github.com/JakobOvrum/Dirk">Github Page</a>
 RESOURCEROOT = bootDoc/
