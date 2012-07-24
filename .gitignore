@@ -1,0 +1,11 @@
+# Output
+/lib
+
+# Visual Studio
+*.suo
+
+# Test files
+/main.d
+
+# Documentation
+/docs
