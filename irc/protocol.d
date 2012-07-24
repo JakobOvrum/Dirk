@@ -4,10 +4,16 @@ import std.string;
 import std.exception;
 import core.stdc.string : memmove;
 
+/**
+ * Structure representing a parsed IRC message.
+ */
 struct IrcLine
 {
+	/// Note: null when the message has no _prefix.
 	const(char)[] prefix; // Optional
+	///
 	const(char)[] command;
+	///
 	const(char)[][] arguments;
 }
 
@@ -43,6 +49,11 @@ struct IrcParser
 	size_t headPos, tailPos;
 
 	public:
+	/**
+	 * Construct a new parser with the specified buffer.
+	 *
+	 * Call $(D parse) after writing to the _buffer to parse.
+	 */
 	this(char[] buffer)
 	{
 		this.buffer = buffer;
@@ -195,7 +206,10 @@ struct IrcParser
 		}
 		return false;
 	}
-
+	
+	/**
+	 * Move unparsed data down to the beginning of the buffer.
+	 */
 	void moveDown()
 	{
 		auto len = tailPos - headPos;
@@ -290,8 +304,11 @@ unittest
  */
 struct IrcUser
 {
+	///
 	const(char)[] nick;
+	///
 	const(char)[] userName;
+	///
 	const(char)[] hostName;
 }
 
