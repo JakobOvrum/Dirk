@@ -10,9 +10,9 @@ Directory Structure
  * `test` - unittest executable (when built).
  * `lib` - Dirk library files (when built).
 
-Documentation
+[Documentation](http://jakobovrum.github.com/Dirk/)
 ============================================
-Online DDoc documentation coming soon.
+You can find automatically generated documentation on the [gh-pages](https://github.com/JakobOvrum/Dirk/tree/gh-pages) branch, or you can [browse it online](http://jakobovrum.github.com/Dirk/).
 
 License
 ============================================
