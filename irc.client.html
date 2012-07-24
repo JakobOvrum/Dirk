@@ -195,6 +195,7 @@
 <td>message to send</td>
 </tr>
 </table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="sendNotice" href="#sendNotice">sendNotice</a>(in char[] <i>target</i>, in char[] <i>message</i>);
@@ -209,6 +210,7 @@
 <td>message to send</td>
 </tr>
 </table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>const @property bool <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>();
@@ -262,6 +264,7 @@
 <td>channel to join</td>
 </tr>
 </table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="join" href="#join">join</a>(in char[] <i>channel</i>, in char[] <i>key</i>);
@@ -276,6 +279,7 @@
 <td>channel password</td>
 </tr>
 </table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="part" href="#part">part</a>(in char[] <i>channel</i>);
@@ -287,6 +291,7 @@
 <td>channel to leave</td>
 </tr>
 </table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="part" href="#part">part</a>(in char[] <i>channel</i>, in char[] <i>message</i>);
@@ -301,6 +306,7 @@
 <td>parting message</td>
 </tr>
 </table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <a class="symbol symbol-anchor" name="quit" href="#quit">quit</a>(in char[] <i>message</i>);
@@ -312,6 +318,7 @@
 <td>quit message</td>
 </tr>
 </table></dd>
+<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void delegate()[] <a class="symbol symbol-anchor" name="onConnect" href="#onConnect">onConnect</a>;
