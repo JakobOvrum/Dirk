@@ -2,7 +2,6 @@ module irc.client;
 
 import irc.protocol;
 public import irc.protocol : IrcUser;
-import irc.ringbuffer;
 
 import std.socket;
 public import std.socket : InternetAddress;
