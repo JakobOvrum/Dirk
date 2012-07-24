@@ -364,7 +364,7 @@ class IrcClient
 				if(!handled)
 				{
 					socket.close();
-					throw new Exception(`"Nick already in use" was unhandled`);
+					throw new IrcErrorException(this, `"433 Nick already in use" was unhandled`);
 				}
 				break;
 			case "PRIVMSG":
