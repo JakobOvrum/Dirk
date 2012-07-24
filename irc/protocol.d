@@ -11,6 +11,9 @@ struct IrcLine
 	const(char)[][] arguments;
 }
 
+/**
+ * Thrown when an error occured parsing an IRC message.
+ */
 class IrcParseErrorException : Exception
 {
 	this(string msg, string file = __FILE__, uint line = __LINE__)
@@ -29,6 +32,9 @@ enum ParseState
 	End
 }
 
+/**
+ * IRC parser automata that can start from where it left off last time.
+ */
 struct IrcParser
 {
 	private:
@@ -58,6 +64,16 @@ struct IrcParser
 	}
 	
 	// TODO: what happens if it stops just before the last-argument colon?
+	/**
+	 * Parse an additional incoming number of characters from the buffer
+	 * and store the results in line.
+	 *
+	 * Call with a value of 0 for incoming to continue parsing the next message
+	 * after it stopped parsing because of a complete message.
+	 *
+	 * Returns:
+	 *   True when parsing into line has completed.
+	 */
 	bool parse(size_t incoming, ref IrcLine line) pure
 	{
 		tailPos += incoming;
@@ -269,6 +285,9 @@ unittest
 	}
 }
 
+/**
+ * Structure representing an IRC user.
+ */
 struct IrcUser
 {
 	const(char)[] nick;
@@ -276,6 +295,9 @@ struct IrcUser
 	const(char)[] hostName;
 }
 
+/**
+ * Create an IRC user from a message prefix.
+ */
 IrcUser parseUser(const(char)[] prefix)
 {
 	IrcUser user;
