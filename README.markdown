@@ -2,6 +2,8 @@ Dirk
 ============================================
 Dirk is an IRC library for the D programming language.
 
+**Please report bugs and requests to the [issue tracker](https://github.com/JakobOvrum/Dirk/issues). Thanks!**
+
 Directory Structure
 ============================================
 

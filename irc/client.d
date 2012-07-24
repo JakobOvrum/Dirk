@@ -60,7 +60,7 @@ class IrcClient
 	/**
 	 * Create a new unconnected IRC client.
 	 *
-	 * Callbacks can be added before connecting.
+	 * Event callbacks can be added before connecting.
 	 * See_Also:
 	 *   connect
 	 */
