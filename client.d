@@ -116,16 +116,16 @@ class IrcClient
 			handle(parsedLine);
 			parsedLine = IrcLine();
 			debug(Dirk_Parsing) .writefln(`done handling line - state: %s, head: %s tail: %s`, parser.currentState, parser.head, parser.tail);
-			received = 0;
+			received = 0; // Finish parsing the current data
 		}
 
-		parser.moveDown();
-		debug(Dirk_Parsing) .writefln("==== end of data, moved down (state: %s head: %s tail: %s) ====", parser.currentState, parser.head, parser.tail);
-		
 		if(parser.tail == lineBuffer.length)
 		{
 			throw new Exception("line too long for 1024 byte buffer");
 		}
+
+		parser.moveDown();
+		debug(Dirk_Parsing) .writefln("==== end of data, moved down (state: %s head: %s tail: %s) ====", parser.currentState, parser.head, parser.tail);
 	}
 	
 	/**
