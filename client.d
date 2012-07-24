@@ -128,39 +128,6 @@ class IrcClient
 		}
 	}
 	
-	private const(char)[] simpleReadLine()
-	{
-		char c = 0;
-		char[] buffer = (&c)[0..1];
-		
-		size_t len = 0;
-		
-		while(c != '\n')
-		{
-			auto received = socket.receive(buffer);
-		
-			if(received == Socket.ERROR)
-			{
-				throw new Exception("Socket read operation failed");
-			}
-			else if(received == 0)
-			{
-				debug(Dirk) .writeln("Remote ended connection");
-				socket.close();
-				return null;
-			}
-			
-			lineBuffer[len++] = c;
-		}
-		
-		if(len > 1 && lineBuffer[len - 2] == '\r')
-		{
-			--len;
-		}
-		
-		return lineBuffer[0 .. len - 1];
-	}
-	
 	/**
 	 * Send a raw IRC message to the server.
 	 *
