@@ -13,7 +13,7 @@ struct IrcClientSet
 	IrcClient[] clients;
 	SocketSet set;
 	
-	void remove(size_t i)
+	void remove(size_t i) pure
 	{
 		clients[i] = clients[$ - 1];
 		clients.length = clients.length - 1;
@@ -82,7 +82,7 @@ struct IrcClientSet
 	 * The incoming data is handled by the respective client,
 	 * and callbacks are called.
 	 * Returns when all clients are no longer connected,
-	 * or immediately if no there are no clients in the set.
+	 * or immediately if there are no clients in the set.
 	 */
 	void run()
 	{

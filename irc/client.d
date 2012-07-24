@@ -58,7 +58,7 @@ class IrcClient
 
 	public:
 	/**
-	 * Create a new unconnected IrcClient.
+	 * Create a new unconnected IRC client.
 	 *
 	 * Callbacks can be added before connecting.
 	 * See_Also:
@@ -84,6 +84,9 @@ class IrcClient
 		sendfln("NICK %s", nick);
 	}
 	
+	/**
+	 * Read once from the socket, parse all complete messages and invoke registered callbacks. 
+	 */
 	void read()
 	{
 		enforce(connected, new UnconnectedClientException("cannot read from an unconnected IrcClient"));
@@ -128,7 +131,7 @@ class IrcClient
 	}
 	
 	/**
-	 * Send a raw IRC message to the server.
+	 * Send a raw message to the server.
 	 *
 	 * If there are more than one argument, then the first argument is formatted with the subsequent ones.
 	 * Arguments must not contain newlines.
@@ -140,7 +143,7 @@ class IrcClient
 	 */
 	void sendfln(T...)(const(char)[] rawline, T fmtArgs)
 	{
-		enforce(connected, new UnconnectedClientException("cannot write to unconnected IrcClient"));
+		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
 		
 		static if(fmtArgs.length > 0)
 			rawline = format(rawline, fmtArgs);
@@ -153,18 +156,29 @@ class IrcClient
 	/**
 	 * Send a line of chat to a channel or user.
 	 * Params:
-	 *   target = channel or nick to send to
-	 *   message = _message to send
+	 *   target = channel or nick name to _send to
+	 *   message = _message to _send
 	 */
 	void send(in char[] target, in char[] message)
 	{
 		sendfln("PRIVMSG %s :%s", target, message);
 	}
+
+	/**
+	* Send a notice to a channel or user.
+	* Params:
+	*   target = channel or nick name to _notice
+	*   message = _message to send
+	*/
+	void sendNotice(in char[] target, in char[] message)
+	{
+		sendfln("NOTICE %s :%s", target, message);
+	}
 	
 	/**
-	 * Check if this client is connected.
+	 * Check if this client is _connected.
 	 * Returns:
-	 *   true if this client is connected.
+	 *   true if this client is _connected.
 	 */
 	bool connected() const @property
 	{
@@ -174,7 +188,7 @@ class IrcClient
 	/**
 	 * Address of the server currently connected to, or null if this client is not connected.
 	 */
-	inout(InternetAddress) serverAddress() inout @property
+	inout(InternetAddress) serverAddress() inout pure @property
 	{
 		return m_address;
 	}
@@ -184,7 +198,7 @@ class IrcClient
 	 *
 	 * Cannot be changed after connecting.
 	 */
-	string realName() const @property
+	string realName() const pure @property
 	{
 		return m_user;
 	}
@@ -202,7 +216,7 @@ class IrcClient
 	 *
 	 * Cannot be changed after connecting.
 	 */
-	string userName() const @property
+	string userName() const pure @property
 	{
 		return m_user;
 	}
@@ -218,34 +232,38 @@ class IrcClient
 	/**
 	 * Nick name of the user for this client.
 	 *
-	 * Setting this property when connected can cause the onNickInUse event to fire.
+	 * Setting this property when connected can cause the $(D onNickInUse) event to fire.
 	 */
-	string nick() const @property
+	string nick() const pure @property
 	{
 		return m_nick;
 	}
 	
-	private void setNickImpl(T : const(char)[])(T nick) @property
+	/// Ditto
+	void nick(in char[] newNick) @property
 	{
 		enforce(!nick.empty);
 		if(connected) // m_nick will be set later if the nick is accepted.
 			sendfln("NICK %s", nick);
 		else
-		{
-			static if(is(T : string)) // don't copy nick if it's already immutable.
-				m_nick = nick;
-			else
-				m_nick = nick.idup;
-		}
+			m_nick = nick.idup;
 	}
 	
-	alias setNickImpl!(string) nick; /// Ditto
-	alias setNickImpl!(const(char)[]) nick; /// Ditto
+	/// Ditto
+	// Duplicated to show up nicer in DDoc - previously used a template and aliases
+	void nick(string newNick) @property
+	{
+		enforce(!nick.empty);
+		if(connected) // m_nick will be set later if the nick is accepted.
+			sendfln("NICK %s", nick);
+		else
+			m_nick = nick;
+	}
 	
 	/**
 	 * Join a _channel.
 	 * Params:
-	 *   channel = _channel to join
+	 *   channel = _channel to _join
 	 */
 	void join(in char[] channel)
 	{
@@ -255,7 +273,7 @@ class IrcClient
 	/**
 	 * Join a passworded _channel.
 	 * Params:
-	 *   channel = _channel to join
+	 *   channel = _channel to _join
 	 *   key = _channel password
 	 */
 	void join(in char[] channel, in char[] key)
@@ -274,7 +292,7 @@ class IrcClient
 	}
 	
 	/**
-	 * Leave a _channel with a parting message.
+	 * Leave a _channel with a parting _message.
 	 * Params:
 	 *   channel = _channel to leave
 	 *   message = parting _message
@@ -318,10 +336,13 @@ class IrcClient
 	
 	/**
 	 * Invoked when the requested nick name of the user for this client is already in use.
+	 * 
+	 * Return a non-null string to provide a new nick. No further callbacks in the list
+	 * are called once a callback provides a nick.
 	 * Params:
 	 *   newnick = the nick name that was requested.
 	 * Note:
-	 *   The current nick name can be read from the nick property of this client.
+	 *   The current nick name can be read from the $(D nick) property of this client.
 	 */
 	const(char)[] delegate(in char[] newnick)[] onNickInUse;
 	
