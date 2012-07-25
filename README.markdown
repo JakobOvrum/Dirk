@@ -18,4 +18,4 @@ You can find automatically generated documentation on the [gh-pages](https://git
 
 License
 ============================================
-Dirk is licensed under the terms of the MIT license (see the [LICENSE file](http://github.com/JakobOvrum/LuaD/blob/master//LICENSE) for details).
+Dirk is licensed under the terms of the MIT license (see the [LICENSE file](http://github.com/JakobOvrum/Dirk/blob/master/LICENSE) for details).
