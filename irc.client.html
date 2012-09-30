@@ -143,7 +143,9 @@
 <div class="declaration-content"><dl><p>Create a new unconnected IRC client.
 </p>
 
-<p>Event callbacks can be added before connecting.
+<p>User information should be configured before connecting.
+ Only the nick name can be changed after connecting.
+ Event callbacks can be added before and after connecting.
 </p>
 <dt>See Also</dt><dd>connect</dd>
 </dl>
@@ -371,6 +373,50 @@
 </table></dd>
 <dt>Note:</dt><dd>
 The current nick name can be read from the <span class="inlinecode">nick</span> property of this client.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(const(char[]) channel, const(char[]) topic)[] <a class="symbol symbol-anchor" name="onTopic" href="#onTopic">onTopic</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a channel is joined, a topic is set in a channel or when
+ the current topic was requested.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>topic</td>
+<td>topic or new topic for channel</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(const(char[]) channel, const(char[]) nick, const(char[]) time)[] <a class="symbol symbol-anchor" name="onTopicInfo" href="#onTopicInfo">onTopicInfo</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a channel is joined or when the current topic was requested.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>nick</td>
+<td>nick name of user who set the topic
+   time time the topic was set</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(const(char[]) channel, const(char[][]) names)[] <a class="symbol symbol-anchor" name="onNamesList" href="#onNamesList">onNamesList</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a channel is joined or when the user list of a channel was requested.
+ This may be invoked several times if the entire user list doesn't fit in a single message.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>names</td>
+<td>nick names of users</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(const(char[]) line)[] <a class="symbol symbol-anchor" name="onNamesListEnd" href="#onNamesListEnd">onNamesListEnd</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when the entire user list of a channel has been sent.
+ All invocations of onNamesList for channel prior to this message
+ are part of the same user list.</p>
+
 </dl>
 </div>
 </div>
