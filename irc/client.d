@@ -8,6 +8,7 @@ public import std.socket : InternetAddress;
 
 import std.exception;
 import std.algorithm;
+import std.array;
 import std.range;
 import std.string : xsformat;
 debug(Dirk) import std.stdio;
@@ -349,6 +350,43 @@ class IrcClient
 	 *   The current nick name can be read from the $(D nick) property of this client.
 	 */
 	const(char)[] delegate(in char[] newnick)[] onNickInUse;
+
+	/**
+	 * Invoked when a _channel is joined, a _topic is set in a _channel or when
+	 * the current _topic was requested.
+	 *
+	 * Params:
+	 *   channel
+	 *   topic = _topic or new _topic for channel
+	 */
+	void delegate(in char[] channel, in char[] topic)[] onTopic;
+
+	/**
+	 * Invoked when a _channel is joined or when the current _topic was requested.
+	 *
+	 * Params:
+	 *   channel
+	 *   nick = _nick name of user who set the topic
+	 *   time _time the topic was set
+	 */
+	void delegate(in char[] channel, in char[] nick, in char[] time)[] onTopicInfo;
+
+	/**
+	 * Invoked when a _channel is joined or when the user list of a _channel was requested.
+	 * This may be invoked several times if the entire user list doesn't fit in a single message.
+	 *
+	 * Params:
+	 *   channel
+	 *   names = nick _names of users
+	 */
+	void delegate(in char[] channel, in char[][] names)[] onNamesList;
+
+	/**
+	 * Invoked when the entire user list of a _channel has been sent.
+	 * All invocations of onNamesList for channel prior to this message
+	 * are part of the same user list.
+	 */
+	void delegate(in char[] channel)[] onNamesListEnd;
 	
 	protected:
 	IrcUser getUser(in char[] prefix)
@@ -396,6 +434,18 @@ class IrcClient
 				break;
 			case "NOTICE":
 				fireEvent(onNotice, getUser(line.prefix), line.arguments[0], line.arguments[1]);
+				break;
+			case "353":
+				fireEvent(onNamesList, line.arguments[2], split(line.arguments[3]));
+				break;
+			case "366":
+				fireEvent(onNamesListEnd, line.arguments[1]);
+				break;
+			case "332":
+				fireEvent(onTopic, line.arguments[1], line.arguments[2]);
+				break;
+			case "333":
+				fireEvent(onTopicInfo, line.arguments[1], line.arguments[2], line.arguments[3]);
 				break;
 			case "ERROR":
 				throw new IrcErrorException(this, line.arguments[0].idup);
