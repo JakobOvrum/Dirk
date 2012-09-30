@@ -48,10 +48,9 @@ class IrcClient
 	string m_user = "dirk";
 	string m_name = "dirk";
 	InternetAddress m_address = null;
-	
-	IrcParser parser;
-	IrcLine parsedLine;
 	char[] lineBuffer;
+	size_t lineStart = 0;
+	size_t bufferPos = 0;
 	
 	package:
 	Socket socket = null;
@@ -60,14 +59,15 @@ class IrcClient
 	/**
 	 * Create a new unconnected IRC client.
 	 *
-	 * Event callbacks can be added before connecting.
+	 * User information should be configured before connecting.
+	 * Only the nick name can be changed after connecting.
+	 * Event callbacks can be added before and after connecting.
 	 * See_Also:
 	 *   connect
 	 */
 	this()
 	{
 		lineBuffer = new char[1024];
-		parser = IrcParser(lineBuffer);
 	}
 	
 	/**
@@ -89,9 +89,9 @@ class IrcClient
 	 */
 	void read()
 	{
-		enforce(connected, new UnconnectedClientException("cannot read from an unconnected IrcClient"));
+		enforceEx!UnconnectedClientException(connected, "cannot read from an unconnected IrcClient");
 		
-		auto received = socket.receive(lineBuffer[parser.tail .. $]);
+		auto received = socket.receive(lineBuffer[bufferPos .. $]);
 		if(received == Socket.ERROR)
 		{
 			throw new Exception("socket read operation failed");
@@ -103,31 +103,11 @@ class IrcClient
 			return;
 		}
 
-		debug(Dirk_Parsing) .writeln("==== got data ====");
-		
-		while(parser.parse(received, parsedLine))
-		{
-			debug(Dirk_Parsing) .writef(`prefix: "%s" cmd: "%s" `, parsedLine.prefix, parsedLine.command);
-			debug(Dirk_Parsing) foreach(i, arg; parsedLine.arguments)
-			{
-				.writef(`arg%s: "%s" `, i, arg);
-			}
-
-			debug(Dirk_Parsing) .writeln();
-
-			handle(parsedLine);
-			parsedLine = IrcLine();
-			debug(Dirk_Parsing) .writefln(`done handling line - state: %s, head: %s tail: %s`, parser.currentState, parser.head, parser.tail);
-			received = 0; // Finish parsing the current data
-		}
-
-		if(parser.tail == lineBuffer.length)
+		if(bufferPos == lineBuffer.length)
 		{
 			throw new Exception("line too long for 1024 byte buffer");
 		}
 
-		parser.moveDown();
-		debug(Dirk_Parsing) .writefln("==== end of data, moved down (state: %s head: %s tail: %s) ====", parser.currentState, parser.head, parser.tail);
 	}
 	
 	/**
