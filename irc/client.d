@@ -9,7 +9,7 @@ public import std.socket : InternetAddress;
 import std.exception;
 import std.algorithm;
 import std.range;
-import std.string : format;
+import std.string : xsformat;
 debug(Dirk) import std.stdio;
 debug(Dirk) import std.conv;
 
@@ -133,11 +133,14 @@ class IrcClient
 		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
 		
 		static if(fmtArgs.length > 0)
-			rawline = format(rawline, fmtArgs);
+		{
+			static char[1540] buffer;
+			rawline = xsformat(buffer, rawline, fmtArgs);
+		}
 		
 		debug(Dirk) .writefln(`<< "%s"`, rawline);
 		socket.send(rawline);
-		socket.send("\r\n");
+		socket.send("\r\n"); // TODO: should be in one call to send
 	}
 	
 	/**
