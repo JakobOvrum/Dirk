@@ -8,5 +8,10 @@
 /main.d
 /test
 
+# DMD output for test files
+/*.map
+/*.obj
+/*.exe
+
 # Documentation
 /docs

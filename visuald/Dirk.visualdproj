@@ -281,6 +281,7 @@
    <File path="..\irc\cachingclient.d" />
    <File path="..\irc\client.d" />
    <File path="..\irc\clientset.d" />
+   <File path="..\irc\ctcp.d" />
    <File path="..\irc\protocol.d" />
    <File path="..\irc\testing.d" />
   </Folder>
