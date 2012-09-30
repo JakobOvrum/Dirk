@@ -28,6 +28,73 @@ class IrcParseErrorException : Exception
 	}
 }
 
+struct LineBuffer
+{
+	private:
+	char[] buffer;
+	size_t lineStart, bufferPos;
+	void delegate(in char[] line) onReceivedLine;
+
+	public:
+	this(char[] buffer, void delegate(in char[] line) onReceivedLine)
+	{
+		this.buffer = buffer;
+		this.onReceivedLine = onReceivedLine;
+	}
+
+	/// End of the current line.
+	size_t position() @property
+	{
+		return bufferPos;
+	}
+
+	/// Notify that n number of bytes have been committed after the current position.
+	/// Call with $(D n = 0) to invoke the callback for any lines that were skipped
+	/// due an exception being thrown during a previous commit.
+	void commit(size_t n)
+	{
+		auto nextBufferPos = bufferPos + n;
+
+		if(nextBufferPos == buffer.length)
+		{
+			bufferPos = nextBufferPos;
+			nextBufferPos = moveDown();
+		}
+
+		foreach(i; bufferPos .. nextBufferPos - 1)
+		{
+			if(buffer[i .. i + 2] == "\r\n")
+			{
+				auto line = buffer[lineStart .. i];
+
+				lineStart = i + 2;
+
+				// If onReceivedLine throws, we want to just skip
+				// the the current line, leaving the next lines
+				// to be parsed on the next commit.
+				bufferPos = lineStart;
+
+				onReceivedLine(line);
+			}
+		}
+
+		bufferPos = nextBufferPos;
+	}
+	
+	private:
+	size_t moveDown()
+	{
+		enforceEx!IrcParseErrorException(lineStart != 0, "line too long for buffer");
+
+		auto length = bufferPos - lineStart;
+		memmove(buffer.ptr, buffer.ptr + lineStart, length);
+		lineStart = 0;
+		bufferPos = 0;
+
+		return length;
+	}
+}
+
 // [:prefix] <command> <parameters ...> [:long parameter]
 // TODO: do something about the allocation of the argument array
 bool parse(const(char)[] raw, out IrcLine line)

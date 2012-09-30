@@ -48,9 +48,9 @@ class IrcClient
 	string m_user = "dirk";
 	string m_name = "dirk";
 	InternetAddress m_address = null;
-	char[] lineBuffer;
-	size_t lineStart = 0;
-	size_t bufferPos = 0;
+	
+	char[] buffer;
+	LineBuffer lineBuffer;
 	
 	package:
 	Socket socket = null;
@@ -67,7 +67,18 @@ class IrcClient
 	 */
 	this()
 	{
-		lineBuffer = new char[1024];
+		buffer = new char[](2048);
+
+		void onReceivedLine(in char[] rawLine)
+		{
+			debug(Dirk) .writefln(`>> "%s" pos: %s`, rawLine, lineBuffer.position);
+
+			IrcLine line;
+			assert(parse(rawLine, line));
+			handle(line);
+		}
+
+		lineBuffer = LineBuffer(buffer, &onReceivedLine);
 	}
 	
 	/**
@@ -91,7 +102,7 @@ class IrcClient
 	{
 		enforceEx!UnconnectedClientException(connected, "cannot read from an unconnected IrcClient");
 		
-		auto received = socket.receive(lineBuffer[bufferPos .. $]);
+		auto received = socket.receive(buffer[lineBuffer.position .. $]);
 		if(received == Socket.ERROR)
 		{
 			throw new Exception("socket read operation failed");
@@ -103,11 +114,7 @@ class IrcClient
 			return;
 		}
 
-		if(bufferPos == lineBuffer.length)
-		{
-			throw new Exception("line too long for 1024 byte buffer");
-		}
-
+		lineBuffer.commit(received);
 	}
 	
 	/**
