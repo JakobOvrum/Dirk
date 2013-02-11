@@ -195,15 +195,15 @@ class IrcClient
 	 */
 	string realName() const pure @property
 	{
-		return m_user;
+		return m_name;
 	}
 	
 	/// Ditto	
-	void realName(string realName) @property
+	void realName(string newRealName) @property
 	{
-		enforce(connected, "cannot change real name while connected");
-		enforce(!realName.empty);
-		m_name = realName;
+		enforce(!connected, "cannot change real name while connected");
+		enforce(!newRealName.empty);
+		m_name = newRealName;
 	}
 	
 	/**
@@ -217,11 +217,11 @@ class IrcClient
 	}
 	
 	/// Ditto
-	void userName(string userName) @property
+	void userName(string newUserName) @property
 	{
 		enforce(!connected, "cannot change user-name while connected");
-		enforce(!userName.empty);
-		m_user = userName;
+		enforce(!newUserName.empty);
+		m_user = newUserName;
 	}
 	
 	/**
@@ -237,9 +237,9 @@ class IrcClient
 	/// Ditto
 	void nick(in char[] newNick) @property
 	{
-		enforce(!nick.empty);
+		enforce(!newNick.empty);
 		if(connected) // m_nick will be set later if the nick is accepted.
-			sendfln("NICK %s", nick);
+			sendfln("NICK %s", newNick);
 		else
 			m_nick = nick.idup;
 	}
@@ -248,11 +248,11 @@ class IrcClient
 	// Duplicated to show up nicer in DDoc - previously used a template and aliases
 	void nick(string newNick) @property
 	{
-		enforce(!nick.empty);
+		enforce(!newNick.empty);
 		if(connected) // m_nick will be set later if the nick is accepted.
-			sendfln("NICK %s", nick);
+			sendfln("NICK %s", newNick);
 		else
-			m_nick = nick;
+			m_nick = newNick;
 	}
 	
 	/**
