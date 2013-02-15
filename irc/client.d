@@ -185,12 +185,13 @@ class IrcClient
 	* Params:
 	*   target = channel or nick name to _send to
 	*   fmt = message format
+	*   fmtArgs = format arguments
 	* Throws:
 	*   $(MREF UnconnectedClientException) if this client is not connected.
 	* See_Also:
 	*   $(STDREF format, formattedWrite)
 	*/
-	void sendf(FormatArgs...)(in char[] target, in char[] fmt, FormatArgs formatArgs)
+	void sendf(FormatArgs...)(in char[] target, in char[] fmt, FormatArgs fmtArgs)
 	{
 		static immutable fmtHead = "PRIVMSG %s :";
 		immutable totalLength = fmtHead.length + fmt.length;
@@ -200,7 +201,7 @@ class IrcClient
 
 		auto raw = concatBuffer[0 .. totalLength];
 
-		writef(raw, target, formatArgs);
+		writef(raw, target, fmtArgs);
 	}
 
 	/**
