@@ -150,13 +150,16 @@
 <dt>See Also</dt><dd>connect</dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3><a name="IrcClient.connect"></a>void <a class="symbol symbol-anchor" name="connect" href="#connect">connect</a>(InternetAddress <i>address</i>);
+<hr><div class="row-fluid declaration"><h3><a name="IrcClient.connect"></a>void <a class="symbol symbol-anchor" name="connect" href="#connect">connect</a>(InternetAddress <i>serverAddress</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Connect this client to a server.
 </p>
 
-<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>InternetAddress <i>address</i></td>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>InternetAddress <i>serverAddress</i></td>
 <td>address of server</td>
+</tr>
+<tr><td>type</td>
+<td>type of connection</td>
 </tr>
 </table></dd>
 </dl>
@@ -167,9 +170,9 @@
 
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3><a name="IrcClient.sendfln"></a>void <a class="symbol symbol-anchor" name="sendfln" href="#sendfln">sendfln</a>(T...)(const(char)[] <i>rawline</i>, T <i>fmtArgs</i>);
+<hr><div class="row-fluid declaration"><h3><a name="IrcClient.writef"></a>void <a class="symbol symbol-anchor" name="writef" href="#writef">writef</a>(T...)(const(char)[] <i>rawline</i>, T <i>fmtArgs</i>);
 </h3></div>
-<div class="declaration-content"><dl><p>Send a raw message to the server.
+<div class="declaration-content"><dl><p>Write a raw message to the connection stream.
 </p>
 
 <p>If there are more than one argument, then the first argument is formatted with the subsequent ones.
@@ -198,6 +201,23 @@
 </tr>
 </table></dd>
 <dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3><a name="IrcClient.sendf"></a>void <a class="symbol symbol-anchor" name="sendf" href="#sendf">sendf</a>(FormatArgs...)(in char[] <i>target</i>, in char[] <i>fmt</i>, FormatArgs <i>formatArgs</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a formatted line of chat to a channel or user.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>target</td>
+<td>channel or nick name to send to</td>
+</tr>
+<tr><td>fmt</td>
+<td>message format</td>
+</tr>
+</table></dd>
+<dt>Throws</dt><dd> if this client is not connected.
+</dd>
+<dt>See Also</dt><dd></dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.sendNotice"></a>void <a class="symbol symbol-anchor" name="sendNotice" href="#sendNotice">sendNotice</a>(in char[] <i>target</i>, in char[] <i>message</i>);
