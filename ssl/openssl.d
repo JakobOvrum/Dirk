@@ -3,6 +3,7 @@ module ssl.openssl;
 import loader.loader;
 
 import core.stdc.config;
+import core.stdc.string : strlen;
 
 struct SSL_CTX;
 struct SSL;
@@ -13,6 +14,7 @@ extern(C)
 	int function() SSL_library_init;
 	void function() OPENSSL_add_all_algorithms_noconf;
 	void function() SSL_load_error_strings;
+	int function(const SSL *ssl, int ret) SSL_get_error;
 
 	char* function(c_ulong e, char* buf) ERR_error_string;
 
@@ -36,6 +38,7 @@ void loadOpenSSL()
 
 	ssl.resolve!SSL_library_init;
 	ssl.resolve!SSL_load_error_strings;
+	ssl.resolve!SSL_get_error;
 
 	ssl.resolve!SSL_CTX_new;
 	ssl.resolve!SSLv3_client_method;
@@ -51,4 +54,41 @@ void loadOpenSSL()
 	lib.resolve!ERR_error_string;
 
 	opened = true;
+}
+
+/**
+ * Thrown if an SSL error occurs.
+ */
+class SSLException : Exception
+{
+	private:
+	int error_;
+
+	public:
+	this(string msg, int error, string file = __FILE__, size_t line = __LINE__)
+	{
+		error_ = error;
+		super(msg, file, line);
+	}
+
+	int error() @property
+	{
+		return error_;
+	}
+}
+
+int sslAssert(const SSL* ssl, int result, string file = __FILE__, size_t line = __LINE__)
+{
+	if(result < 0)
+	{
+		auto error = SSL_get_error(ssl, result);
+
+		char* zMsg = ERR_error_string(error, null);
+
+		auto msg = zMsg[0 .. strlen(zMsg)].idup;
+
+		throw new SSLException(msg, error, file, line);
+	}
+
+	return result;
 }

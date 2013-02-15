@@ -5,7 +5,7 @@ import irc.client;
 import std.socket;
 
 /**
- * A collection of IrcClient objects for efficiently handling incoming data.
+ * A collection of $(DPREF client, IrcClient) objects for efficiently handling incoming data.
  */
 struct IrcClientSet
 {
@@ -28,7 +28,7 @@ struct IrcClientSet
 	@disable this();
 	
 	/**
-	 * Create a new IrcClientSet with the specified size.
+	 * Create a new $(D IrcClientSet) with the specified size.
 	 * Params:
 	 *   max = _max numbers of clients this set can hold
 	 * Returns:
@@ -44,7 +44,7 @@ struct IrcClientSet
 	 * Params:
 	 *   client = _client to add
 	 * Throws:
-	 *   UnconnectedClientException if client is not connected.
+	 *   $(DPREF client, UnconnectedClientException) if client is not connected.
 	 */
 	void add(IrcClient client)
 	{

@@ -82,7 +82,7 @@ class IrcClient
 	 * Only the nick name can be changed after connecting.
 	 * Event callbacks can be added before and after connecting.
 	 * See_Also:
-	 *   connect
+	 *   $(MREF IrcClient.connect)
 	 */
 	this()
 	{
@@ -147,8 +147,10 @@ class IrcClient
 	 * Params:
 	 *   rawline = line to send
 	 *   fmtArgs = format arguments for the first argument
+	* See_Also:
+	*   $(STDREF format, formattedWrite)
 	 * Throws:
-	 *   UnconnectedClientException if this client is not connected.
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void writef(T...)(const(char)[] rawline, T fmtArgs)
 	{
@@ -171,7 +173,7 @@ class IrcClient
 	 *   target = channel or nick name to _send to
 	 *   message = _message to _send
 	 * Throws:
-	 *   UnconnectedClientException if this client is not connected.
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void send(in char[] target, in char[] message)
 	{
@@ -207,7 +209,7 @@ class IrcClient
 	*   target = channel or nick name to _notice
 	*   message = _message to send
 	* Throws:
-	*   UnconnectedClientException if this client is not connected.
+	*   $(MREF UnconnectedClientException) if this client is not connected.
 	*/
 	void sendNotice(in char[] target, in char[] message)
 	{
@@ -271,7 +273,7 @@ class IrcClient
 	/**
 	 * Nick name of the user for this client.
 	 *
-	 * Setting this property when connected can cause the $(D onNickInUse) event to fire.
+	 * Setting this property when connected can cause the $(MREF IrcClient.onNickInUse) event to fire.
 	 */
 	string nick() const pure @property
 	{
@@ -304,7 +306,7 @@ class IrcClient
 	 * Params:
 	 *   channel = _channel to _join
 	 * Throws:
-	 *   UnconnectedClientException if this client is not connected.
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void join(in char[] channel)
 	{
@@ -317,7 +319,7 @@ class IrcClient
 	 *   channel = _channel to _join
 	 *   key = _channel password
 	 * Throws:
-	 *   UnconnectedClientException if this client is not connected.
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void join(in char[] channel, in char[] key)
 	{
@@ -329,7 +331,7 @@ class IrcClient
 	 * Params:
 	 *   channel = _channel to leave
 	 * Throws:
-	 *   UnconnectedClientException if this client is not connected.
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void part(in char[] channel)
 	{
@@ -342,7 +344,7 @@ class IrcClient
 	 *   channel = _channel to leave
 	 *   message = parting _message
 	 * Throws:
-	 *   UnconnectedClientException if this client is not connected.
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void part(in char[] channel, in char[] message)
 	{
@@ -354,7 +356,7 @@ class IrcClient
 	 * Params:
 	 *   message = _quit _message
 	 * Throws:
-	 *   UnconnectedClientException if this client is not connected.
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void quit(in char[] message)
 	{
@@ -391,7 +393,7 @@ class IrcClient
 	 * Params:
 	 *   newnick = the nick name that was requested.
 	 * Note:
-	 *   The current nick name can be read from the $(D nick) property of this client.
+	 *   The current nick name can be read from the $(MREF IrcClient.nick) property of this client.
 	 */
 	const(char)[] delegate(in char[] newnick)[] onNickInUse;
 

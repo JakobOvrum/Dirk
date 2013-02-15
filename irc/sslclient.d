@@ -23,18 +23,24 @@ static this()
 	sslContext = SSL_CTX_new(SSLv3_client_method());
 }
 
-class SSLException : Exception
-{
-	this(string msg, Throwable next = null, string file = __FILE__, size_t line = __LINE__)
-	{
-		super(msg, file, line, next);
-	}
-}
-
+/**
+ * Represents a secure IRC client connection.
+ * See_Also:
+ *   $(DPREF client, IrcClient)
+ */
 class SslIrcClient : IrcClient
 {
 	private:
 	SSL* ssl;
+
+	public:
+
+	/**
+	* Create a new unconnected IRC client.
+	* See_Also:
+	*   $(DPREF client, IrcClient.this)
+	*/
+	this(){}
 
 	protected override:
 	Socket createConnection(InternetAddress serverAddress)
@@ -45,18 +51,20 @@ class SslIrcClient : IrcClient
 
 		SSL_set_fd(ssl, socket.handle);
 
-		enforce(SSL_connect(ssl) != -1, new SSLException("connect"));
+		sslAssert(ssl, SSL_connect(ssl));
 
 		return socket;
 	}
 
 	size_t rawRead(void[] buffer)
 	{
-		return SSL_read(ssl, buffer.ptr, buffer.length);
+		auto result = sslAssert(ssl, SSL_read(ssl, buffer.ptr, buffer.length));
+		return result;
 	}
 
 	size_t rawWrite(in void[] data)
 	{
-		return SSL_write(ssl, data.ptr, data.length);
+		auto result = sslAssert(ssl, SSL_write(ssl, data.ptr, data.length));
+		return result;
 	}
 }
