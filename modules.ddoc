@@ -1,5 +1,6 @@
 MODULES = 
 	$(MODULE irc.client)
+	$(MODULE irc.sslclient)
 	$(MODULE irc.cachingclient)
 	$(MODULE irc.clientset)
 	$(MODULE irc.protocol)
