@@ -10,9 +10,10 @@ import std.exception;
 import std.algorithm;
 import std.array;
 import std.range;
-import std.string : xsformat;
+import std.string : sformat;
 debug(Dirk) import std.stdio;
 debug(Dirk) import std.conv;
+
 
 /**
  * Thrown if the server sends an error message to the client.
@@ -52,9 +53,26 @@ class IrcClient
 	
 	char[] buffer;
 	LineBuffer lineBuffer;
-	
+
 	package:
 	Socket socket = null;
+
+	// These allow for a layered connection, e.g. SSL
+	protected:
+	Socket createConnection(InternetAddress serverAddress)
+	{
+		return new TcpSocket(serverAddress);
+	}
+
+	size_t rawRead(void[] buffer)
+	{
+		return socket.receive(buffer);
+	}
+
+	size_t rawWrite(in void[] data)
+	{
+		return socket.send(data);
+	}
 
 	public:
 	/**
@@ -85,15 +103,16 @@ class IrcClient
 	/**
 	 * Connect this client to a server.
 	 * Params:
-	 *   address = _address of server
+	 *   serverAddress = address of server
+	 *   type = _type of connection
 	 */
-	void connect(InternetAddress address)
+	void connect(InternetAddress serverAddress)
 	{
-		socket = new TcpSocket(address);
-		m_address = address;
+		socket = createConnection(serverAddress);
+		m_address = serverAddress;
 		
-		sendfln("USER %s * * :%s", userName, realName);
-		sendfln("NICK %s", nick);
+		writef("USER %s * * :%s", userName, realName);
+		writef("NICK %s", nick);
 	}
 	
 	/**
@@ -101,9 +120,9 @@ class IrcClient
 	 */
 	void read()
 	{
-		enforceEx!UnconnectedClientException(connected, "cannot read from an unconnected IrcClient");
+		enforceEx!UnconnectedClientException(connected, "cannot read from unconnected IrcClient");
 		
-		auto received = socket.receive(buffer[lineBuffer.position .. $]);
+		auto received = rawRead(buffer[lineBuffer.position .. $]);
 		if(received == Socket.ERROR)
 		{
 			throw new Exception("socket read operation failed");
@@ -117,9 +136,11 @@ class IrcClient
 
 		lineBuffer.commit(received);
 	}
+
+	static char[1540] formatBuffer, concatBuffer;
 	
 	/**
-	 * Send a raw message to the server.
+	 * Write a raw message to the connection stream.
 	 *
 	 * If there are more than one argument, then the first argument is formatted with the subsequent ones.
 	 * Arguments must not contain newlines.
@@ -129,19 +150,19 @@ class IrcClient
 	 * Throws:
 	 *   UnconnectedClientException if this client is not connected.
 	 */
-	void sendfln(T...)(const(char)[] rawline, T fmtArgs)
+	void writef(T...)(const(char)[] rawline, T fmtArgs)
 	{
 		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
 		
 		static if(fmtArgs.length > 0)
 		{
-			static char[1540] buffer;
-			rawline = xsformat(buffer, rawline, fmtArgs);
+			rawline = sformat(formatBuffer, rawline, fmtArgs);
 		}
 		
 		debug(Dirk) .writefln(`<< "%s"`, rawline);
-		socket.send(rawline);
-		socket.send("\r\n"); // TODO: should be in one call to send
+
+		rawWrite(rawline);
+		rawWrite("\r\n"); // TODO: should be in one call to send
 	}
 	
 	/**
@@ -154,7 +175,30 @@ class IrcClient
 	 */
 	void send(in char[] target, in char[] message)
 	{
-		sendfln("PRIVMSG %s :%s", target, message);
+		writef("PRIVMSG %s :%s", target, message);
+	}
+
+	/**
+	* Send a formatted line of chat to a channel or user.
+	* Params:
+	*   target = channel or nick name to _send to
+	*   fmt = message format
+	* Throws:
+	*   $(MREF UnconnectedClientException) if this client is not connected.
+	* See_Also:
+	*   $(STDREF format, formattedWrite)
+	*/
+	void sendf(FormatArgs...)(in char[] target, in char[] fmt, FormatArgs formatArgs)
+	{
+		static immutable fmtHead = "PRIVMSG %s :";
+		immutable totalLength = fmtHead.length + fmt.length;
+
+		concatBuffer[0 .. fmtHead.length] = fmtHead;
+		concatBuffer[fmtHead.length .. totalLength] = fmt;
+
+		auto raw = concatBuffer[0 .. totalLength];
+
+		writef(raw, target, formatArgs);
 	}
 
 	/**
@@ -167,7 +211,7 @@ class IrcClient
 	*/
 	void sendNotice(in char[] target, in char[] message)
 	{
-		sendfln("NOTICE %s :%s", target, message);
+		writef("NOTICE %s :%s", target, message);
 	}
 	
 	/**
@@ -239,7 +283,7 @@ class IrcClient
 	{
 		enforce(!newNick.empty);
 		if(connected) // m_nick will be set later if the nick is accepted.
-			sendfln("NICK %s", newNick);
+			writef("NICK %s", newNick);
 		else
 			m_nick = nick.idup;
 	}
@@ -250,7 +294,7 @@ class IrcClient
 	{
 		enforce(!newNick.empty);
 		if(connected) // m_nick will be set later if the nick is accepted.
-			sendfln("NICK %s", newNick);
+			writef("NICK %s", newNick);
 		else
 			m_nick = newNick;
 	}
@@ -264,7 +308,7 @@ class IrcClient
 	 */
 	void join(in char[] channel)
 	{
-		sendfln("JOIN %s", channel);
+		writef("JOIN %s", channel);
 	}
 	
 	/**
@@ -277,7 +321,7 @@ class IrcClient
 	 */
 	void join(in char[] channel, in char[] key)
 	{
-		sendfln("JOIN %s :%s", channel, key);
+		writef("JOIN %s :%s", channel, key);
 	}
 	
 	/**
@@ -289,7 +333,7 @@ class IrcClient
 	 */
 	void part(in char[] channel)
 	{
-		sendfln("PART %s", channel);
+		writef("PART %s", channel);
 	}
 	
 	/**
@@ -302,7 +346,7 @@ class IrcClient
 	 */
 	void part(in char[] channel, in char[] message)
 	{
-		sendfln("PART %s :%s", channel, message);
+		writef("PART %s :%s", channel, message);
 	}
 	
 	/**
@@ -314,7 +358,7 @@ class IrcClient
 	 */
 	void quit(in char[] message)
 	{
-		sendfln("QUIT :%s", message);
+		writef("QUIT :%s", message);
 		socket.close();
 	}
 	
@@ -408,7 +452,7 @@ class IrcClient
 		switch(line.command)
 		{
 			case "PING":
-				sendfln("PONG :%s", line.arguments[0]);
+				writef("PONG :%s", line.arguments[0]);
 				break;
 			case "433":
 				bool handled = false;
@@ -417,7 +461,7 @@ class IrcClient
 				{
 					if(auto newNick = cb(line.arguments[1]))
 					{
-						sendfln("NICK %s", newNick);
+						writef("NICK %s", newNick);
 						handled = true;
 						break;
 					}

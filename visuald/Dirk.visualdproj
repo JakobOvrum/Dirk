@@ -36,7 +36,7 @@
   <preservePaths>0</preservePaths>
   <warnings>1</warnings>
   <infowarnings>1</infowarnings>
-  <checkProperty>1</checkProperty>
+  <checkProperty>0</checkProperty>
   <genStackFrame>0</genStackFrame>
   <pic>0</pic>
   <cov>0</cov>
@@ -87,6 +87,7 @@
   <deffile />
   <resfile />
   <exefile>$(OutDir)\dirk-d.lib</exefile>
+  <useStdLibPath>1</useStdLibPath>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -128,7 +129,7 @@
   <preservePaths>0</preservePaths>
   <warnings>1</warnings>
   <infowarnings>1</infowarnings>
-  <checkProperty>1</checkProperty>
+  <checkProperty>0</checkProperty>
   <genStackFrame>0</genStackFrame>
   <pic>0</pic>
   <cov>0</cov>
@@ -174,11 +175,12 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles />
+  <libfiles>../lib/openssl.lib</libfiles>
   <libpaths />
   <deffile />
   <resfile />
   <exefile>$(OutDir)\dirk.lib</exefile>
+  <useStdLibPath>1</useStdLibPath>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -220,7 +222,7 @@
   <preservePaths>0</preservePaths>
   <warnings>1</warnings>
   <infowarnings>1</infowarnings>
-  <checkProperty>1</checkProperty>
+  <checkProperty>0</checkProperty>
   <genStackFrame>0</genStackFrame>
   <pic>0</pic>
   <cov>0</cov>
@@ -230,7 +232,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..</imppath>
+  <imppath>.. ../openssl</imppath>
   <fileImppath />
   <outdir>..\test</outdir>
   <objdir>$(OutDir)</objdir>
@@ -266,23 +268,32 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles />
+  <libfiles>../lib/openssl.lib</libfiles>
   <libpaths />
   <deffile />
   <resfile />
   <exefile>$(OutDir)\dirk_unittest.exe</exefile>
+  <useStdLibPath>1</useStdLibPath>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj</filesToClean>
  </Config>
  <Folder name="Dirk">
+  <Folder name="loader">
+   <File path="..\loader\loader.d" />
+   <File path="..\loader\windows.d" />
+  </Folder>
+  <Folder name="ssl">
+   <File path="..\ssl\openssl.d" />
+  </Folder>
   <Folder name="irc">
    <File path="..\irc\cachingclient.d" />
    <File path="..\irc\client.d" />
    <File path="..\irc\clientset.d" />
    <File path="..\irc\ctcp.d" />
    <File path="..\irc\protocol.d" />
+   <File path="..\irc\sslclient.d" />
    <File path="..\irc\testing.d" />
   </Folder>
  </Folder>
