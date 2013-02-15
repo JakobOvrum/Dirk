@@ -149,7 +149,7 @@
  Only the nick name can be changed after connecting.
  Event callbacks can be added before and after connecting.
 </p>
-<dt>See Also</dt><dd>connect</dd>
+<dt>See Also</dt><dd></dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.connect"></a>void <a class="symbol symbol-anchor" name="connect" href="#connect">connect</a>(InternetAddress <i>serverAddress</i>);
@@ -187,7 +187,9 @@
 <td>format arguments for the first argument</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>See Also</dt><dd>
+</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.send"></a>void <a class="symbol symbol-anchor" name="send" href="#send">send</a>(in char[] <i>target</i>, in char[] <i>message</i>);
@@ -202,7 +204,7 @@
 <td>message to send</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.sendf"></a>void <a class="symbol symbol-anchor" name="sendf" href="#sendf">sendf</a>(FormatArgs...)(in char[] <i>target</i>, in char[] <i>fmt</i>, FormatArgs <i>formatArgs</i>);
@@ -234,7 +236,7 @@
 <td>message to send</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.connected"></a>const @property bool <a class="symbol symbol-anchor" name="connected" href="#connected">connected</a>();
@@ -276,7 +278,7 @@
 <div class="declaration-content"><dl><p>Nick name of the user for this client.
 </p>
 
-<p>Setting this property when connected can cause the <span class="inlinecode">onNickInUse</span> event to fire.</p>
+<p>Setting this property when connected can cause the  event to fire.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.join"></a>void <a class="symbol symbol-anchor" name="join" href="#join">join</a>(in char[] <i>channel</i>);
@@ -288,7 +290,7 @@
 <td>channel to join</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.join"></a>void <a class="symbol symbol-anchor" name="join" href="#join">join</a>(in char[] <i>channel</i>, in char[] <i>key</i>);
@@ -303,7 +305,7 @@
 <td>channel password</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.part"></a>void <a class="symbol symbol-anchor" name="part" href="#part">part</a>(in char[] <i>channel</i>);
@@ -315,7 +317,7 @@
 <td>channel to leave</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.part"></a>void <a class="symbol symbol-anchor" name="part" href="#part">part</a>(in char[] <i>channel</i>, in char[] <i>message</i>);
@@ -330,7 +332,7 @@
 <td>parting message</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.quit"></a>void <a class="symbol symbol-anchor" name="quit" href="#quit">quit</a>(in char[] <i>message</i>);
@@ -342,7 +344,7 @@
 <td>quit message</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if this client is not connected.</dd>
+<dt>Throws</dt><dd> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.onConnect"></a>void delegate()[] <a class="symbol symbol-anchor" name="onConnect" href="#onConnect">onConnect</a>;
@@ -394,7 +396,7 @@
 </tr>
 </table></dd>
 <dt>Note:</dt><dd>
-The current nick name can be read from the <span class="inlinecode">nick</span> property of this client.</dd>
+The current nick name can be read from the  property of this client.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClient.onTopic"></a>void delegate(in char[] channel, in char[] topic)[] <a class="symbol symbol-anchor" name="onTopic" href="#onTopic">onTopic</a>;

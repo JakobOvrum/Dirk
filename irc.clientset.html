@@ -125,12 +125,12 @@
 <br><br>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClientSet"></a>struct <a class="symbol symbol-anchor" name="IrcClientSet" href="#IrcClientSet">IrcClientSet</a>;
 </h3></div>
-<div class="declaration-content"><dl><p>A collection of IrcClient objects for efficiently handling incoming data.</p>
+<div class="declaration-content"><dl><p>A collection of  objects for efficiently handling incoming data.</p>
 
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3><a name="IrcClientSet.create"></a>static IrcClientSet <a class="symbol symbol-anchor" name="create" href="#create">create</a>(uint <i>max</i> = 64);
 </h3></div>
-<div class="declaration-content"><dl><p>Create a new IrcClientSet with the specified size.
+<div class="declaration-content"><dl><p>Create a new <span class="inlinecode">IrcClientSet</span> with the specified size.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>uint <i>max</i></td>
@@ -149,7 +149,7 @@
 <td>client to <a class="symbol symbol-anchor" name="add" href="#add">add</a></td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd>UnconnectedClientException if <i>client</i> is not connected.</dd>
+<dt>Throws</dt><dd> if <i>client</i> is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3><a name="IrcClientSet.remove"></a>void <a class="symbol symbol-anchor" name="remove" href="#remove">remove</a>(IrcClient <i>client</i>);
