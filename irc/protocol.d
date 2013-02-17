@@ -138,25 +138,32 @@ unittest
 	
 	static InputOutput[] testData = [
 		{
-			input: "PING 123456\r\n".dup,
+			input: "PING 123456".dup,
 			output: {command: "PING", arguments: ["123456"]}
 		},
 		{
-			input: ":foo!bar@baz PRIVMSG #channel hi!\r\n".dup,
+			input: ":foo!bar@baz PRIVMSG #channel hi!".dup,
 			output: {prefix: "foo!bar@baz", command: "PRIVMSG", arguments: ["#channel", "hi!"]}
 		},
 		{
-			input: ":foo!bar@baz PRIVMSG #channel :hello, world!\r\n".dup,
+			input: ":foo!bar@baz PRIVMSG #channel :hello, world!".dup,
 			output: {prefix: "foo!bar@baz", command: "PRIVMSG", arguments: ["#channel", "hello, world!"]}
 		}
 	];
 	
 	foreach(i, test; testData)
 	{
-		scope(failure) writefln("irc.protocol.parse unittest failed, test #%s:", i + 1);
-		
 		IrcLine line;
 		bool succ = parse(test.input, line);
+
+		scope(failure)
+		{
+			writefln("irc.protocol.parse unittest failed, test #%s", i + 1);
+			writefln(`prefix: "%s"`, line.prefix);
+			writefln(`command: "%s"`, line.command);
+			writefln(`arguments: "%s"`, line.arguments);
+		}
+
 		if(test.valid)
 		{
 			assert(line.prefix == test.output.prefix);

@@ -63,7 +63,7 @@
   <doXGeneration>1</doXGeneration>
   <xfilename>$(IntDir)\$(ProjectName).json</xfilename>
   <debuglevel>0</debuglevel>
-  <debugids>Dirk</debugids>
+  <debugids />
   <versionlevel>0</versionlevel>
   <versionids />
   <dump_source>0</dump_source>
@@ -175,7 +175,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>../lib/openssl.lib</libfiles>
+  <libfiles />
   <libpaths />
   <deffile />
   <resfile />
@@ -249,7 +249,7 @@
   <doXGeneration>1</doXGeneration>
   <xfilename>$(IntDir)\$(ProjectName).json</xfilename>
   <debuglevel>0</debuglevel>
-  <debugids>Dirk</debugids>
+  <debugids />
   <versionlevel>0</versionlevel>
   <versionids>dirk_unittest</versionids>
   <dump_source>0</dump_source>
@@ -268,7 +268,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>../lib/openssl.lib</libfiles>
+  <libfiles />
   <libpaths />
   <deffile />
   <resfile />
@@ -280,13 +280,6 @@
   <filesToClean>*.obj</filesToClean>
  </Config>
  <Folder name="Dirk">
-  <Folder name="loader">
-   <File path="..\loader\loader.d" />
-   <File path="..\loader\windows.d" />
-  </Folder>
-  <Folder name="ssl">
-   <File path="..\ssl\openssl.d" />
-  </Folder>
   <Folder name="irc">
    <File path="..\irc\cachingclient.d" />
    <File path="..\irc\client.d" />
@@ -295,6 +288,13 @@
    <File path="..\irc\protocol.d" />
    <File path="..\irc\sslclient.d" />
    <File path="..\irc\testing.d" />
+  </Folder>
+  <Folder name="loader">
+   <File path="..\loader\loader.d" />
+   <File path="..\loader\windows.d" />
+  </Folder>
+  <Folder name="ssl">
+   <File path="..\ssl\openssl.d" />
   </Folder>
  </Folder>
 </DProject>

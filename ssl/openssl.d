@@ -30,8 +30,8 @@ extern(C)
 
 void loadOpenSSL()
 {
-	static bool opened = false;
-	if(opened)
+	static bool loaded = false;
+	if(loaded)
 		return;
 
 	auto ssl = DynamicLibrary("ssleay32");
@@ -53,7 +53,11 @@ void loadOpenSSL()
 	lib.resolve!OPENSSL_add_all_algorithms_noconf;
 	lib.resolve!ERR_error_string;
 
-	opened = true;
+	SSL_library_init();
+	OPENSSL_add_all_algorithms_noconf();
+	SSL_load_error_strings();
+
+	loaded = true;
 }
 
 /**

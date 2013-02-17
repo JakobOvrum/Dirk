@@ -7,20 +7,22 @@ import irc.client;
 
 import ssl.openssl;
 
-shared static this()
+version(force_ssl_load) shared static this()
 {
 	loadOpenSSL();
-
-	SSL_library_init();
-	OPENSSL_add_all_algorithms_noconf();
-	SSL_load_error_strings();
 }
 
 private SSL_CTX* sslContext;
 
-static this()
+void initSslContext()
 {
-	sslContext = SSL_CTX_new(SSLv3_client_method());
+	if(!sslContext)
+		sslContext = SSL_CTX_new(SSLv3_client_method());
+}
+
+version(force_ssl_load) static this()
+{
+	initSslContext();
 }
 
 /**
@@ -45,6 +47,9 @@ class SslIrcClient : IrcClient
 	protected override:
 	Socket createConnection(InternetAddress serverAddress)
 	{
+		loadOpenSSL();
+		initSslContext();
+
 		auto socket = new TcpSocket(serverAddress);
 
 		ssl = SSL_new(sslContext);
