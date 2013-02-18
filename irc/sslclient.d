@@ -63,13 +63,13 @@ class SslIrcClient : IrcClient
 
 	size_t rawRead(void[] buffer)
 	{
-		auto result = sslAssert(ssl, SSL_read(ssl, buffer.ptr, buffer.length));
+		auto result = sslAssert(ssl, SSL_read(ssl, buffer.ptr, cast(int)buffer.length));
 		return result;
 	}
 
 	size_t rawWrite(in void[] data)
 	{
-		auto result = sslAssert(ssl, SSL_write(ssl, data.ptr, data.length));
+		auto result = sslAssert(ssl, SSL_write(ssl, data.ptr, cast(int)data.length));
 		return result;
 	}
 }
