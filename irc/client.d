@@ -95,7 +95,10 @@ class IrcClient
 			debug(Dirk) .writefln(`>> "%s" pos: %s`, rawLine, lineBuffer.position);
 
 			IrcLine line;
-			assert(parse(rawLine, line));
+
+			auto succeeded = parse(rawLine, line);
+			assert(succeeded);
+
 			handle(line);
 		}
 
