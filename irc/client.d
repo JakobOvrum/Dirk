@@ -24,7 +24,7 @@ class IrcErrorException : Exception
 {
 	IrcClient client;
 	
-	this(IrcClient client, string message, string file = __FILE__, uint line = __LINE__)
+	this(IrcClient client, string message, string file = __FILE__, size_t line = __LINE__)
 	{
 		super(message, file, line);
 		this.client = client;
@@ -36,7 +36,7 @@ class IrcErrorException : Exception
  */
 class UnconnectedClientException : Exception
 {
-	this(string msg, string file = __FILE__, uint line = __LINE__)
+	this(string msg, string file = __FILE__, size_t line = __LINE__)
 	{
 		super(msg, file, line);
 	}
