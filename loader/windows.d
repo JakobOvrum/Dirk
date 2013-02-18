@@ -1,5 +1,7 @@
 module loader.windows;
 
+version(Windows):
+
 import core.sys.windows.windows;
 
 void* loadLibrary(in char* name)

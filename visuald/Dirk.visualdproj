@@ -291,6 +291,7 @@
   </Folder>
   <Folder name="loader">
    <File path="..\loader\loader.d" />
+   <File path="..\loader\posix.d" />
    <File path="..\loader\windows.d" />
   </Folder>
   <Folder name="ssl">

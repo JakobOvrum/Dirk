@@ -2,7 +2,7 @@ module loader.loader;
 
 version(Windows)
 	import loader.windows;
-else version(posix)
+else version(Posix)
 	import loader.posix;
 else
 	static assert(false, "unsupported platform");
