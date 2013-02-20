@@ -10,12 +10,14 @@ import std.exception;
 import std.algorithm;
 import std.array;
 import std.range;
-import std.string : sformat;
+import std.regex; // TEMP: For EOL identification
+import std.string : format, sformat;
 
-// debug=Dirk;
-debug(Dirk) import std.stdio;
+//debug=Dirk;
+debug(Dirk) static import std.stdio;
 debug(Dirk) import std.conv;
 
+enum IRC_MAX_LEN = 510;
 
 /**
  * Thrown if the server sends an error message to the client.
@@ -92,7 +94,7 @@ class IrcClient
 
 		void onReceivedLine(in char[] rawLine)
 		{
-			debug(Dirk) .writefln(`>> "%s" pos: %s`, rawLine, lineBuffer.position);
+			debug(Dirk) std.stdio.writefln(`>> "%s" pos: %s`, rawLine, lineBuffer.position);
 
 			IrcLine line;
 
@@ -121,7 +123,9 @@ class IrcClient
 	}
 	
 	/**
-	 * Read once from the socket, parse all complete messages and invoke registered callbacks. 
+	 * Read once from the socket, parse all complete messages and invoke registered callbacks.
+	 * See_Also:
+	 *   $(DPREF clientset, IrcClientSet.run)
 	 */
 	void read()
 	{
@@ -134,7 +138,7 @@ class IrcClient
 		}
 		else if(received == 0)
 		{
-			debug(Dirk) .writeln("remote ended connection");
+			debug(Dirk) std.stdio.writeln("remote ended connection");
 			socket.close();
 			return;
 		}
@@ -142,18 +146,19 @@ class IrcClient
 		lineBuffer.commit(received);
 	}
 
-	static char[1540] formatBuffer, concatBuffer;
+	static char[1540] formatBuffer;
 	
 	/**
 	 * Write a raw message to the connection stream.
 	 *
 	 * If there are more than one argument, then the first argument is formatted with the subsequent ones.
 	 * Arguments must not contain newlines.
+	 * Messages longer than 510 will be cut off.
 	 * Params:
 	 *   rawline = line to send
 	 *   fmtArgs = format arguments for the first argument
-	* See_Also:
-	*   $(STDREF format, formattedWrite)
+	 * See_Also:
+	 *   $(STDREF format, formattedWrite)
 	 * Throws:
 	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
@@ -166,27 +171,48 @@ class IrcClient
 			rawline = sformat(formatBuffer, rawline, fmtArgs);
 		}
 		
-		debug(Dirk) .writefln(`<< "%s"`, rawline);
+		debug(Dirk) std.stdio.writefln(`<< "%s" (length: %d)`, rawline, rawline.length);
 
 		rawWrite(rawline);
 		rawWrite("\r\n"); // TODO: should be in one call to send
 	}
+
+	// Takes care of splitting 'message' into multiple messages when necessary
+	private void sendMessage(string method)(in char[] target, in char[] message)
+	{
+		static linePattern = ctRegex!(`[^\r\n]+`, "g");
+
+		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2;
+
+		foreach(m; match(message, linePattern))
+		{
+			auto line = cast(const ubyte[])m.hit;
+			foreach(chunk; line.chunks(maxMsgLength))
+				writef(method ~ " %s :%s", target, cast(const char[])chunk);
+		}
+	}
 	
 	/**
-	 * Send a line of chat to a channel or user.
+	 * Send lines of chat to a channel or user.
+	 * Each line in $(D message) is sent as one message.
+	 * Lines exceeding the IRC message length limit will be
+	 * split up into multiple messages.
 	 * Params:
 	 *   target = channel or nick name to _send to
-	 *   message = _message to _send
+	 *   message = _message(s) to _send. Can contain multiple lines.
 	 * Throws:
 	 *   $(MREF UnconnectedClientException) if this client is not connected.
 	 */
 	void send(in char[] target, in char[] message)
 	{
-		writef("PRIVMSG %s :%s", target, message);
+		sendMessage!"PRIVMSG"(target, message);
 	}
 
 	/**
-	* Send a formatted line of chat to a channel or user.
+	* Send formatted lines of chat to a channel or user.
+	* Each line in $(D message) is sent as one message.
+	* Lines exceeding the IRC message length limit will be
+	* split up into multiple messages.
 	* Params:
 	*   target = channel or nick name to _send to
 	*   fmt = message format
@@ -198,28 +224,44 @@ class IrcClient
 	*/
 	void sendf(FormatArgs...)(in char[] target, in char[] fmt, FormatArgs fmtArgs)
 	{
-		static immutable fmtHead = "PRIVMSG %s :";
-		immutable totalLength = fmtHead.length + fmt.length;
-
-		concatBuffer[0 .. fmtHead.length] = fmtHead;
-		concatBuffer[fmtHead.length .. totalLength] = fmt;
-
-		auto raw = concatBuffer[0 .. totalLength];
-
-		writef(raw, target, fmtArgs);
+		// TODO: use a custom format writer that doesn't necessarily allocate
+		send(target, format(fmt, fmtArgs));
 	}
 
 	/**
-	* Send a notice to a channel or user.
-	* Params:
-	*   target = channel or nick name to _notice
-	*   message = _message to send
-	* Throws:
-	*   $(MREF UnconnectedClientException) if this client is not connected.
-	*/
-	void sendNotice(in char[] target, in char[] message)
+	 * Send notices to a channel or user.
+	 * Each line in $(D message) is sent as one notice.
+	 * Lines exceeding the IRC message length limit will be
+	 * split up into multiple notices.
+	 * Params:
+	 *   target = channel or nick name to notice
+	 *   message = notices(s) to send. Can contain multiple lines.
+	 * Throws:
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 */
+	void notice(in char[] target, in char[] message)
 	{
-		writef("NOTICE %s :%s", target, message);
+		sendMessage!"NOTICE"(target, message);
+	}
+
+	/**
+	 * Send formatted notices to a channel or user.
+	 * Each line in $(D message) is sent as one notice.
+	 * Lines exceeding the IRC message length limit will be
+	 * split up into multiple notices.
+	 * Params:
+	 *   target = channel or nick name to _send to
+	 *   fmt = message format
+	 *   fmtArgs = format arguments
+	 * Throws:
+	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 * See_Also:
+	 *   $(STDREF format, formattedWrite)
+	 */
+	void noticef(FormatArgs...)(in char[] target, in char[] fmt, FormatArgs fmtArgs)
+	{
+		// TODO: use a custom format writer that doesn't necessarily allocate
+		notice(target, format(fmt, fmtArgs));
 	}
 	
 	/**
@@ -505,7 +547,7 @@ class IrcClient
 				fireEvent(onConnect);
 				break;
 			default:
-				debug(Dirk) writefln(`Unhandled command "%s"`, line.command);
+				debug(Dirk) std.stdio.writefln(`Unhandled command "%s"`, line.command);
 				break;
 		}
 	}
