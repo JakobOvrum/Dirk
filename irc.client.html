@@ -280,7 +280,14 @@
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="ctcpQuery">&nbsp;</span><a class="symbol-link" href="#ctcpQuery">ctcpQuery</a>(in char[] <i>target</i>, in char[] <i>query</i>);
 <br>void <span class="symbol-target" id="ctcpQuery">&nbsp;</span><a class="symbol-link" href="#ctcpQuery">ctcpQuery</a>(in char[] <i>target</i>, in char[] <i>tag</i>, in char[] <i>data</i>);
 </h3></div>
-<div class="declaration-content"><dl><p>Send a CTCP <i>query</i> to a channel or user.</p>
+<div class="declaration-content"><dl><p>Send a CTCP query to a channel or user.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="ctcpReply">&nbsp;</span><a class="symbol-link" href="#ctcpReply">ctcpReply</a>(in char[] <i>targetNick</i>, in char[] <i>reply</i>);
+<br>void <span class="symbol-target" id="ctcpReply">&nbsp;</span><a class="symbol-link" href="#ctcpReply">ctcpReply</a>(in char[] <i>targetNick</i>, in char[] <i>tag</i>, in char[] <i>data</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a CTCP reply to a user.</p>
 
 </dl>
 </div>
@@ -413,9 +420,26 @@
 </table></dd>
 </dl>
 </div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] <span class="symbol-target" id="onCtcpQuery">&nbsp;</span><a class="symbol-link" href="#onCtcpQuery">onCtcpQuery</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a CTCP query is received in a message.
+ <a class="symbol-link" href="#IrcClient.onMessage"><span class="inlinecode">IrcClient.onMessage</span></a> is not invoked for the given message
+ when <span class="symbol-target" id="onCtcpQuery">&nbsp;</span><a class="symbol-link" href="#onCtcpQuery">onCtcpQuery</a> has a non-zero number of registered handlers.
+</p>
+
+<dt>Note:</dt><dd>
+This callback is only invoked when there is a CTCP message at the start
+   of the message, and any subsequent CTCP messages in the same notice are
+   discarded. To handle multiple CTCP queries in one message, use
+   <a class="symbol-link" href="#IrcClient.onMessage"><span class="inlinecode">IrcClient.onMessage</span></a> with <a href="irc.ctcp.html#ctcpExtract"><span class="inlinecode">irc.ctcp.ctcpExtract</span></a>.</dd>
+</dl>
+</div>
 <hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] target, in char[] message)[] <span class="symbol-target" id="onNotice">&nbsp;</span><a class="symbol-link" href="#onNotice">onNotice</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Invoked when a notice is picked up by the user for this client.
+ this event is not invoked when the given notice starts with a
+ CTCP message and <a class="symbol-link" href="#IrcClient.onCtcpReply"><span class="inlinecode">IrcClient.onCtcpReply</span></a> has a non-zero
+ number of registered handlers.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
@@ -426,6 +450,20 @@
    notice, or the name of the channel which the notice was sent to.</td>
 </tr>
 </table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] <span class="symbol-target" id="onCtcpReply">&nbsp;</span><a class="symbol-link" href="#onCtcpReply">onCtcpReply</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a CTCP reply is received in a notice.
+ <a class="symbol-link" href="#IrcClient.onNotice"><span class="inlinecode">IrcClient.onNotice</span></a> is not invoked for the given notice
+ when <span class="symbol-target" id="onCtcpReply">&nbsp;</span><a class="symbol-link" href="#onCtcpReply">onCtcpReply</a> has a non-zero number of registered handlers.
+</p>
+
+<dt>Note:</dt><dd>
+This callback is only invoked when there is a CTCP message at the start
+   of the notice, and any subsequent CTCP messages in the same notice are
+   discarded. To handle multiple CTCP replies in one notice, use
+   <a class="symbol-link" href="#IrcClient.onNotice"><span class="inlinecode">IrcClient.onNotice</span></a> with <a href="irc.ctcp.html#ctcpExtract"><span class="inlinecode">irc.ctcp.ctcpExtract</span></a>.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>const(char)[] delegate(in char[] newnick)[] <span class="symbol-target" id="onNickInUse">&nbsp;</span><a class="symbol-link" href="#onNickInUse">onNickInUse</a>;
