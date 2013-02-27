@@ -1,7 +1,7 @@
 /**
  * Implements the Client-To-Client Protocol (CTCP).
  * Specification:
- *   $(HTTP ctcp.doc, www.irchelp.org/irchelp/rfc/ctcpspec.html)
+ *   $(HTTP www.irchelp.org/irchelp/rfc/ctcpspec.html, ctcp.doc)
  */
 module irc.ctcp;
 
@@ -402,7 +402,7 @@ auto castRange(T, R)(R range)
 public:
 /**
  * Create a CTCP message with the given tag and data,
- * or with the tag and data provided pre-combined.
+ * or with the _tag and _data provided pre-combined.
  * Returns:
  *   Input range for producing the message
  */
@@ -442,7 +442,7 @@ unittest
 /**
  * Extract CTCP messages from IRC message.
  * Returns:
- *   Range of CTCP messages, where each message is a range for producing the message.
+ *   Range of CTCP messages, where each element is a range for producing the _message.
  */
 auto ctcpExtract(in char[] message)
 {
