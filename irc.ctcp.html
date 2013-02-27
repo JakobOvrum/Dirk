@@ -126,7 +126,7 @@
 </p>
 
 <dt>Specification:</dt><dd>
-<a href="http://<span class="symbol-target" id="ctcp">&nbsp;</span><a class="symbol-link" href="#ctcp">ctcp</a>.doc">www.irchelp.org/irchelp/rfc/ctcpspec.html</a></dd>
+<a href="http://www.irchelp.org/irchelp/rfc/ctcpspec.html"><span class="symbol-target" id="ctcp">&nbsp;</span><a class="symbol-link" href="#ctcp">ctcp</a>.doc</a></dd>
 </dl>
 <hr><div class="row-fluid declaration"><h3>auto <span class="symbol-target" id="lowQuote">&nbsp;</span><a class="symbol-link" href="#lowQuote">lowQuote</a>(Range)(Range <i>payload</i>);
 </h3></div>
@@ -164,7 +164,7 @@
 <br>auto <span class="symbol-target" id="ctcpMessage">&nbsp;</span><a class="symbol-link" href="#ctcpMessage">ctcpMessage</a>(in char[] <i>contents</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Create a CTCP message with the given <i>tag</i> and <i>data</i>,
- or with the <i>tag</i> and <i>data</i> provided pre-combined.
+ or with the tag and data provided pre-combined.
 </p>
 
 <dt>Returns</dt><dd>Input range for producing the message</dd>
@@ -175,7 +175,7 @@
 <div class="declaration-content"><dl><p>Extract CTCP messages from IRC <i>message</i>.
 </p>
 
-<dt>Returns</dt><dd>Range of CTCP messages, where each <i>message</i> is a range for producing the <i>message</i>.</dd>
+<dt>Returns</dt><dd>Range of CTCP messages, where each element is a range for producing the message.</dd>
 <b>Example:</b></dd></dl>
 </div>
 
