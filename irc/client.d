@@ -12,7 +12,7 @@ import std.algorithm;
 import std.array;
 import std.range;
 import std.regex; // TEMP: For EOL identification
-import std.string : format, sformat;
+import std.string : format, sformat, munch;
 
 //debug=Dirk;
 debug(Dirk) static import std.stdio;
@@ -266,8 +266,9 @@ class IrcClient
 	}
 
 	/**
-	 * Send a CTCP query to a channel or user.
+	 * Send a CTCP _query to a channel or user.
 	 */
+	// TODO: reuse buffer for output
 	void ctcpQuery(in char[] target, in char[] query)
 	{
 		send(target, ctcpMessage(query).array());
@@ -277,6 +278,20 @@ class IrcClient
 	void ctcpQuery(in char[] target, in char[] tag, in char[] data)
 	{
 		send(target, ctcpMessage(tag, data).array());
+	}
+	
+	/**
+	 * Send a CTCP _reply to a user.
+	 */
+	void ctcpReply(in char[] targetNick, in char[] reply)
+	{
+		notice(targetNick, ctcpMessage(reply).array());
+	}
+	
+	/// Ditto
+	void ctcpReply(in char[] targetNick, in char[] tag, in char[] data)
+	{
+		notice(targetNick, ctcpMessage(tag, data).array());
 	}
 	
 	/**
@@ -440,13 +455,42 @@ class IrcClient
 	void delegate(IrcUser user, in char[] target, in char[] message)[] onMessage;
 	
 	/**
+	 * Invoked when a CTCP query is received in a message.
+	 * $(MREF IrcClient.onMessage) is not invoked for the given message
+	 * when onCtcpQuery has a non-zero number of registered handlers.
+	 * Note:
+	 *   This callback is only invoked when there is a CTCP message at the start
+	 *   of the message, and any subsequent CTCP messages in the same notice are
+	 *   discarded. To handle multiple CTCP queries in one message, use
+	 *   $(MREF IrcClient.onMessage) with $(DPREF ctcp, ctcpExtract).
+	 *   
+	 */
+	void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] onCtcpQuery;
+	
+	/**
 	 * Invoked when a notice is picked up by the user for this client.
+	 * this event is not invoked when the given notice starts with a
+	 * CTCP message and $(MREF IrcClient.onCtcpReply) has a non-zero
+	 * number of registered handlers.
 	 * Params:
 	 *   user = _user who sent the notice
 	 *   target = notice _target. This is either the nick of this client in the case of a personal
 	 *   notice, or the name of the channel which the notice was sent to.
 	 */
 	void delegate(IrcUser user, in char[] target, in char[] message)[] onNotice;
+	
+	/**
+	 * Invoked when a CTCP reply is received in a notice.
+	 * $(MREF IrcClient.onNotice) is not invoked for the given notice
+	 * when onCtcpReply has a non-zero number of registered handlers.
+	 * Note:
+	 *   This callback is only invoked when there is a CTCP message at the start
+	 *   of the notice, and any subsequent CTCP messages in the same notice are
+	 *   discarded. To handle multiple CTCP replies in one notice, use
+	 *   $(MREF IrcClient.onNotice) with $(DPREF ctcp, ctcpExtract).
+	 *   
+	 */
+	void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] onCtcpReply;
 	
 	/**
 	 * Invoked when the requested nick name of the user for this client is already in use.
@@ -512,6 +556,37 @@ class IrcClient
 		}
 	}
 	
+	bool ctcpCheck(void delegate(IrcUser, in char[], in char[], in char[])[] event,
+	               in char[] prefix,
+	               in char[] target,
+	               in char[] message)
+	{
+		if(event.empty || message[0] != CtcpToken.delimiter)
+			return false;
+		
+		auto extractor = message.ctcpExtract();
+		
+		if(extractor.empty)
+			return false;
+		
+		// TODO: re-use buffer
+		auto ctcpMessage = cast(string)extractor.front.array();
+		auto tag = ctcpMessage.munch("^ ");
+		
+		if(!ctcpMessage.empty && ctcpMessage.front == ' ')
+			ctcpMessage.popFront();
+		
+		fireEvent(
+		    event,
+		    getUser(prefix),
+		    target,
+		    tag,
+		    ctcpMessage
+		);
+		
+		return true;
+	}
+	
 	void handle(ref IrcLine line)
 	{
 		switch(line.command)
@@ -539,10 +614,22 @@ class IrcClient
 				}
 				break;
 			case "PRIVMSG":
-				fireEvent(onMessage, getUser(line.prefix), line.arguments[0], line.arguments[1]);
+				auto prefix = line.prefix;
+				auto target = line.arguments[0];
+				auto message = line.arguments[1];
+				
+				if(!ctcpCheck(onCtcpQuery, prefix, target, message))
+					fireEvent(onMessage, getUser(prefix), target, message);
+				
 				break;
 			case "NOTICE":
-				fireEvent(onNotice, getUser(line.prefix), line.arguments[0], line.arguments[1]);
+				auto prefix = line.prefix;
+				auto target = line.arguments[0];
+				auto notice = line.arguments[1];
+				
+				if(!ctcpCheck(onCtcpReply, prefix, target, notice))
+					fireEvent(onNotice, getUser(prefix), target, notice);
+				
 				break;
 			case "353":
 				fireEvent(onNamesList, line.arguments[2], split(line.arguments[3]));

@@ -11,6 +11,12 @@ import std.range;
 import std.string;
 import std.traits;
 
+enum CtcpToken : char
+{
+	delimiter = 0x01,
+	quote = 0x10,
+}
+
 private:
 auto values(Elems...)(auto ref Elems elems) if(is(CommonType!Elems))
 {
@@ -55,12 +61,6 @@ unittest
 	    values("one", "two", "three")
 	    .joiner(" ")
 	    .array() == "one two three");
-}
-
-enum CtcpToken : char
-{
-	delimiter = 0x01,
-	quote = 0x10,
 }
 
 /**
@@ -516,7 +516,7 @@ unittest
 	auto first = ctcpMessage("FINGER").array();
 	auto second = ctcpMessage("TEST", "one\r\ntwo").array();
 	
-	auto allMsgs = "head" ~ first ~ "mid" ~ second ~ "tail";
+	auto allMsgs = cast(string)("head" ~ first ~ "mid" ~ second ~ "tail");
 	
 	auto r = allMsgs.ctcpExtract();
 	assert(!r.empty);
@@ -529,5 +529,13 @@ unittest
 	assert(r.front.array() == "TEST one\r\ntwo");
 	
 	r.popFront();
+	assert(r.empty);
+	
+	allMsgs = "test";
+	r = allMsgs.ctcpExtract();
+	assert(r.empty);
+	
+	allMsgs = "\x01test";
+	r = allMsgs.ctcpExtract();
 	assert(r.empty);
 }
