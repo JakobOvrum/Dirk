@@ -469,9 +469,6 @@ class IrcClient
 	
 	/**
 	 * Invoked when a notice is picked up by the user for this client.
-	 * this event is not invoked when the given notice starts with a
-	 * CTCP message and $(MREF IrcClient.onCtcpReply) has a non-zero
-	 * number of registered handlers.
 	 * Params:
 	 *   user = _user who sent the notice
 	 *   target = notice _target. This is either the nick of this client in the case of a personal
