@@ -1,7 +1,7 @@
 /**
  * Implements the Client-To-Client Protocol (CTCP).
  * Specification:
- *   $(HTTP www.irchelp.org/irchelp/rfc/ctcpspec.html, ctcp.doc)
+ *   $(LINK http://www.irchelp.org/irchelp/rfc/ctcpspec.html)
  */
 module irc.ctcp;
 
