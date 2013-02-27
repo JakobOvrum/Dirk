@@ -60,9 +60,9 @@
 		
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.cachingclient.html" title="irc.cachingclient"><i class="icon-th"></i>irc.cachingclient</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.clientset.html" title="irc.clientset"><i class="icon-th"></i>irc.clientset</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
 	</ul>
 	
 	<div class="navbar navbar-fixed-top">
@@ -99,9 +99,9 @@
 						
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.cachingclient.html" title="irc.cachingclient"><i class="icon-th"></i>irc.cachingclient</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.clientset.html" title="irc.clientset"><i class="icon-th"></i>irc.clientset</a></li>
 	<li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
 					</noscript>
 					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">irc.client</li>
 				</ul>
@@ -168,8 +168,10 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="read">&nbsp;</span><a class="symbol-link" href="#read">read</a>();
 </h3></div>
-<div class="declaration-content"><dl><p>Read once from the socket, parse all complete messages and invoke registered callbacks.</p>
+<div class="declaration-content"><dl><p>Read once from the socket, parse all complete messages and invoke registered callbacks.
+</p>
 
+<dt>See Also</dt><dd><a href="irc.clientset.html#IrcClientSet.run"><span class="inlinecode">irc.clientset.IrcClientSet.run</span></a></dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="writef">&nbsp;</span><a class="symbol-link" href="#writef">writef</a>(T...)(const(char)[] <i>rawline</i>, T <i>fmtArgs</i>);
@@ -179,6 +181,7 @@
 
 <p>If there are more than one argument, then the first argument is formatted with the subsequent ones.
  Arguments must not contain newlines.
+ Messages longer than 510 will be cut off.
 </p>
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>rawline</td>
 <td>line to send</td>
@@ -194,14 +197,17 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="send">&nbsp;</span><a class="symbol-link" href="#send">send</a>(in char[] <i>target</i>, in char[] <i>message</i>);
 </h3></div>
-<div class="declaration-content"><dl><p>Send a line of chat to a channel or user.
+<div class="declaration-content"><dl><p>Send lines of chat to a channel or user.
+ Each line in <span class="inlinecode"><i>message</i></span> is sent as one <i>message</i>.
+ Lines exceeding the IRC <i>message</i> length limit will be
+ split up into multiple messages.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
 <td>channel or nick name to send to</td>
 </tr>
 <tr><td>char[] <i>message</i></td>
-<td>message to send</td>
+<td>message(s) to send. Can contain multiple lines.</td>
 </tr>
 </table></dd>
 <dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
@@ -209,7 +215,10 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="sendf">&nbsp;</span><a class="symbol-link" href="#sendf">sendf</a>(FormatArgs...)(in char[] <i>target</i>, in char[] <i>fmt</i>, FormatArgs <i>fmtArgs</i>);
 </h3></div>
-<div class="declaration-content"><dl><p>Send a formatted line of chat to a channel or user.
+<div class="declaration-content"><dl><p>Send formatted lines of chat to a channel or user.
+ Each line in <span class="inlinecode">message</span> is sent as one message.
+ Lines exceeding the IRC message length limit will be
+ split up into multiple messages.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>target</td>
@@ -227,19 +236,52 @@
 <dt>See Also</dt><dd><a href="http://dlang.org/phobos/std_format.html#formattedWrite"><span class="inlinecode">std.format.formattedWrite</span></a></dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="sendNotice">&nbsp;</span><a class="symbol-link" href="#sendNotice">sendNotice</a>(in char[] <i>target</i>, in char[] <i>message</i>);
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a>(in char[] <i>target</i>, in char[] <i>message</i>);
 </h3></div>
-<div class="declaration-content"><dl><p>Send a notice to a channel or user.
+<div class="declaration-content"><dl><p>Send notices to a channel or user.
+ Each line in <span class="inlinecode"><i>message</i></span> is sent as one <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a>.
+ Lines exceeding the IRC <i>message</i> length limit will be
+ split up into multiple notices.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
-<td>channel or nick name to notice</td>
+<td>channel or nick name to <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a></td>
 </tr>
 <tr><td>char[] <i>message</i></td>
-<td>message to send</td>
+<td>notices(s) to send. Can contain multiple lines.</td>
 </tr>
 </table></dd>
 <dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="noticef">&nbsp;</span><a class="symbol-link" href="#noticef">noticef</a>(FormatArgs...)(in char[] <i>target</i>, in char[] <i>fmt</i>, FormatArgs <i>fmtArgs</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send formatted notices to a channel or user.
+ Each line in <span class="inlinecode">message</span> is sent as one notice.
+ Lines exceeding the IRC message length limit will be
+ split up into multiple notices.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>target</td>
+<td>channel or nick name to send to</td>
+</tr>
+<tr><td>fmt</td>
+<td>message format</td>
+</tr>
+<tr><td>fmtArgs</td>
+<td>format arguments</td>
+</tr>
+</table></dd>
+<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.
+</dd>
+<dt>See Also</dt><dd><a href="http://dlang.org/phobos/std_format.html#formattedWrite"><span class="inlinecode">std.format.formattedWrite</span></a></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="ctcpQuery">&nbsp;</span><a class="symbol-link" href="#ctcpQuery">ctcpQuery</a>(in char[] <i>target</i>, in char[] <i>query</i>);
+<br>void <span class="symbol-target" id="ctcpQuery">&nbsp;</span><a class="symbol-link" href="#ctcpQuery">ctcpQuery</a>(in char[] <i>target</i>, in char[] <i>tag</i>, in char[] <i>data</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a CTCP <i>query</i> to a channel or user.</p>
+
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>const @property bool <span class="symbol-target" id="connected">&nbsp;</span><a class="symbol-link" href="#connected">connected</a>();
