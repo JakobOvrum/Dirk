@@ -2,6 +2,7 @@ module irc.client;
 
 import irc.protocol;
 public import irc.protocol : IrcUser;
+import irc.ctcp;
 
 import std.socket;
 public import std.socket : InternetAddress;
@@ -262,6 +263,20 @@ class IrcClient
 	{
 		// TODO: use a custom format writer that doesn't necessarily allocate
 		notice(target, format(fmt, fmtArgs));
+	}
+
+	/**
+	 * Send a CTCP query to a channel or user.
+	 */
+	void ctcpQuery(in char[] target, in char[] query)
+	{
+		send(target, ctcpMessage(query).array());
+	}
+	
+	/// Ditto
+	void ctcpQuery(in char[] target, in char[] tag, in char[] data)
+	{
+		send(target, ctcpMessage(tag, data).array());
 	}
 	
 	/**
