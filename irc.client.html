@@ -437,9 +437,6 @@ This callback is only invoked when there is a CTCP message at the start
 <hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] target, in char[] message)[] <span class="symbol-target" id="onNotice">&nbsp;</span><a class="symbol-link" href="#onNotice">onNotice</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Invoked when a notice is picked up by the user for this client.
- this event is not invoked when the given notice starts with a
- CTCP message and <a class="symbol-link" href="#IrcClient.onCtcpReply"><span class="inlinecode">IrcClient.onCtcpReply</span></a> has a non-zero
- number of registered handlers.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
