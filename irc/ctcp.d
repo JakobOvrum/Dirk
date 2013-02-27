@@ -140,8 +140,13 @@ auto lowQuote(Range)(Range payload) if(isInputRange!Range)
 * Returns:
 *   Input range for lazily dequoting the message
 */
-auto lowDequote(R)(R quoted)
+auto lowDequote(Range)(Range quoted)
 {
+	static if(is(Range : const(char)[]))
+		alias const(ubyte)[] R;
+	else
+		alias Range R;
+	
 	static struct Dequoter
 	{
 		private:
@@ -151,23 +156,16 @@ auto lowDequote(R)(R quoted)
 		public:
 		bool empty() const pure
 		{
-			if(remaining.length == 1 && remaining[0] == CtcpToken.quote)
-				return true;
-
 			return remaining.empty;
 		}
 
-		char front() pure
+		ubyte front() pure
 		{
-			char first = remaining[0];
+			auto front = remaining.front;
 
-			wasQuote = first == CtcpToken.quote;
-			
 			if(wasQuote)
 			{
-				char next = remaining[1];
-
-				switch(next)
+				switch(front)
 				{
 					case '0':
 						return '\0';
@@ -176,20 +174,34 @@ auto lowDequote(R)(R quoted)
 					case 'n':
 						return '\n';
 					default:
-						return next;
+						break;
 				}
 			}
+			
+			return front;
+		}
+		
+		private bool skipQuote()
+		{
+			if(!remaining.empty && remaining.front == CtcpToken.quote)
+			{
+				remaining.popFront();
+				return !remaining.empty;
+			}
 			else
-				return first;
+				return false;
 		}
 
-		void popFront() pure
+		void popFront()
 		{
-			remaining = remaining[wasQuote? 2 : 1 .. $];
+			remaining.popFront();
+			wasQuote = skipQuote();
 		}
 	}
-
-	return Dequoter(quoted);
+	
+	auto dequoter = Dequoter(cast(R)quoted);
+	dequoter.wasQuote = dequoter.skipQuote();
+	return dequoter;
 }
 
 unittest
@@ -202,8 +214,8 @@ unittest
 	assert(plain.lowQuote().array() == quoted);
 	assert(quoted.lowDequote().array() == plain);
 
-	plain = "hello, \n\r\0world";
-	quoted = "hello, \x10n\x10r\x100world";
+	plain = "\rhello, \\t \n\r\0world\0";
+	quoted = "\x10rhello, \\t \x10n\x10r\x100world\x100";
 
 	assert(plain.lowQuote().array() == quoted);
 	assert(quoted.lowDequote().array() == plain);
@@ -289,8 +301,13 @@ unittest
 * Returns:
 *   Input range for lazily dequoting the message
 */
-auto ctcpDequote(R)(R quoted)
+auto ctcpDequote(Range)(Range quoted)
 {
+	static if(is(Range : const(char)[]))
+		alias const(ubyte)[] R;
+	else
+		alias Range R;
+	
 	static struct Dequoter
 	{
 		private:
@@ -300,41 +317,48 @@ auto ctcpDequote(R)(R quoted)
 		public:
 		bool empty() const pure
 		{
-			if(remaining.length == 1 && remaining[0] == CtcpToken.quote)
-				return true;
-
 			return remaining.empty;
 		}
 
 		char front() pure
 		{
-			char first = remaining[0];
-
-			wasQuote = first == '\\';
+			auto front = remaining.front;
 			
 			if(wasQuote)
 			{
-				char next = remaining[1];
-
-				switch(next)
+				switch(front)
 				{
 					case 'a':
 						return CtcpToken.delimiter;
 					default:
-						return next;
+						break;
 				}
 			}
-			else
-				return first;
+			
+			return front;
 		}
 
-		void popFront() pure
+		private bool skipQuote()
 		{
-			remaining = remaining[wasQuote? 2 : 1 .. $];
+			if(!remaining.empty && remaining.front == '\\')
+			{
+				remaining.popFront();
+				return !remaining.empty;
+			}
+			else
+				return false;
+		}
+		
+		void popFront()
+		{
+			remaining.popFront();
+			wasQuote = skipQuote();
 		}
 	}
 
-	return Dequoter(quoted);
+	auto dequoter = Dequoter(cast(R)quoted);
+	dequoter.wasQuote = dequoter.skipQuote();
+	return dequoter;
 }
 
 unittest
@@ -415,3 +439,95 @@ unittest
 	assert(msg == "\x01TEST \\\\test \\a \x10r\x10n\x100\x10\x10\x01");
 }
 
+/**
+ * Extract CTCP messages from IRC message.
+ * Returns:
+ *   Range of CTCP messages, where each message is a range for producing the message.
+ */
+auto ctcpExtract(in char[] message)
+{
+	static struct Extractor
+	{
+		const(char)[] remaining;
+		size_t frontLength;
+		
+		bool empty() const pure
+		{
+			return remaining.empty;
+		}
+		
+		auto front() const
+		{
+			return remaining[0 .. frontLength - 1]
+			    .ctcpDequote()
+			    .lowDequote();
+		}
+		
+		private size_t findStandaloneDelim() pure
+		{
+			foreach(i, char c; remaining)
+			{
+				if(c == CtcpToken.delimiter)
+				{
+					if((i > 0 && remaining[i - 1] == CtcpToken.delimiter) ||
+					   (i < remaining.length - 1 && remaining[i + 1] == CtcpToken.delimiter))
+						continue;
+					
+					return i;
+				}
+			}
+			
+			return remaining.length;
+		}
+		
+		void popFront() pure
+		{
+			remaining = remaining[frontLength .. $];
+			
+			auto even = findStandaloneDelim();
+			if(even == remaining.length)
+			{
+				remaining = null;
+				return;
+			}
+			
+			remaining = remaining[even + 1 .. $];
+			
+			auto odd = findStandaloneDelim();
+			if(odd == remaining.length)
+			{
+				remaining = null;
+				return;
+			}
+			
+			frontLength = odd + 1;
+		}
+	}
+	
+	auto extractor = Extractor(message);
+	extractor.popFront();
+	
+	return extractor;
+}
+
+unittest
+{
+	// Chain is useless...
+	auto first = ctcpMessage("FINGER").array();
+	auto second = ctcpMessage("TEST", "one\r\ntwo").array();
+	
+	auto allMsgs = "head" ~ first ~ "mid" ~ second ~ "tail";
+	
+	auto r = allMsgs.ctcpExtract();
+	assert(!r.empty);
+	
+	assert(r.front.array() == "FINGER");
+	
+	r.popFront();
+	assert(!r.empty);
+	
+	assert(r.front.array() == "TEST one\r\ntwo");
+	
+	r.popFront();
+	assert(r.empty);
+}
