@@ -47,6 +47,14 @@ class UnconnectedClientException : Exception
 	}
 }
 
+void unregisterHandler(T)(ref T[] event, T handler)
+{
+	enum strategy =
+	    is(ReturnType!T == void)? SwapStrategy.unstable : SwapStrategy.stable;
+	
+	event = event.remove!(e => e == handler, strategy);
+}
+
 /**
  * Represents an IRC client connection.
  */

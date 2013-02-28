@@ -285,9 +285,11 @@
    <File path="..\irc\client.d" />
    <File path="..\irc\clientset.d" />
    <File path="..\irc\ctcp.d" />
+   <File path="..\irc\dcc.d" />
    <File path="..\irc\protocol.d" />
    <File path="..\irc\sslclient.d" />
    <File path="..\irc\testing.d" />
+   <File path="..\irc\util.d" />
   </Folder>
   <Folder name="loader">
    <File path="..\loader\loader.d" />
