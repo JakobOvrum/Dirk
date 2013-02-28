@@ -2,7 +2,9 @@ module irc.client;
 
 import irc.protocol;
 public import irc.protocol : IrcUser;
+
 import irc.ctcp;
+import irc.util;
 
 import std.socket;
 public import std.socket : InternetAddress;
@@ -295,6 +297,17 @@ class IrcClient
 	}
 	
 	/**
+	 * Send a CTCP _error message reply.
+	 * Params:
+	 *   invalidData = data that caused the _error
+	 *   error = human-readable _error message
+	 */
+	void ctcpError(in char[] targetNick, in char[] invalidData, in char[] error)
+	{
+		notice(targetNick, ctcpMessage("ERRMSG", format("%s :%s", invalidData, error)).array());
+	}
+	
+	/**
 	 * Check if this client is _connected.
 	 * Returns:
 	 *   true if this client is _connected.
@@ -430,6 +443,18 @@ class IrcClient
 	}
 	
 	/**
+	 * Query the username and hostname of up to 5 users.
+	 * Params:
+	 *   nicks = up to 5 nick names to query
+	 * See_Also:
+	 *   $(MREF IrcClient.onUserhostReply)
+	 */
+	void queryUserhost(const(char)[][] nicks...)
+	{
+		writef("USERHOST %s", nicks.joiner(" ").castRange!char);
+	}
+	
+	/**
 	 * Leave and disconnect from the server.
 	 * Params:
 	 *   message = _quit _message
@@ -538,10 +563,17 @@ class IrcClient
 	 */
 	void delegate(in char[] channel)[] onNamesListEnd;
 	
+	/**
+	 * Invoked with the reply of a userhost query.
+	 * See_Also:
+	 *   $(MREF IrcClient.queryUserhost)
+	 */
+	void delegate(in IrcUser[] users)[] onUserhostReply;
+	
 	protected:
 	IrcUser getUser(in char[] prefix)
 	{
-		return parseUser(prefix);
+		return IrcUser.fromPrefix(prefix);
 	}
 	
 	private:
@@ -627,6 +659,12 @@ class IrcClient
 				if(!ctcpCheck(onCtcpReply, prefix, target, notice))
 					fireEvent(onNotice, getUser(prefix), target, notice);
 				
+				break;
+			case "302":
+				IrcUser[5] users;
+				auto n = IrcUser.parseUserhostReply(users, line.arguments[1]);
+				
+				fireEvent(onUserhostReply, users[0 .. n]);
 				break;
 			case "353":
 				fireEvent(onNamesList, line.arguments[2], split(line.arguments[3]));

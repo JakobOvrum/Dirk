@@ -9,7 +9,8 @@ import std.algorithm;
 import std.array;
 import std.range;
 import std.string;
-import std.traits;
+
+import irc.util;
 
 enum CtcpToken : char
 {
@@ -18,51 +19,6 @@ enum CtcpToken : char
 }
 
 private:
-auto values(Elems...)(auto ref Elems elems) if(is(CommonType!Elems))
-{
-	alias CommonType!Elems ElemType;
-
-	static struct StaticArray
-	{
-		ElemType[Elems.length] data = void;
-		size_t i = 0;
-		
-		bool empty() const
-		{
-			return i == data.length;
-		}
-		
-		ElemType front() const pure
-		{
-			return data[i];
-		}
-		
-		void popFront() pure
-		{
-			++i;
-		}
-		
-		enum length = data.length;
-	}
-	
-	StaticArray arr;
-	
-	foreach(i, ref elem; elems)
-		arr.data[i] = elem;
-	
-	return arr;
-}
-
-unittest
-{
-	import std.algorithm : joiner;
-	
-	assert(
-	    values("one", "two", "three")
-	    .joiner(" ")
-	    .array() == "one two three");
-}
-
 /**
  * Low-level quote a message.
  * Returns:
@@ -381,23 +337,6 @@ unittest
 }
 
 ubyte[] delimBuffer = [CtcpToken.delimiter];
-
-auto castRange(T, R)(R range)
-{
-	static struct Casted
-	{
-		R r;
-		
-		T front()
-		{
-			return cast(T)r.front;
-		}
-		
-		alias r this;
-	}
-	
-	return Casted(range);
-}
 
 public:
 /**

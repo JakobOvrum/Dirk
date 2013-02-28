@@ -1,5 +1,7 @@
 module irc.protocol;
 
+import std.algorithm;
+import std.array;
 import std.string;
 import std.exception;
 import core.stdc.string : memmove;
@@ -186,35 +188,70 @@ struct IrcUser
 	const(char)[] userName;
 	///
 	const(char)[] hostName;
-}
-
-/**
- * Create an IRC user from a message prefix.
- */
-IrcUser parseUser(const(char)[] prefix)
-{
-	IrcUser user;
 	
-	if(prefix !is null)
+	static:
+	/**
+	 * Create an IRC user from a message prefix.
+	 */
+	IrcUser fromPrefix(const(char)[] prefix)
 	{
-		user.nick = prefix.munch("^!");
-		if(prefix.length > 0)
+		IrcUser user;
+		
+		if(prefix !is null)
 		{
-			prefix = prefix[1..$];
-			user.userName = prefix.munch("^@");
-			prefix = prefix[1..$];
-			user.hostName = prefix;
+			user.nick = prefix.munch("^!");
+			if(prefix.length > 0)
+			{
+				prefix = prefix[1..$];
+				user.userName = prefix.munch("^@");
+				prefix = prefix[1..$];
+				user.hostName = prefix;
+			}
 		}
+		
+		return user;		
 	}
 	
-	return user;
+	/**
+	 * Create users from userhost reply.
+	 */
+	size_t parseUserhostReply(ref IrcUser[5] users, in char[] reply)
+	{
+		auto splitter = reply.splitter(" "); 
+		foreach(i, ref user; users)
+		{
+			if(splitter.empty)
+				return i;
+			
+			auto strUser = splitter.front;
+			
+			user.nick = strUser.munch("^=");
+			strUser.popFront();
+			
+			user.userName = strUser.munch("^@");
+			if(!strUser.empty)
+				strUser.popFront();
+			
+			if(user.userName[0] == '-' || user.userName[0] == '+')
+			{
+				// TODO: away stuff
+				user.userName.popFront();
+			}
+			
+			user.hostName = strUser;
+			
+			splitter.popFront();
+		}
+		
+		return 5;
+	}
 }
 
 unittest
 {
 	IrcUser user;
 	
-	user = parseUser("foo!bar@baz");
+	user = IrcUser.fromPrefix("foo!bar@baz");
 	assert(user.nick == "foo");
 	assert(user.userName == "bar");
 	assert(user.hostName == "baz");
