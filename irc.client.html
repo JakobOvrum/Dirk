@@ -166,11 +166,13 @@
 </table></dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="read">&nbsp;</span><a class="symbol-link" href="#read">read</a>();
+<hr><div class="row-fluid declaration"><h3>bool <span class="symbol-target" id="read">&nbsp;</span><a class="symbol-link" href="#read">read</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Read once from the socket, parse all complete messages and invoke registered callbacks.
 </p>
 
+<dt>Returns</dt><dd><span class="inlinecode"><span class="d_keyword">true</span></span> when the connection was closed.
+</dd>
 <dt>See Also</dt><dd><a href="irc.clientset.html#IrcClientSet.run"><span class="inlinecode">irc.clientset.IrcClientSet.run</span></a></dd>
 </dl>
 </div>
@@ -291,6 +293,20 @@
 
 </dl>
 </div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="ctcpError">&nbsp;</span><a class="symbol-link" href="#ctcpError">ctcpError</a>(in char[] <i>targetNick</i>, in char[] <i>invalidData</i>, in char[] <i>error</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a CTCP error message reply.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>invalidData</i></td>
+<td>data that caused the error</td>
+</tr>
+<tr><td>char[] <i>error</i></td>
+<td>human-readable error message</td>
+</tr>
+</table></dd>
+</dl>
+</div>
 <hr><div class="row-fluid declaration"><h3>const @property bool <span class="symbol-target" id="connected">&nbsp;</span><a class="symbol-link" href="#connected">connected</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Check if this client is connected.
@@ -385,6 +401,18 @@
 </tr>
 </table></dd>
 <dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="queryUserhost">&nbsp;</span><a class="symbol-link" href="#queryUserhost">queryUserhost</a>(const(char)[][] <i>nicks</i>...);
+</h3></div>
+<div class="declaration-content"><dl><p>Query the username and hostname of up to 5 users.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>const(char)[][] <i>nicks</i></td>
+<td>up to 5 nick names to query</td>
+</tr>
+</table></dd>
+<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.onUserhostReply"><span class="inlinecode">IrcClient.onUserhostReply</span></a></dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="quit">&nbsp;</span><a class="symbol-link" href="#quit">quit</a>(in char[] <i>message</i>);
@@ -521,6 +549,14 @@ The current nick name can be read from the <a class="symbol-link" href="#IrcClie
  All invocations of onNamesList for channel prior to this message
  are part of the same user list.</p>
 
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(in IrcUser[] users)[] <span class="symbol-target" id="onUserhostReply">&nbsp;</span><a class="symbol-link" href="#onUserhostReply">onUserhostReply</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked with the reply of a userhost query.
+</p>
+
+<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.queryUserhost"><span class="inlinecode">IrcClient.queryUserhost</span></a></dd>
 </dl>
 </div>
 </div>
