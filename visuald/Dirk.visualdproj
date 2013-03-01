@@ -280,6 +280,12 @@
   <filesToClean>*.obj</filesToClean>
  </Config>
  <Folder name="Dirk">
+  <Folder name="libev">
+   <File path="..\libev\deimos\ev.d" />
+  </Folder>
+  <Folder name="lib">
+   <File path="..\lib\ev.obj" />
+  </Folder>
   <Folder name="irc">
    <File path="..\irc\cachingclient.d" />
    <File path="..\irc\client.d" />

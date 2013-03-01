@@ -4,7 +4,20 @@ import irc.client;
 
 import std.socket;
 
+// libev is a world of pain on Windows - where it just
+// uses select() internally anyway - but it pays off on
+// other platforms.
 import deimos.ev;
+
+version(Windows)
+{
+	import core.stdc.stdint : intptr_t;
+	
+	extern(C) int _open_osfhandle(intptr_t osfhandle, int flags);
+	
+	// Dirk doesn't use this, just makes the linker happy
+	extern(C) void* _stati64;
+}
 
 /**
  * A collection of $(DPREF client, IrcClient) objects for efficiently handling incoming data.
@@ -12,33 +25,66 @@ import deimos.ev;
 struct IrcClientSet
 {
 	private:
-	IrcClient[] clients;
-	SocketSet set;
+	size_t[IrcClient] indexes;
+	ev_io[] watchers;
+	ev_loop_t* ev;
 	
-	void remove(size_t i) pure
+	ev_io* allocateWatcher()
 	{
-		clients[i] = clients[$ - 1];
-		clients.length = clients.length - 1;
+		++watchers.length;
+		return &watchers[$ - 1];
 	}
 	
-	this(SocketSet set)
+	void remove(size_t i)
 	{
-		this.set = set;
+		auto lastSlot = &watchers[$ - 1];
+		auto removeSlot = &watchers[i];
+		
+		ev_io_stop(ev, removeSlot);
+		
+		if(removeSlot != lastSlot)
+		{
+			ev_io_stop(ev, lastSlot);
+			*removeSlot = *lastSlot;
+			indexes[cast(IrcClient)removeSlot.data] = i;
+			ev_io_start(ev, removeSlot);
+		}
+		
+		--watchers.length;
+	}
+	
+	this(ev_loop_t* ev)
+	{
+		this.ev = ev;
 	}
 	
 	public:
 	@disable this();
+	@disable this(this);
+	
+	~this()
+	{
+		foreach(ref ev_io; watchers)
+			ev_io_stop(ev, &ev_io);
+		
+		watchers = null;
+		ev_loop_destroy(ev);
+	}
 	
 	/**
-	 * Create a new $(D IrcClientSet) with the specified size.
-	 * Params:
-	 *   max = _max numbers of clients this set can hold
+	 * Create a new $(D IrcClientSet).
 	 * Returns:
 	 *   New client set.
 	 */
-	static IrcClientSet create(uint max = 64)
+	static IrcClientSet create()
 	{
-		return IrcClientSet(new SocketSet(max));
+		return IrcClientSet(ev_loop_new(EVFLAG_AUTO));
+	}
+	
+	private extern(C) static void callback(ev_loop_t* ev, ev_io* io, int revents)
+	{
+		auto client = cast(IrcClient)io.data;
+		client.read();
 	}
 	
 	/**
@@ -51,14 +97,25 @@ struct IrcClientSet
 	void add(IrcClient client)
 	{
 		if(!client.connected)
-		{
 			throw new UnconnectedClientException("clients in IrcClientSet must be connected");
-		}
-		else if(!set.isSet(client.socket))
+
+		if(client in indexes)
+			return;
+		
+		auto io = allocateWatcher();
+		io.data = cast(void*)client;
+		indexes[client] = watchers.length - 1;
+		
+		version(Windows)
 		{
-			set.add(client.socket);
-			clients ~= client;
+			auto handle = _open_osfhandle(client.socket.handle, 0);
+			assert(handle != -1);
 		}
+		else
+			auto handle = client.socket.handle;
+		
+		ev_io_init(io, &callback, handle, EV_READ);
+		ev_io_start(ev, io);
 	}
 	
 	/**
@@ -68,13 +125,10 @@ struct IrcClientSet
 	 */
 	void remove(IrcClient client)
 	{
-		foreach(i, cl; clients)
+		if(auto index = client in indexes)
 		{
-			if(cl == client)
-			{
-				remove(i);
-				break;
-			}
+			indexes.remove(client);
+			remove(*index);
 		}
 	}
 	
@@ -88,32 +142,6 @@ struct IrcClientSet
 	 */
 	void run()
 	{
-		while(clients.length > 0)
-		{
-			foreach(client; clients)
-			{
-				if(!set.isSet(client.socket))
-					set.add(client.socket);
-			}
-			
-			int eventCount = Socket.select(set, null, null, null);
-			if(eventCount != 0)
-			{
-				size_t handled = 0;
-				for(size_t i = 0; i < clients.length; ++i)
-				{
-					IrcClient client = clients[i];
-					if(set.isSet(client.socket))
-					{
-						client.read();
-						if(!client.connected)
-							remove(i);
-						
-						if(++handled == eventCount)
-							break;
-					}
-				}
-			}
-		}
+		ev_run(ev, 0);
 	}
 }
