@@ -135,10 +135,12 @@ class IrcClient
 	
 	/**
 	 * Read once from the socket, parse all complete messages and invoke registered callbacks.
+	 * Returns:
+	 * $(D true) when the connection was closed.
 	 * See_Also:
 	 *   $(DPREF clientset, IrcClientSet.run)
 	 */
-	void read()
+	bool read()
 	{
 		enforceEx!UnconnectedClientException(connected, "cannot read from unconnected IrcClient");
 		
@@ -151,10 +153,11 @@ class IrcClient
 		{
 			debug(Dirk) std.stdio.writeln("remote ended connection");
 			socket.close();
-			return;
+			return true;
 		}
 
 		lineBuffer.commit(received);
+		return !connected;
 	}
 
 	static char[1540] formatBuffer;

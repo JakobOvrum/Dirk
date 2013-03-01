@@ -2,6 +2,8 @@ module irc.clientset;
 
 import irc.client;
 
+import std.array;
+import std.exception;
 import std.socket;
 
 // libev is a world of pain on Windows - where it just
@@ -22,73 +24,119 @@ version(Windows)
 /**
  * A collection of $(DPREF client, IrcClient) objects for efficiently handling incoming data.
  */
-struct IrcClientSet
+class IrcClientSet
 {
 	private:
+	static struct Watcher
+	{
+		ev_io io; // Must be first.
+		IrcClientSet set;
+		size_t index;
+		IrcClient client;
+	}
+	
+	Watcher[] watchers;
 	size_t[IrcClient] indexes;
-	ev_io[] watchers;
 	ev_loop_t* ev;
 	
-	ev_io* allocateWatcher()
+	Watcher* allocateWatcher() nothrow
 	{
 		++watchers.length;
 		return &watchers[$ - 1];
 	}
 	
-	void remove(size_t i)
+	void remove(size_t i) /+nothrow+/
 	{
 		auto lastSlot = &watchers[$ - 1];
 		auto removeSlot = &watchers[i];
 		
-		ev_io_stop(ev, removeSlot);
+		ev_io_stop(ev, &removeSlot.io);
 		
 		if(removeSlot != lastSlot)
 		{
-			ev_io_stop(ev, lastSlot);
+			ev_io_stop(ev, &lastSlot.io);
+			
 			*removeSlot = *lastSlot;
-			indexes[cast(IrcClient)removeSlot.data] = i;
-			ev_io_start(ev, removeSlot);
+			
+			indexes[removeSlot.client] = i;
+			removeSlot.index = i;
+			
+			ev_io_start(ev, &removeSlot.io);
 		}
 		
 		--watchers.length;
 	}
 	
-	this(ev_loop_t* ev)
-	{
-		this.ev = ev;
-	}
-	
 	public:
-	@disable this();
-	@disable this(this);
-	
-	~this()
-	{
-		foreach(ref ev_io; watchers)
-			ev_io_stop(ev, &ev_io);
-		
-		watchers = null;
-		ev_loop_destroy(ev);
-	}
-	
 	/**
 	 * Create a new $(D IrcClientSet).
 	 * Returns:
 	 *   New client set.
 	 */
-	static IrcClientSet create()
+	this()
 	{
-		return IrcClientSet(ev_loop_new(EVFLAG_AUTO));
+		this.ev = ev_loop_new(EVFLAG_AUTO);
+	}
+	
+	~this()
+	{
+		foreach(ref watcher; watchers)
+			ev_io_stop(ev, &watcher.io);
+
+		ev_loop_destroy(ev);
 	}
 	
 	private extern(C) static void callback(ev_loop_t* ev, ev_io* io, int revents)
 	{
-		auto client = cast(IrcClient)io.data;
-		client.read();
+		auto watcher = cast(Watcher*)io;
+		auto client = watcher.client;
+		auto set = watcher.set;
+		
+		bool wasClosed = true;
+		
+		scope(exit)
+		{
+			if(wasClosed)
+				set.remove(watcher.index);
+		}
+		
+		if(set.onError.empty) // Doesn't erase stacktrace this way
+			wasClosed = client.read();
+		else
+		{
+			try wasClosed = client.read();
+			catch(Exception e)
+			{
+				foreach(handler; set.onError)
+					handler(client, e);
+			}
+		}
 	}
 	
 	/**
-	 * Add a connected _client to the set.
+	 * Invoked when an error occurs for a client
+	 * in the set.
+	 *
+	 * If no handlers are registered,
+	 * the error will be propagated out of
+	 * $(MREF IrcClientSet.run). The client
+	 * will always be removed from the set.
+	 * Throwing from a handler is allowed but
+	 * will cause any subsequent registered handlers
+	 * not to be called.
+	 */
+	void delegate(IrcClient, Exception)[] onError;
+	
+	/**
+	 * Add a connected _client to the set, or do nothing
+	 * if the _client is already in the set.
+	 *
+	 * The _client is automatically removed
+	 * if it is disconnected inside an event
+	 * callback registered on the the _client.
+	 * If the _client is disconnected outside
+	 * the event loop, it is the caller's
+	 * responsibility to call $(MREF IrcClientSet.remove).
 	 * Params:
 	 *   client = _client to add
 	 * Throws:
@@ -96,14 +144,15 @@ struct IrcClientSet
 	 */
 	void add(IrcClient client)
 	{
-		if(!client.connected)
-			throw new UnconnectedClientException("clients in IrcClientSet must be connected");
+		enforceEx!UnconnectedClientException(
+		    client.connected, "client to be added must be connected");
 
 		if(client in indexes)
 			return;
 		
-		auto io = allocateWatcher();
-		io.data = cast(void*)client;
+		auto watcher = allocateWatcher();
+		watcher.set = this;
+		watcher.client = client;
 		indexes[client] = watchers.length - 1;
 		
 		version(Windows)
@@ -114,8 +163,8 @@ struct IrcClientSet
 		else
 			auto handle = client.socket.handle;
 		
-		ev_io_init(io, &callback, handle, EV_READ);
-		ev_io_start(ev, io);
+		ev_io_init(&watcher.io, &callback, handle, EV_READ);
+		ev_io_start(ev, &watcher.io);
 	}
 	
 	/**
