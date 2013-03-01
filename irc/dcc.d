@@ -213,12 +213,14 @@ class DccServer
 	{
 		enforce(client.connected, "client must be connected before using DCC CHAT");
 		
+		/+
 		auto listener = allocatePort();
 		
 		client.ctcpQuery(nick, "DCC",
 		    format("CHAT chat %d %d", clientAddress, listener.port));
 		
 		listener.listen(1);
+		+/
 	}
 }
 
