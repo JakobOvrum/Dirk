@@ -4,6 +4,8 @@ import irc.client;
 
 import std.socket;
 
+import deimos.ev;
+
 /**
  * A collection of $(DPREF client, IrcClient) objects for efficiently handling incoming data.
  */
