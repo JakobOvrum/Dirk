@@ -31,41 +31,11 @@ class IrcClientSet
 	{
 		ev_io io; // Must be first.
 		IrcClientSet set;
-		size_t index;
 		IrcClient client;
 	}
 	
-	Watcher[] watchers;
-	size_t[IrcClient] indexes;
+	Watcher[IrcClient] watchers;
 	ev_loop_t* ev;
-	
-	Watcher* allocateWatcher() nothrow
-	{
-		++watchers.length;
-		return &watchers[$ - 1];
-	}
-	
-	void remove(size_t i) /+nothrow+/
-	{
-		auto lastSlot = &watchers[$ - 1];
-		auto removeSlot = &watchers[i];
-		
-		ev_io_stop(ev, &removeSlot.io);
-		
-		if(removeSlot != lastSlot)
-		{
-			ev_io_stop(ev, &lastSlot.io);
-			
-			*removeSlot = *lastSlot;
-			
-			indexes[removeSlot.client] = i;
-			removeSlot.index = i;
-			
-			ev_io_start(ev, &removeSlot.io);
-		}
-		
-		--watchers.length;
-	}
 	
 	public:
 	/**
@@ -80,7 +50,7 @@ class IrcClientSet
 	
 	~this()
 	{
-		foreach(ref watcher; watchers)
+		foreach(_, ref watcher; watchers)
 			ev_io_stop(ev, &watcher.io);
 
 		ev_loop_destroy(ev);
@@ -97,7 +67,7 @@ class IrcClientSet
 		scope(exit)
 		{
 			if(wasClosed)
-				set.remove(watcher.index);
+				set.remove(client);
 		}
 		
 		if(set.onError.empty) // Doesn't erase stacktrace this way
@@ -147,13 +117,13 @@ class IrcClientSet
 		enforceEx!UnconnectedClientException(
 		    client.connected, "client to be added must be connected");
 
-		if(client in indexes)
+		if(client in watchers)
 			return;
 		
-		auto watcher = allocateWatcher();
+		watchers[client] = Watcher();
+		auto watcher = client in watchers;
 		watcher.set = this;
 		watcher.client = client;
-		indexes[client] = watchers.length - 1;
 		
 		version(Windows)
 		{
@@ -174,10 +144,10 @@ class IrcClientSet
 	 */
 	void remove(IrcClient client)
 	{
-		if(auto index = client in indexes)
+		if(auto watcher = client in watchers)
 		{
-			indexes.remove(client);
-			remove(*index);
+			ev_io_stop(ev, &watcher.io);
+			watchers.remove(client);
 		}
 	}
 	
