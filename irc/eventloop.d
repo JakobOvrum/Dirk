@@ -125,7 +125,7 @@ class IrcEventLoop
 	 *
 	 * If no handlers are registered,
 	 * the error will be propagated out of
-	 * $(MREF IrcClientSet.run). The client
+	 * $(MREF IrcEventLoop.run). The client
 	 * will always be removed from the set.
 	 * Throwing from a handler is allowed but
 	 * will cause any subsequent registered handlers
@@ -143,11 +143,11 @@ class IrcEventLoop
 	 * callback registered on the the _client.
 	 * If the _client is disconnected outside
 	 * the event loop, it is the caller's
-	 * responsibility to call $(MREF IrcClientSet.remove).
+	 * responsibility to call $(MREF IrcEventLoop.remove).
 	 * Params:
-	 *   client = _client to add
+	 *   client = _client to _add
 	 * Throws:
-	 *   $(DPREF client, UnconnectedClientException) if client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if client is not connected.
 	 */
 	void add(IrcClient client)
 	{
@@ -257,7 +257,7 @@ class IrcEventLoop
 	/**
 	 * Remove a _client from the set, or do nothing if the _client is not in the set.
 	 * Params:
-	 *   client = _client to remove
+	 *   client = _client to _remove
 	 */
 	void remove(IrcClient client)
 	{

@@ -129,7 +129,7 @@ class IrcClient
 	 * Returns:
 	 * $(D true) when the connection was closed.
 	 * See_Also:
-	 *   $(DPREF clientset, IrcClientSet.run)
+	 *   $(DPREF eventloop, IrcEventLoop.run)
 	 */
 	bool read()
 	{

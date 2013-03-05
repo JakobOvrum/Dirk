@@ -20,14 +20,13 @@ else version(posix)
 else
 	static assert(false, "ffff");
 
-///
 enum DccChatType
 {
 	plain, ///
 	secure ///
 }
 
-///
+/// Thrown when a DCC error occurs.
 class DccException : Exception
 {
 	this(string msg, Throwable next = null, string file = __FILE__, size_t line = __LINE__)
@@ -36,7 +35,9 @@ class DccException : Exception
 	}
 }
 
-///
+/**
+ * Hub for new DCC connections.
+ */
 class DccServer
 {
 	private:
@@ -119,13 +120,13 @@ class DccServer
 	public:
 	/**
 	 * Create a new DCC server given the event loop
-	 * and IRC client to be associated with this
+	 * and IRC _client to be associated with this
 	 * server.
 	 *
 	 * The event loop is used to schedule reads and
 	 * writes for open DCC connections.
 	 *
-	 * The associated IRC client is used to send
+	 * The associated IRC _client is used to send
 	 * DCC/CTCP notifications as well as to look up
 	 * the Internet address to advertise for this
 	 * server.
@@ -261,6 +262,7 @@ class DccServer
 	}
 }
 
+/// Represents a DCC connection.
 abstract class DccConnection
 {
 	public:
@@ -282,7 +284,6 @@ abstract class DccConnection
 	package:
 	Socket socket; // Refers to either a server or client
 	DccEventIndex eventIndex;
-	immutable uint timeout;
 	
 	enum Event { none, connectionEstablished, finished }
 	
@@ -341,7 +342,7 @@ abstract class DccConnection
 	
 	protected:
 	/**
-	 * Initialize a DCC resource with the given socket and state.
+	 * Initialize a DCC resource with the given _socket, timeout value and state.
 	 */
 	this(Socket socket, uint timeout, State initialState)
 	{
@@ -369,11 +370,14 @@ abstract class DccConnection
 	abstract void onDisconnected();
 	
 	/**
-	 * Invoked when data was received.
+	 * Invoked when _data was received.
 	 */
 	abstract bool onRead(in void[] data);
 	
 	public:
+	/// The _timeout value of this connection in seconds.
+	immutable uint timeout;
+	
 	/// Name of this resource.
 	abstract string name() @property;
 	
@@ -383,7 +387,7 @@ abstract class DccConnection
 	void delegate(Exception e)[] onError;
 	
 	/**
-	 * Invoked when a listening connection times out.
+	 * Invoked when a listening connection has timed out.
 	 */
 	 void delegate()[] onTimeout;
 }
@@ -460,7 +464,7 @@ class DccChat : DccConnection
 	/**
 	 * Send a single chat _message.
 	 * Params:
-	 *   message = _message to send. Must not contain newlines.
+	 *   message = _message to _send. Must not contain newlines.
 	 */
 	void send(in char[] message)
 	{
@@ -472,7 +476,7 @@ class DccChat : DccConnection
 	 * Send a single, formatted chat message.
 	 * Params:
 	 *   fmt = format of message to send. Must not contain newlines.
-	 *   fmtArgs = fmt is formatted with these arguments.
+	 *   fmtArgs = $(D fmt) is formatted with these arguments.
 	 * See_Also:
 	 *   $(STDREF format, formattedWrite)
 	 */
@@ -483,8 +487,8 @@ class DccChat : DccConnection
 	}
 	
 	/**
-	 * Send chat messages.
-	 * Each message must be terminated with the sequence $(D \n).
+	 * Send chat _messages.
+	 * Each message must be terminated with the character $(D \n).
 	 */
 	void sendMultiple(in char[] messages)
 	{
