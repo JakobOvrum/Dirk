@@ -1,8 +1,13 @@
 /// Utilities not related to IRC.
 module irc.util;
 
+import core.exception : OutOfMemoryError;
+import core.stdc.stdlib : malloc, free;
+
 import std.algorithm;
 import std.array;
+import std.conv : emplace;
+import std.exception;
 import std.range;
 import std.traits;
 
@@ -64,4 +69,17 @@ auto castRange(T, R)(R range)
 	}
 	
 	return Casted(range);
+}
+
+T* alloc(T)()
+{
+	auto p = malloc(T.sizeof);
+	enforceEx!OutOfMemoryError(p);
+	auto block = p[0 .. T.sizeof];
+	return emplace!T(block);
+}
+
+void dealloc(T)(T* p)
+{
+	free(p);
 }

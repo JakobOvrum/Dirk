@@ -1,5 +1,7 @@
 module irc.client;
 
+import irc.exception;
+import irc.linebuffer;
 import irc.protocol;
 public import irc.protocol : IrcUser;
 
@@ -16,7 +18,7 @@ import std.range;
 import std.regex; // TEMP: For EOL identification
 import std.string : format, sformat, munch;
 
-//debug=Dirk;
+debug=Dirk;
 debug(Dirk) static import std.stdio;
 debug(Dirk) import std.conv;
 
@@ -33,17 +35,6 @@ class IrcErrorException : Exception
 	{
 		super(message, file, line);
 		this.client = client;
-	}
-}
-
-/**
- * Thrown if an unconnected client was passed when a connected client was expected.
- */
-class UnconnectedClientException : Exception
-{
-	this(string msg, string file = __FILE__, size_t line = __LINE__)
-	{
-		super(msg, file, line);
 	}
 }
 
@@ -167,7 +158,7 @@ class IrcClient
 	 *
 	 * If there are more than one argument, then the first argument is formatted with the subsequent ones.
 	 * Arguments must not contain newlines.
-	 * Messages longer than 510 will be cut off.
+	 * Messages longer than 510 characters (UTF-8 code units) will be cut off.
 	 * Params:
 	 *   rawline = line to send
 	 *   fmtArgs = format arguments for the first argument
@@ -208,8 +199,8 @@ class IrcClient
 	
 	/**
 	 * Send lines of chat to a channel or user.
-	 * Each line in $(D message) is sent as one message.
-	 * Lines exceeding the IRC message length limit will be
+	 * Each line in $(D message) is sent as one _message.
+	 * Lines exceeding the IRC _message length limit will be
 	 * split up into multiple messages.
 	 * Params:
 	 *   target = channel or nick name to _send to
@@ -244,11 +235,11 @@ class IrcClient
 
 	/**
 	 * Send notices to a channel or user.
-	 * Each line in $(D message) is sent as one notice.
-	 * Lines exceeding the IRC message length limit will be
+	 * Each line in $(D message) is sent as one _notice.
+	 * Lines exceeding the IRC _message length limit will be
 	 * split up into multiple notices.
 	 * Params:
-	 *   target = channel or nick name to notice
+	 *   target = channel or nick name to _notice
 	 *   message = notices(s) to send. Can contain multiple lines.
 	 * Throws:
 	 *   $(MREF UnconnectedClientException) if this client is not connected.
@@ -320,8 +311,6 @@ class IrcClient
 	
 	/**
 	 * Check if this client is _connected.
-	 * Returns:
-	 *   true if this client is _connected.
 	 */
 	bool connected() const @property
 	{
@@ -329,7 +318,8 @@ class IrcClient
 	}
 	
 	/**
-	 * Address of the server currently connected to, or null if this client is not connected.
+	 * Address of the server this client is currently connected to,
+	 * or null if this client is not connected.
 	 */
 	inout(InternetAddress) serverAddress() inout pure @property
 	{

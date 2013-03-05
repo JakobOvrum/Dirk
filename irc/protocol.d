@@ -1,10 +1,12 @@
 module irc.protocol;
 
+import irc.exception;
+import irc.linebuffer;
+
 import std.algorithm;
 import std.array;
 import std.string;
 import std.exception;
-import core.stdc.string : memmove;
 
 /**
  * Structure representing a parsed IRC message.
@@ -17,84 +19,6 @@ struct IrcLine
 	const(char)[] command;
 	///
 	const(char)[][] arguments;
-}
-
-/**
- * Thrown when an error occured parsing an IRC message.
- */
-class IrcParseErrorException : Exception
-{
-	this(string msg, string file = __FILE__, size_t line = __LINE__)
-	{
-		super(msg, file, line);
-	}
-}
-
-struct LineBuffer
-{
-	private:
-	char[] buffer;
-	size_t lineStart, bufferPos;
-	void delegate(in char[] line) onReceivedLine;
-
-	public:
-	this(char[] buffer, void delegate(in char[] line) onReceivedLine)
-	{
-		this.buffer = buffer;
-		this.onReceivedLine = onReceivedLine;
-	}
-
-	/// End of the current line.
-	size_t position() @property
-	{
-		return bufferPos;
-	}
-
-	/// Notify that n number of bytes have been committed after the current position.
-	/// Call with $(D n = 0) to invoke the callback for any lines that were skipped
-	/// due an exception being thrown during a previous commit.
-	void commit(size_t n)
-	{
-		auto nextBufferPos = bufferPos + n;
-
-		if(nextBufferPos == buffer.length)
-		{
-			bufferPos = nextBufferPos;
-			nextBufferPos = moveDown();
-		}
-
-		foreach(i; bufferPos .. nextBufferPos - 1)
-		{
-			if(buffer[i .. i + 2] == "\r\n")
-			{
-				auto line = buffer[lineStart .. i];
-
-				lineStart = i + 2;
-
-				// If onReceivedLine throws, we want to just skip
-				// the the current line, leaving the next lines
-				// to be parsed on the next commit.
-				bufferPos = lineStart;
-
-				onReceivedLine(line);
-			}
-		}
-
-		bufferPos = nextBufferPos;
-	}
-	
-	private:
-	size_t moveDown()
-	{
-		enforceEx!IrcParseErrorException(lineStart != 0, "line too long for buffer");
-
-		auto length = bufferPos - lineStart;
-		memmove(buffer.ptr, buffer.ptr + lineStart, length);
-		lineStart = 0;
-		bufferPos = 0;
-
-		return length;
-	}
 }
 
 // [:prefix] <command> <parameters ...> [:long parameter]
@@ -216,7 +140,7 @@ struct IrcUser
 	 * Create users from userhost reply.
 	 */
 	size_t parseUserhostReply(ref IrcUser[5] users, in char[] reply)
-	{
+	{	
 		auto splitter = reply.splitter(" "); 
 		foreach(i, ref user; users)
 		{
@@ -224,6 +148,9 @@ struct IrcUser
 				return i;
 			
 			auto strUser = splitter.front;
+			
+			if(strUser.strip.empty) // ???
+				return i;
 			
 			user.nick = strUser.munch("^=");
 			strUser.popFront();

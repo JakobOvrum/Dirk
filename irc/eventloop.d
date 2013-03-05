@@ -1,6 +1,9 @@
-module irc.clientset;
+module irc.eventloop;
 
 import irc.client;
+import irc.dcc : DccConnection;
+import irc.exception;
+import irc.util : alloc, dealloc;
 
 import std.array;
 import std.exception;
@@ -15,33 +18,55 @@ version(Windows)
 {
 	import core.stdc.stdint : intptr_t;
 	
-	extern(C) int _open_osfhandle(intptr_t osfhandle, int flags);
+	extern(C) int _open_osfhandle(intptr_t osfhandle, int flags) nothrow;
 	
 	// Dirk doesn't use this, just makes the linker happy
 	extern(C) void* _stati64;
 }
 
+private int getHandle(Socket socket)
+{
+	version(Windows)
+	{
+		auto handle = _open_osfhandle(socket.handle, 0);
+		assert(handle != -1);
+	}
+	else
+		auto handle = socket.handle;
+	
+	return handle;
+}
+
+//package alias IrcEventLoop.DccWatcher* DccEventIndex; // DMD bug?
+package alias void* DccEventIndex;
+
 /**
  * A collection of $(DPREF client, IrcClient) objects for efficiently handling incoming data.
  */
-class IrcClientSet
+class IrcEventLoop
 {
 	private:
 	static struct Watcher
 	{
 		ev_io io; // Must be first.
-		IrcClientSet set;
-		IrcClient client;
+		IrcEventLoop eventLoop;
 	}
 	
-	Watcher[IrcClient] watchers;
+	static struct DccWatcher
+	{
+		Watcher watcher;
+		alias watcher this;
+		
+		DccWatcher* _next, _prev;
+	}
+	
 	ev_loop_t* ev;
+	Watcher[IrcClient] watchers;
+	DccWatcher* dccWatchers;
 	
 	public:
 	/**
-	 * Create a new $(D IrcClientSet).
-	 * Returns:
-	 *   New client set.
+	 * Create a new event loop.
 	 */
 	this()
 	{
@@ -54,30 +79,38 @@ class IrcClientSet
 			ev_io_stop(ev, &watcher.io);
 
 		ev_loop_destroy(ev);
+		
+		for(auto watcher = dccWatchers; watcher != null;)
+		{
+			ev_io_stop(ev, &watcher.io);
+			
+			auto next = watcher._next;
+			dealloc(watcher);
+			watcher = next;
+		}
 	}
 	
 	private extern(C) static void callback(ev_loop_t* ev, ev_io* io, int revents)
 	{
-		auto watcher = cast(Watcher*)io;
-		auto client = watcher.client;
-		auto set = watcher.set;
+		auto client = cast(IrcClient)io.data;
+		auto eventLoop = (cast(Watcher*)io).eventLoop;
 		
 		bool wasClosed = true;
 		
 		scope(exit)
 		{
 			if(wasClosed)
-				set.remove(client);
+				eventLoop.remove(client);
 		}
 		
-		if(set.onError.empty) // Doesn't erase stacktrace this way
+		if(eventLoop.onError.empty) // Doesn't erase stacktrace this way
 			wasClosed = client.read();
 		else
 		{
 			try wasClosed = client.read();
 			catch(Exception e)
 			{
-				foreach(handler; set.onError)
+				foreach(handler; eventLoop.onError)
 					handler(client, e);
 			}
 		}
@@ -122,19 +155,79 @@ class IrcClientSet
 		
 		watchers[client] = Watcher();
 		auto watcher = client in watchers;
-		watcher.set = this;
-		watcher.client = client;
+		watcher.io.data = cast(void*)client;
+		watcher.eventLoop = this;
 		
-		version(Windows)
-		{
-			auto handle = _open_osfhandle(client.socket.handle, 0);
-			assert(handle != -1);
-		}
-		else
-			auto handle = client.socket.handle;
-		
-		ev_io_init(&watcher.io, &callback, handle, EV_READ);
+		ev_io_init(&watcher.io, &callback, getHandle(client.socket), EV_READ);
 		ev_io_start(ev, &watcher.io);
+	}
+	
+	/*
+	 * DCC events
+	 */
+	private extern(C) static void dccCallback(ev_loop_t* ev, ev_io* io, int revents)
+	{	
+		auto dcc = cast(DccConnection)io.data;
+		auto eventLoop = (cast(DccWatcher*)io).eventLoop;
+		
+		DccConnection.Event dccEvent;
+		
+		try dccEvent = dcc.read();
+		catch(Exception e)
+		{
+			eventLoop.remove(dcc.eventIndex);
+			
+			foreach(callback; dcc.onError)
+				callback(e);
+			
+			return;
+		}
+		
+		final switch(dccEvent) with(DccConnection.Event)
+		{
+			case none:
+				break;
+			case connectionEstablished: // dcc.socket should now contain client
+				ev_io_stop(ev, io);
+				ev_io_set(io, getHandle(dcc.socket), EV_READ);
+				ev_io_start(ev, io);
+				break;
+			case finished:
+				eventLoop.remove(dcc.eventIndex);
+				break;
+		}
+	}
+	
+	package DccEventIndex add(DccConnection conn)
+	{
+		auto watcher = alloc!DccWatcher();
+		watcher.io.data = cast(void*)conn;
+		watcher.eventLoop = this;
+
+		ev_io_init(&watcher.io, &dccCallback, getHandle(conn.socket), EV_READ);
+		ev_io_start(ev, &watcher.io);
+		
+		auto prevHead = dccWatchers;
+		dccWatchers = watcher;
+		watcher._next = prevHead;
+		
+		if(prevHead) prevHead._prev = watcher;
+		
+		return watcher;
+	}
+	
+	package void remove(DccEventIndex dccEvent)
+	{
+		DccWatcher* watcher = cast(DccWatcher*)dccEvent;
+		
+		auto prev = watcher._prev;
+		auto next = watcher._next;
+		
+		ev_io_stop(ev, &watcher.io);
+		dealloc(watcher);
+		
+		if(prev) prev._next = next;
+		if(next) next._prev = prev;
 	}
 	
 	/**
