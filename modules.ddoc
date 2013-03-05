@@ -1,6 +1,8 @@
 MODULES = 
-	$(MODULE irc.client)
-	$(MODULE irc.sslclient)
-	$(MODULE irc.clientset)
-	$(MODULE irc.protocol)
+    $(MODULE irc.client)
+    $(MODULE irc.sslclient)
+    $(MODULE irc.eventloop)
+    $(MODULE irc.protocol)
+    $(MODULE irc.exception)
     $(MODULE irc.ctcp)
+    $(MODULE irc.dcc)
