@@ -57,6 +57,9 @@ class IrcEventLoop
 		Watcher watcher;
 		alias watcher this;
 		
+		ev_timer timeoutTimer;
+		ubyte[4] _padding; // emplace??
+		
 		DccWatcher* _next, _prev;
 	}
 	
@@ -126,7 +129,8 @@ class IrcEventLoop
 	 * will always be removed from the set.
 	 * Throwing from a handler is allowed but
 	 * will cause any subsequent registered handlers
-	 * not to be called.
+	 * not to be called and the exception will
+	 * keep propagating.
 	 */
 	void delegate(IrcClient, Exception)[] onError;
 	
@@ -168,7 +172,8 @@ class IrcEventLoop
 	private extern(C) static void dccCallback(ev_loop_t* ev, ev_io* io, int revents)
 	{	
 		auto dcc = cast(DccConnection)io.data;
-		auto eventLoop = (cast(DccWatcher*)io).eventLoop;
+		auto watcher = cast(DccWatcher*)io;
+		auto eventLoop = watcher.eventLoop;
 		
 		DccConnection.Event dccEvent;
 		
@@ -188,6 +193,7 @@ class IrcEventLoop
 			case none:
 				break;
 			case connectionEstablished: // dcc.socket should now contain client
+				ev_timer_stop(ev, &watcher.timeoutTimer);
 				ev_io_stop(ev, io);
 				ev_io_set(io, getHandle(dcc.socket), EV_READ);
 				ev_io_start(ev, io);
@@ -198,19 +204,34 @@ class IrcEventLoop
 		}
 	}
 	
+	private extern(C) static void dccTimeout(ev_loop_t* ev, ev_timer* timer, int revents)
+	{
+		auto dcc = cast(DccConnection)timer.data;
+		auto watcher = cast(DccWatcher*)dcc.eventIndex;
+		auto eventLoop = watcher.eventLoop;
+		
+		scope(exit) eventLoop.remove(watcher);
+		
+		dcc.doTimeout();
+	}
+	
 	package DccEventIndex add(DccConnection conn)
 	{
 		auto watcher = alloc!DccWatcher();
 		watcher.io.data = cast(void*)conn;
+		watcher.timeoutTimer.data = cast(void*)conn;
 		watcher.eventLoop = this;
 
 		ev_io_init(&watcher.io, &dccCallback, getHandle(conn.socket), EV_READ);
 		ev_io_start(ev, &watcher.io);
 		
+		ev_timer_init(&watcher.timeoutTimer, &dccTimeout, conn.timeout, 0);
+		ev_timer_start(ev, &watcher.timeoutTimer);
+		
 		auto prevHead = dccWatchers;
 		dccWatchers = watcher;
-		watcher._next = prevHead;
 		
+		watcher._next = prevHead;
 		if(prevHead) prevHead._prev = watcher;
 		
 		return watcher;
@@ -228,6 +249,9 @@ class IrcEventLoop
 		
 		if(prev) prev._next = next;
 		if(next) next._prev = prev;
+		
+		if(dccWatchers == watcher)
+			dccWatchers = null;
 	}
 	
 	/**

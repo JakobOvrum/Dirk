@@ -6,7 +6,6 @@ import std.exception;
 import std.random : uniform;
 import std.range;
 import std.socket;
-import std.stdio;
 import std.typecons;
 
 import irc.protocol;
@@ -207,7 +206,7 @@ class DccServer
 		lastPort = uniform(portStart, portEnd);
 	}
 	
-	/**
+	/+/**
 	 * Send a resource (typically a file) to the given user.
 	 *
 	 * The associated IRC client must be connected.
@@ -223,16 +222,20 @@ class DccServer
 		    resource.name, clientAddress, port, len);
 		
 		client.ctcpQuery(nick, "DCC", query);
-	}
+	}+/
 	
 	/**
 	 * Invite the given user to a DCC chat session.
 	 *
 	 * The associated IRC client must be connected.
+	 * Params:
+	 *   nick = _nick of user to invite
+	 *   timeout = time in seconds to wait for the
+	 *   invitation to be accepted
 	 * Returns:
-	 *   An unconnected DCC chat session object
+	 *   A listening DCC chat session object
 	 */
-	DccChat inviteChat(in char[] nick)
+	DccChat inviteChat(in char[] nick, uint timeout = 10)
 	{
 		enforce(client.connected, "client must be connected before using DCC CHAT");
 		
@@ -243,12 +246,9 @@ class DccServer
 		client.ctcpQuery(nick, "DCC",
 		    format("CHAT chat %d %d", clientAddress, port));
 		
-		import std.stdio;
-		writefln("local address: %s", socket.localAddress());
-		
 		socket.listen(1);
 		
-		auto dccChat = new DccChat(socket);
+		auto dccChat = new DccChat(socket, timeout);
 		dccChat.eventLoop = eventLoop;
 		dccChat.eventIndex = eventLoop.add(dccChat);
 		return dccChat;
@@ -264,9 +264,16 @@ class DccServer
 abstract class DccConnection
 {
 	public:
-	///
-	enum State { preConnect, connected, closed }
-	///
+	/// Current state of the connection.
+	enum State
+	{
+		preConnect, /// This session is waiting for a connection.
+		timedOut, /// This session timed out when waiting for a connection.
+		connected, /// This is an active connection.
+		closed /// This DCC session has ended.
+	}
+	
+	/// Ditto
 	State state = State.preConnect;
 	
 	private:
@@ -275,6 +282,7 @@ abstract class DccConnection
 	package:
 	Socket socket; // Refers to either a server or client
 	DccEventIndex eventIndex;
+	immutable uint timeout;
 	
 	enum Event { none, connectionEstablished, finished }
 	
@@ -315,20 +323,30 @@ abstract class DccConnection
 					return Event.finished;
 				}
 				break;
-			case State.closed:
+			case closed, timedOut:
 				assert(false);
 		}
 		
 		return Event.none;
 	}
 	
+	final void doTimeout()
+	{
+		state = State.timedOut;
+		socket.close();
+		
+		foreach(callback; onTimeout)
+			callback();
+	}
+	
 	protected:
 	/**
 	 * Initialize a DCC resource with the given socket and state.
 	 */
-	this(Socket socket, State initialState)
+	this(Socket socket, uint timeout, State initialState)
 	{
 		this.state = initialState;
+		this.timeout = timeout;
 		this.socket = socket;
 	}
 	
@@ -363,6 +381,11 @@ abstract class DccConnection
 	 * Invoked when an error occurs.
 	 */
 	void delegate(Exception e)[] onError;
+	
+	/**
+	 * Invoked when a listening connection times out.
+	 */
+	 void delegate()[] onTimeout;
 }
 
 /// Represents a DCC chat session.
@@ -374,9 +397,9 @@ class DccChat : DccConnection
 	char[] buffer; // TODO: use dynamically expanding buffer?
 	LineBuffer lineBuffer;
 	
-	this(Socket server)
+	this(Socket server, uint timeout)
 	{
-		super(server, State.preConnect);
+		super(server, timeout, State.preConnect);
 		
 		buffer = new char[2048];
 		lineBuffer = LineBuffer(buffer, &handleLine);
@@ -442,7 +465,21 @@ class DccChat : DccConnection
 	void send(in char[] message)
 	{
 		write(message);
-		write("\r\n"); // TODO: worth avoiding?
+		write("\n"); // TODO: worth avoiding?
+	}
+	
+	/**
+	 * Send a single, formatted chat message.
+	 * Params:
+	 *   fmt = format of message to send. Must not contain newlines.
+	 *   fmtArgs = fmt is formatted with these arguments.
+	 * See_Also:
+	 *   $(STDREF format, formattedWrite)
+	 */
+	void sendf(FmtArgs...)(in char[] fmt, FmtArgs fmtArgs)
+	{
+		write(format(fmt, fmtArgs)); // TODO: reusable buffer
+		write("\n"); // TODO: worth avoiding?
 	}
 	
 	/**

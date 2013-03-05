@@ -18,7 +18,7 @@ import std.range;
 import std.regex; // TEMP: For EOL identification
 import std.string : format, sformat, munch;
 
-debug=Dirk;
+//debug=Dirk;
 debug(Dirk) static import std.stdio;
 debug(Dirk) import std.conv;
 
