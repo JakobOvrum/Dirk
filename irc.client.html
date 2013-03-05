@@ -58,11 +58,13 @@
 	-->
 	<ul id="module-list-source" class="hidden">
 		
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.clientset.html" title="irc.clientset"><i class="icon-th"></i>irc.clientset</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
 	</ul>
 	
 	<div class="navbar navbar-fixed-top">
@@ -97,11 +99,13 @@
 					<li id="module-list" class="nav-header sidebar-list-entry">Modules<li>
 					<noscript>
 						
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.clientset.html" title="irc.clientset"><i class="icon-th"></i>irc.clientset</a></li>
-	<li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
 					</noscript>
 					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">irc.client</li>
 				</ul>
@@ -126,12 +130,6 @@
 <hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="IrcErrorException">&nbsp;</span><a class="symbol-link" href="#IrcErrorException">IrcErrorException</a>: object.Exception;
 </h3></div>
 <div class="declaration-content"><dl><p>Thrown if the server sends an error message to the client.</p>
-
-</dl>
-</div>
-<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="UnconnectedClientException">&nbsp;</span><a class="symbol-link" href="#UnconnectedClientException">UnconnectedClientException</a>: object.Exception;
-</h3></div>
-<div class="declaration-content"><dl><p>Thrown if an unconnected client was passed when a connected client was expected.</p>
 
 </dl>
 </div>
@@ -183,7 +181,7 @@
 
 <p>If there are more than one argument, then the first argument is formatted with the subsequent ones.
  Arguments must not contain newlines.
- Messages longer than 510 will be cut off.
+ Messages longer than 510 characters (UTF-8 code units) will be cut off.
 </p>
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>rawline</td>
 <td>line to send</td>
@@ -194,14 +192,14 @@
 </table></dd>
 <dt>See Also</dt><dd><a href="http://dlang.org/phobos/std_format.html#formattedWrite"><span class="inlinecode">std.format.formattedWrite</span></a>
 </dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="send">&nbsp;</span><a class="symbol-link" href="#send">send</a>(in char[] <i>target</i>, in char[] <i>message</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Send lines of chat to a channel or user.
- Each line in <span class="inlinecode"><i>message</i></span> is sent as one <i>message</i>.
- Lines exceeding the IRC <i>message</i> length limit will be
+ Each line in <span class="inlinecode"><i>message</i></span> is sent as one message.
+ Lines exceeding the IRC message length limit will be
  split up into multiple messages.
 </p>
 
@@ -212,7 +210,7 @@
 <td>message(s) to send. Can contain multiple lines.</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="sendf">&nbsp;</span><a class="symbol-link" href="#sendf">sendf</a>(FormatArgs...)(in char[] <i>target</i>, in char[] <i>fmt</i>, FormatArgs <i>fmtArgs</i>);
@@ -233,7 +231,7 @@
 <td>format arguments</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.
 </dd>
 <dt>See Also</dt><dd><a href="http://dlang.org/phobos/std_format.html#formattedWrite"><span class="inlinecode">std.format.formattedWrite</span></a></dd>
 </dl>
@@ -241,19 +239,19 @@
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a>(in char[] <i>target</i>, in char[] <i>message</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Send notices to a channel or user.
- Each line in <span class="inlinecode"><i>message</i></span> is sent as one <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a>.
- Lines exceeding the IRC <i>message</i> length limit will be
+ Each line in <span class="inlinecode"><i>message</i></span> is sent as one notice.
+ Lines exceeding the IRC message length limit will be
  split up into multiple notices.
 </p>
 
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
-<td>channel or nick name to <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a></td>
+<td>channel or nick name to notice</td>
 </tr>
 <tr><td>char[] <i>message</i></td>
 <td>notices(s) to send. Can contain multiple lines.</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="noticef">&nbsp;</span><a class="symbol-link" href="#noticef">noticef</a>(FormatArgs...)(in char[] <i>target</i>, in char[] <i>fmt</i>, FormatArgs <i>fmtArgs</i>);
@@ -274,7 +272,7 @@
 <td>format arguments</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.
 </dd>
 <dt>See Also</dt><dd><a href="http://dlang.org/phobos/std_format.html#formattedWrite"><span class="inlinecode">std.format.formattedWrite</span></a></dd>
 </dl>
@@ -309,15 +307,14 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>const @property bool <span class="symbol-target" id="connected">&nbsp;</span><a class="symbol-link" href="#connected">connected</a>();
 </h3></div>
-<div class="declaration-content"><dl><p>Check if this client is connected.
-</p>
+<div class="declaration-content"><dl><p>Check if this client is connected.</p>
 
-<dt>Returns</dt><dd><span class="d_keyword">true</span> if this client is connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>inout pure @property inout(InternetAddress) <span class="symbol-target" id="serverAddress">&nbsp;</span><a class="symbol-link" href="#serverAddress">serverAddress</a>();
 </h3></div>
-<div class="declaration-content"><dl><p>Address of the server currently connected to, or <span class="d_keyword">null</span> if this client is not connected.</p>
+<div class="declaration-content"><dl><p>Address of the server this client is currently connected to,
+ or <span class="d_keyword">null</span> if this client is not connected.</p>
 
 </dl>
 </div>
@@ -358,7 +355,7 @@
 <td>channel to join</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="join">&nbsp;</span><a class="symbol-link" href="#join">join</a>(in char[] <i>channel</i>, in char[] <i>key</i>);
@@ -373,7 +370,7 @@
 <td>channel password</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="part">&nbsp;</span><a class="symbol-link" href="#part">part</a>(in char[] <i>channel</i>);
@@ -385,7 +382,7 @@
 <td>channel to leave</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="part">&nbsp;</span><a class="symbol-link" href="#part">part</a>(in char[] <i>channel</i>, in char[] <i>message</i>);
@@ -400,7 +397,7 @@
 <td>parting message</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="queryUserhost">&nbsp;</span><a class="symbol-link" href="#queryUserhost">queryUserhost</a>(const(char)[][] <i>nicks</i>...);
@@ -424,7 +421,7 @@
 <td>quit message</td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a class="symbol-link" href="#UnconnectedClientException"><span class="inlinecode">UnconnectedClientException</span></a> if this client is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void delegate()[] <span class="symbol-target" id="onConnect">&nbsp;</span><a class="symbol-link" href="#onConnect">onConnect</a>;
