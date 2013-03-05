@@ -146,7 +146,7 @@
 
 <p>If no handlers are registered,
  the error will be propagated out of
- <a class="symbol-link" href="#IrcClientSet.run"><span class="inlinecode">IrcClientSet.run</span></a>. The client
+ <a class="symbol-link" href="#IrcEventLoop.run"><span class="inlinecode">IrcEventLoop.run</span></a>. The client
  will always be removed from the set.
  Throwing from a handler is allowed but
  will cause any subsequent registered handlers
@@ -165,13 +165,13 @@
  callback registered on the the client.
  If the client is disconnected outside
  the event loop, it is the caller's
- responsibility to call <a class="symbol-link" href="#IrcClientSet.remove"><span class="inlinecode">IrcClientSet.remove</span></a>.
+ responsibility to call <a class="symbol-link" href="#IrcEventLoop.remove"><span class="inlinecode">IrcEventLoop.remove</span></a>.
 </p>
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>IrcClient <i>client</i></td>
 <td>client to <span class="symbol-target" id="add">&nbsp;</span><a class="symbol-link" href="#add">add</a></td>
 </tr>
 </table></dd>
-<dt>Throws</dt><dd><a href="irc.<i>client</i>.html#UnconnectedClientException"><span class="inlinecode">irc.<i>client</i>.UnconnectedClientException</span></a> if <i>client</i> is not connected.</dd>
+<dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if <i>client</i> is not connected.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="remove">&nbsp;</span><a class="symbol-link" href="#remove">remove</a>(IrcClient <i>client</i>);
