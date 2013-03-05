@@ -6,8 +6,9 @@ Used by the VisualD project files.
 
 It is built as follows:
 
-    gcc -c -O2 -D EV_STANDALONE -D EV_SELECT_IS_WINSOCKET -o ev.o.coff ev.c
+    gcc -c -O2 -D EV_STANDALONE -D EV_SELECT_IS_WINSOCKET=1 -D EV_USE_SELECT=1 -o ev.o.coff ev.c
     objconv -fomf32 ev.o.coff ev.obj
+
 
 libev license
 ============
