@@ -165,7 +165,7 @@ class IrcClient
 	 * See_Also:
 	 *   $(STDREF format, formattedWrite)
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void writef(T...)(const(char)[] rawline, T fmtArgs)
 	{
@@ -206,7 +206,7 @@ class IrcClient
 	 *   target = channel or nick name to _send to
 	 *   message = _message(s) to _send. Can contain multiple lines.
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void send(in char[] target, in char[] message)
 	{
@@ -223,7 +223,7 @@ class IrcClient
 	*   fmt = message format
 	*   fmtArgs = format arguments
 	* Throws:
-	*   $(MREF UnconnectedClientException) if this client is not connected.
+	*   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	* See_Also:
 	*   $(STDREF format, formattedWrite)
 	*/
@@ -242,7 +242,7 @@ class IrcClient
 	 *   target = channel or nick name to _notice
 	 *   message = notices(s) to send. Can contain multiple lines.
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void notice(in char[] target, in char[] message)
 	{
@@ -259,7 +259,7 @@ class IrcClient
 	 *   fmt = message format
 	 *   fmtArgs = format arguments
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 * See_Also:
 	 *   $(STDREF format, formattedWrite)
 	 */
@@ -398,7 +398,7 @@ class IrcClient
 	 * Params:
 	 *   channel = _channel to _join
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void join(in char[] channel)
 	{
@@ -411,7 +411,7 @@ class IrcClient
 	 *   channel = _channel to _join
 	 *   key = _channel password
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void join(in char[] channel, in char[] key)
 	{
@@ -423,7 +423,7 @@ class IrcClient
 	 * Params:
 	 *   channel = _channel to leave
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void part(in char[] channel)
 	{
@@ -436,7 +436,7 @@ class IrcClient
 	 *   channel = _channel to leave
 	 *   message = parting _message
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void part(in char[] channel, in char[] message)
 	{
@@ -460,7 +460,7 @@ class IrcClient
 	 * Params:
 	 *   message = _quit _message
 	 * Throws:
-	 *   $(MREF UnconnectedClientException) if this client is not connected.
+	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
 	void quit(in char[] message)
 	{
