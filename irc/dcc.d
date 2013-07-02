@@ -15,7 +15,7 @@ import irc.eventloop;
 //ffs
 version(Windows)
 	import std.c.windows.winsock;
-else version(posix)
+else version(Posix)
 	import core.sys.posix.netinet.in_;
 else
 	static assert(false, "ffff");
