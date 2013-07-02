@@ -1,3 +1,4 @@
+[![Build Status](http://joshrsimmons.com:8080/buildStatus/icon?job=Dirk_x86)](http://joshrsimmons.com:8080/view/IRC/job/Dirk_x86/)
 Dirk
 ============================================
 Dirk is an IRC library for the D programming language.
@@ -41,9 +42,13 @@ Building on Windows
 The included [VisualD](http://www.dsource.org/projects/visuald) project files (see the `visuald` sub-directory)
 can be used to build the library files on Windows.
 
-Building in general
+Building in General
 ============================================
 Use the included [makefile](http://github.com/JakobOvrum/Dirk/blob/master/Makefile).
+
+Continuous Integration
+============================================
+An instance of Jenkins CI for Dirk can be found [here](http://www.joshrsimmons.com:8080/view/IRC/).
 
 License
 ============================================
