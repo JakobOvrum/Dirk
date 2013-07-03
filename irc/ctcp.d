@@ -379,7 +379,7 @@ unittest
 }
 
 /**
- * Extract CTCP messages from IRC message.
+ * Extract CTCP messages from an IRC message.
  * Returns:
  *   Range of CTCP messages, where each element is a range for producing the _message.
  */

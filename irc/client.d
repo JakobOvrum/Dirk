@@ -215,7 +215,7 @@ class IrcClient
 
 	/**
 	* Send formatted lines of chat to a channel or user.
-	* Each line in $(D message) is sent as one message.
+	* Each line in the formatted result is sent as one message.
 	* Lines exceeding the IRC message length limit will be
 	* split up into multiple messages.
 	* Params:
@@ -251,7 +251,7 @@ class IrcClient
 
 	/**
 	 * Send formatted notices to a channel or user.
-	 * Each line in $(D message) is sent as one notice.
+	 * Each line in the formatted result is sent as one notice.
 	 * Lines exceeding the IRC message length limit will be
 	 * split up into multiple notices.
 	 * Params:
@@ -543,7 +543,7 @@ class IrcClient
 	 * Params:
 	 *   channel
 	 *   nick = _nick name of user who set the topic
-	 *   time _time the topic was set
+	 *   time = _time the topic was set
 	 */
 	void delegate(in char[] channel, in char[] nick, in char[] time)[] onTopicInfo;
 
