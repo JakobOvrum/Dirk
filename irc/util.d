@@ -95,17 +95,17 @@ void dealloc(void* p)
 mixin template ExceptionConstructor()
 {
 	@safe pure nothrow
-		this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
-		{
-			super(msg, file, line, next);
-		}
+	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+	{
+		super(msg, file, line, next);
+	}
 }
 
 mixin template ExceptionConstructor(string defaultMessage)
 {
 	@safe pure nothrow
-		this(string msg = defaultMessage, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
-		{
-			super(msg, file, line, next);
-		}
+	this(string msg = defaultMessage, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+	{
+		super(msg, file, line, next);
+	}
 }
