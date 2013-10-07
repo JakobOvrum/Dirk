@@ -296,6 +296,7 @@
    <File path="..\irc\linebuffer.d" />
    <File path="..\irc\protocol.d" />
    <File path="..\irc\testing.d" />
+   <File path="..\irc\url.d" />
    <File path="..\irc\util.d" />
   </Folder>
   <Folder name="libev">
