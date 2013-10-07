@@ -66,6 +66,9 @@ class IrcEventLoop
 	ev_loop_t* ev;
 	Watcher[IrcClient] watchers;
 	DccWatcher* dccWatchers;
+
+	ev_idle idleWatcher;
+	void delegate()[] customMessages;
 	
 	public:
 	/**
@@ -78,6 +81,9 @@ class IrcEventLoop
 	
 	~this()
 	{
+		if(ev_is_active(&idleWatcher))
+			ev_idle_stop(ev, &idleWatcher);
+
 		foreach(_, ref watcher; watchers)
 			ev_io_stop(ev, &watcher.io);
 
@@ -267,7 +273,127 @@ class IrcEventLoop
 			watchers.remove(client);
 		}
 	}
-	
+
+	// Idle events
+	private extern(C) static void onIdle(ev_loop_t* ev, ev_idle* watcher, int revents)
+	{
+		auto eventLoop = (cast(IrcEventLoop)watcher.data);
+
+		while(!eventLoop.customMessages.empty)
+		{
+			auto cb = eventLoop.customMessages.front;
+			eventLoop.customMessages.popFront();
+			cb();
+		}
+
+		ev_idle_stop(ev, watcher);
+	}
+
+	/**
+	 * Run the specified callback at the next idle event.
+	 */
+	void post(void delegate() callback)
+	{
+		customMessages ~= callback;
+
+		auto watcher = &idleWatcher;
+
+		if(!ev_is_active(watcher))
+		{
+			watcher.data = cast(void*)this;
+			ev_idle_init(watcher, &onIdle);
+			ev_idle_start(ev, watcher);
+		}
+	}
+
+	private static struct CustomTimer
+	{
+		ev_timer timer;
+		void delegate() callback;
+	}
+
+	private extern(C) static void onCustomTimeout(ev_loop_t* ev, ev_timer* timer, int revents)
+	{
+		import core.memory : GC;
+		auto customTimer = cast(CustomTimer*)timer;
+
+		//scope(exit) dealloc(customTimer);
+
+		if(customTimer.timer.repeat == 0)
+			GC.removeRoot(timer);
+
+		customTimer.callback();
+	}
+
+	enum TimerRepeat { yes, no }
+
+	struct Timer
+	{
+		private:
+		IrcEventLoop eventLoop;
+		CustomTimer* timer;
+
+		public:
+		void stop()
+		{
+			enforce(active);
+			ev_timer_stop(eventLoop.ev, &timer.timer);
+			timer = null;
+		}
+
+		bool active() @property
+		{
+			return timer !is null && ev_is_active(&timer.timer);
+		}
+
+		TimerRepeat repeat() @property
+		{
+			enforce(active);
+			with(TimerRepeat) return timer.timer.repeat == 0? no : yes;
+		}
+
+		bool opCast(T)() if(is(T == bool))
+		{
+			return active;
+		}
+	}
+
+	/**
+	* Run the specified callback as soon as possible after $(D time)
+	* has elapsed.
+	*
+	* Equivalent to $(D postTimer(callback, time, TimerRepeat.no)).
+	*/
+	Timer post(void delegate() callback, double time)
+	{
+		return postTimer(callback, time, TimerRepeat.no);
+	}
+
+	/**
+	 * Run $(D callback) at every $(D interval), or just once after $(D interval)
+	 * time has elapsed if $(D repeat) is $(D TimerRepeat.no).
+	 */
+	Timer postTimer(void delegate() callback, double interval, TimerRepeat repeat)
+	{
+		import core.memory : GC;
+
+		enforce(callback);
+		enforce(interval >= 0);
+
+		//auto watcher = alloc!CustomTimer(); // TODO: use more efficient memory management
+		auto watcher = new CustomTimer();
+		watcher.callback = callback;
+
+		double repeatTime = repeat == TimerRepeat.yes? interval : 0.0;
+
+		ev_timer_init(&watcher.timer, &onCustomTimeout, interval, repeatTime);
+		ev_timer_start(ev, &watcher.timer);
+
+		GC.addRoot(watcher);
+
+		return Timer(this, watcher);
+	}
+
 	/**
 	 * Handle incoming data for the clients in the set.
 	 *
