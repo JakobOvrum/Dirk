@@ -36,9 +36,15 @@ class IrcErrorException : Exception
 		super(message, file, line);
 		this.client = client;
 	}
+
+	this(IrcClient client, string message, Exception cause, string file = __FILE__, size_t line = __LINE__)
+	{
+		super(message, file, line, cause);
+		this.client = client;
+	}
 }
 
-void unregisterHandler(T)(ref T[] event, T handler)
+void unsubscribeHandler(T)(ref T[] event, T handler)
 {
 	enum strategy =
 	    is(ReturnType!T == void)? SwapStrategy.unstable : SwapStrategy.stable;
@@ -55,44 +61,37 @@ class IrcClient
 	string m_nick = "dirkuser";
 	string m_user = "dirk";
 	string m_name = "dirk";
-	InternetAddress m_address = null;
+	Address m_address = null;
+	bool _connected = false;
 	
 	char[] buffer;
 	LineBuffer lineBuffer;
 
 	package:
-	Socket socket = null;
-
-	// These allow for a layered connection, e.g. SSL
-	protected:
-	Socket createConnection(InternetAddress serverAddress)
-	{
-		return new TcpSocket(serverAddress);
-	}
-
-	size_t rawRead(void[] buffer)
-	{
-		return socket.receive(buffer);
-	}
-
-	size_t rawWrite(in void[] data)
-	{
-		return socket.send(data);
-	}
+	Socket socket;
 
 	public:
 	/**
 	 * Create a new unconnected IRC client.
 	 *
+	 * If $(D socket) is provided, it must be an unconnected TCP socket.
+	 *
 	 * User information should be configured before connecting.
 	 * Only the nick name can be changed after connecting.
-	 * Event callbacks can be added before and after connecting.
+	 * Event callbacks can be added both before and after connecting.
 	 * See_Also:
-	 *   $(MREF IrcClient.connect)
+	 *   $(MREF IrcClient.connect), $(UPREF ssl, SslSocket)
 	 */
 	this()
 	{
-		buffer = new char[](2048);
+		this(new TcpSocket());
+	}
+
+	/// Ditto
+	this(Socket socket)
+	{
+		this.socket = socket;
+		this.buffer = new char[](2048);
 
 		void onReceivedLine(in char[] rawLine)
 		{
@@ -106,20 +105,22 @@ class IrcClient
 			handle(line);
 		}
 
-		lineBuffer = LineBuffer(buffer, &onReceivedLine);
+		this.lineBuffer = LineBuffer(buffer, &onReceivedLine);
 	}
 	
 	/**
 	 * Connect this client to a server.
 	 * Params:
 	 *   serverAddress = address of server
-	 *   type = _type of connection
 	 */
-	void connect(InternetAddress serverAddress)
+	void connect(Address serverAddress)
 	{
-		socket = createConnection(serverAddress);
+		enforceEx!UnconnectedClientException(!connected, "IrcClient is already connected");
+
+		socket.connect(serverAddress);
 		m_address = serverAddress;
-		
+		_connected = true;
+
 		writef("USER %s * * :%s", userName, realName);
 		writef("NICK %s", nick);
 	}
@@ -135,7 +136,7 @@ class IrcClient
 	{
 		enforceEx!UnconnectedClientException(connected, "cannot read from unconnected IrcClient");
 		
-		auto received = rawRead(buffer[lineBuffer.position .. $]);
+		auto received = socket.receive(buffer[lineBuffer.position .. $]);
 		if(received == Socket.ERROR)
 		{
 			throw new Exception("socket read operation failed");
@@ -144,6 +145,7 @@ class IrcClient
 		{
 			debug(Dirk) std.stdio.writeln("remote ended connection");
 			socket.close();
+			_connected = false;
 			return true;
 		}
 
@@ -178,8 +180,8 @@ class IrcClient
 		
 		debug(Dirk) std.stdio.writefln(`<< "%s" (length: %d)`, rawline, rawline.length);
 
-		rawWrite(rawline);
-		rawWrite("\r\n"); // TODO: should be in one call to send
+		socket.send(rawline);
+		socket.send("\r\n"); // TODO: should be in one call to send?
 	}
 
 	// Takes care of splitting 'message' into multiple messages when necessary
@@ -314,14 +316,14 @@ class IrcClient
 	 */
 	bool connected() const @property
 	{
-		return socket !is null && socket.isAlive();
+		return _connected;
 	}
 	
 	/**
 	 * Address of the server this client is currently connected to,
 	 * or null if this client is not connected.
 	 */
-	inout(InternetAddress) serverAddress() inout pure @property
+	inout(Address) serverAddress() inout pure @property
 	{
 		return m_address;
 	}
@@ -466,6 +468,7 @@ class IrcClient
 	{
 		writef("QUIT :%s", message);
 		socket.close();
+		_connected = false;
 	}
 	
 	/// Invoked when this client has successfully connected to a server.

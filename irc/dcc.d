@@ -102,7 +102,7 @@ class DccServer
 		// by this point, don't overwrite it.
 		if(clientAddress != 0)
 		{
-			client.onUserhostReply.unregisterHandler(&onUserhostReply);
+			client.onUserhostReply.unsubscribeHandler(&onUserhostReply);
 			return;
 		}
 		
@@ -111,7 +111,7 @@ class DccServer
 			if(user.nick == queriedNick)
 			{
 				clientAddress = user.hostName;
-				client.onUserhostReply.unregisterHandler(&onUserhostReply);
+				client.onUserhostReply.unsubscribeHandler(&onUserhostReply);
 				break;
 			}
 		}
@@ -147,7 +147,7 @@ class DccServer
 				if(clientAddress != 0)
 					queryUserhost();
 				
-				client.onConnect.unregisterHandler(&onConnect);
+				client.onConnect.unsubscribeHandler(&onConnect);
 			}
 			
 			client.onConnect ~= &onConnect;

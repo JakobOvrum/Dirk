@@ -8,9 +8,14 @@ import core.stdc.string : strlen;
 struct SSL_CTX;
 struct SSL;
 struct SSL_METHOD;
+struct X509_STORE_CTX;
+
+enum SSL_VERIFY_NONE = 0x00; // From Deimos bindings
 
 extern(C)
 {
+	alias VerifyCallback = int function(int, X509_STORE_CTX*);
+
 	int function() SSL_library_init;
 	void function() OPENSSL_add_all_algorithms_noconf;
 	void function() SSL_load_error_strings;
@@ -23,9 +28,12 @@ extern(C)
 
 	SSL* function(SSL_CTX* ctx) SSL_new;
 	int function(SSL* s, int fd) SSL_set_fd;
+	void function(SSL *s, int mode, VerifyCallback verify_callback) SSL_set_verify;
 	int function(SSL* ssl) SSL_connect;
 	int function(SSL* ssl,void* buf,int num) SSL_read;
 	int function(SSL* ssl,const(void)* buf,int num) SSL_write;
+
+
 }
 
 void loadOpenSSL()
@@ -45,6 +53,7 @@ void loadOpenSSL()
 	
 	ssl.resolve!SSL_new;
 	ssl.resolve!SSL_set_fd;
+	ssl.resolve!SSL_set_verify;
 	ssl.resolve!SSL_connect;
 	ssl.resolve!SSL_read;
 	ssl.resolve!SSL_write;
@@ -63,7 +72,7 @@ void loadOpenSSL()
 /**
  * Thrown if an SSL error occurs.
  */
-class SSLException : Exception
+class OpenSSLException : Exception
 {
 	private:
 	int error_;
@@ -81,7 +90,7 @@ class SSLException : Exception
 	}
 }
 
-int sslAssert(const SSL* ssl, int result, string file = __FILE__, size_t line = __LINE__)
+int sslEnforce(const SSL* ssl, int result, string file = __FILE__, size_t line = __LINE__)
 {
 	if(result < 0)
 	{
@@ -91,7 +100,7 @@ int sslAssert(const SSL* ssl, int result, string file = __FILE__, size_t line = 
 
 		auto msg = zMsg[0 .. strlen(zMsg)].idup;
 
-		throw new SSLException(msg, error, file, line);
+		throw new OpenSSLException(msg, error, file, line);
 	}
 
 	return result;
