@@ -80,12 +80,14 @@ class IrcClient
 	 * Create a new unconnected IRC client.
 	 *
 	 * If $(D socket) is provided, it must be an unconnected TCP socket.
+	 * Provide an instance of $(RREF ssl, socket, SslSocket) to
+	 * use SSL/TLS.
 	 *
 	 * User information should be configured before connecting.
 	 * Only the nick name can be changed after connecting.
 	 * Event callbacks can be added both before and after connecting.
 	 * See_Also:
-	 *   $(MREF IrcClient.connect), $(RREF ssl, socket, SslSocket)
+	 *   $(MREF IrcClient.connect)
 	 */
 	this()
 	{

@@ -14,7 +14,7 @@ class IrcTrackingException : Exception
 
 /**
  * Create a new channel and user tracking object for the given
- * $(DPREF client, IrcClient). Tracking for the new object
+ * $(DPREF _client, IrcClient). Tracking for the new object
  * is disabled; use $(MREF IrcTracker.start) to commence tracking.
  *
  * Bug:
@@ -185,7 +185,7 @@ class IrcTracker
 		return _isTracking;
 	}
 
-	/// $(DPREF client, IrcClient) that this tracker is tracking for.
+	/// $(DPREF _client, IrcClient) that this tracker is tracking for.
 	inout(IrcClient) client() inout @property @safe pure nothrow
 	{
 		return _client;
@@ -250,7 +250,7 @@ struct IrcChannel
 		return _name;
 	}
 
-	/// $(D InputRange) of all member users of this channel,
+	/// $(D InputRange) of all member _users of this channel,
 	/// where each user is given as an (DPREF protocol, IrcUser).
 	auto users() @property
 	{
