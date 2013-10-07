@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="utf-8">
+	<title>irc.url - Dirk documentation</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<!-- styles -->
+	<link href="bootDoc/assets/css/bootstrap.css" rel="stylesheet">
+	<style type="text/css">
+		body {
+		padding-top: 60px;
+		padding-bottom: 40px;
+		}
+		.sidebar-nav {
+		padding: 9px 0;
+		}
+	</style>
+	<link href="bootDoc/assets/css/bootstrap-responsive.css" rel="stylesheet">
+	<link href="bootDoc/bootdoc.css" rel="stylesheet">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<!-- fav and touch icons -->
+	<link rel="shortcut icon" href="bootDoc/assets/ico/favicon.ico">
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="bootDoc/assets/ico/apple-touch-icon-114-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="bootDoc/assets/ico/apple-touch-icon-72-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" href="bootDoc/assets/ico/apple-touch-icon-57-precomposed.png">
+	
+	<!-- Introduce DDoc settings required by JavaScript -->
+	<script type="text/javascript">
+		var Title = 'irc.url';
+		var SourceRepository = 'https://github.com/JakobOvrum/Dirk/tree/master';
+		var PackageSeparator = '.';
+	</script>
+	
+	<style type="text/css">
+		.ddoc-icon-variable { background-image: url('bootDoc/ddoc-icons/var.png'); }
+		.ddoc-icon-function { background-image: url('bootDoc/ddoc-icons/func.png'); }
+		.ddoc-icon-property { background-image: url('bootDoc/ddoc-icons/property.png'); }
+		.ddoc-icon-struct { background-image: url('bootDoc/ddoc-icons/struct.png'); }
+		.ddoc-icon-class { background-image: url('bootDoc/ddoc-icons/class.png'); }
+		.ddoc-icon-enum { background-image: url('bootDoc/ddoc-icons/enum.png'); }
+		.ddoc-icon-template { background-image: url('bootDoc/ddoc-icons/template.png'); }
+	</style>
+	</head>
+
+	<body>
+	<!--
+	JavaScript reaps the module list from this element.
+	This is required for the MODULES macro to be reusable
+	in a noscript element later.
+	-->
+	<ul id="module-list-source" class="hidden">
+		
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.tracker.html" title="irc.tracker"><i class="icon-th"></i>irc.tracker</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.url.html" title="irc.url"><i class="icon-th"></i>irc.url</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="ssl.socket.html" title="ssl.socket"><i class="icon-th"></i>ssl.socket</a></li>
+	</ul>
+	
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="index.html">Dirk</a>
+				<div class="nav-collapse">
+					<ul class="nav">
+						<li class="active"><a href="index.html">Reference</a></li>
+					</ul>
+					
+					<form id="gotosymbol" class="navbar-search pull-left hidden">
+						<input type="text" class="search-query" placeholder="Go to symbol in irc.url" data-provide="typeahead" data-items="4">
+					</form>
+					
+					<p class="navbar-text pull-right"><a href="https://github.com/JakobOvrum/Dirk">Github Page</a></p>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+
+	<div class="container-fluid">
+		<div class="row-fluid">
+			<div class="span2">
+				<div class="well sidebar-nav">
+				<ul class="nav nav-list">
+					<li id="module-list" class="nav-header sidebar-list-entry">Modules<li>
+					<noscript>
+						
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
+    <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.tracker.html" title="irc.tracker"><i class="icon-th"></i>irc.tracker</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.url.html" title="irc.url"><i class="icon-th"></i>irc.url</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="ssl.socket.html" title="ssl.socket"><i class="icon-th"></i>ssl.socket</a></li>
+					</noscript>
+					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">irc.url</li>
+				</ul>
+				</div><!--/.well -->
+			</div><!--/span-->
+			
+			<div class="span10">
+				<div class="row-fluid">
+					<div class="span11">
+						<ul id="module-breadcrumb" class="breadcrumb">
+							<noscript><h1>irc.url</h1></noscript>
+						</ul>
+						
+					</div>
+					<div class="span1 offset11">
+						<a href="index.html"><img src="bootDoc/assets/img/icon-github.png" alt="Dirk"/></a>
+					</div>
+				</div>
+				<div id="declaration-list">
+					<!-- Generated by Ddoc from ../../Dirk_x86/workspace//irc/url.d -->
+<br><br>
+<hr><div class="row-fluid declaration"><h3>struct <span class="symbol-target" id="ConnectionInfo">&nbsp;</span><a class="symbol-link" href="#ConnectionInfo">ConnectionInfo</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Result of the <a class="symbol-link" href="#parse"><span class="inlinecode">parse</span></a> and <a class="symbol-link" href="#tryParse"><span class="inlinecode">tryParse</span></a> functions,
+ containing the parsed connection information.</p>
+
+</dl>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="address">&nbsp;</span><a class="symbol-link" href="#address">address</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Server <span class="symbol-target" id="address">&nbsp;</span><a class="symbol-link" href="#address">address</a>.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>ushort <span class="symbol-target" id="explicitPort">&nbsp;</span><a class="symbol-link" href="#explicitPort">explicitPort</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Explicitly specified server port. Is <span class="inlinecode">0</span> when unspecified.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>pure nothrow @property @safe ushort <span class="symbol-target" id="port">&nbsp;</span><a class="symbol-link" href="#port">port</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Server <span class="symbol-target" id="port">&nbsp;</span><a class="symbol-link" href="#port">port</a>.
+</p>
+
+<p>Evaluates to <a class="symbol-link" href="#ConnectionInfo.explicitPort"><span class="inlinecode">ConnectionInfo.explicitPort</span></a> when an explicit
+ <span class="symbol-target" id="port">&nbsp;</span><a class="symbol-link" href="#port">port</a> was specified, and <a class="symbol-link" href="#ConnectionInfo.defaultPort"><span class="inlinecode">ConnectionInfo.defaultPort</span></a> otherwise.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>bool <span class="symbol-target" id="secure">&nbsp;</span><a class="symbol-link" href="#secure">secure</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Security protocol. Is <span class="inlinecode"><span class="d_keyword">true</span></span> for TLS/SSL,
+ and <span class="inlinecode"><span class="d_keyword">false</span></span> for no security.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>string[] <span class="symbol-target" id="channels">&nbsp;</span><a class="symbol-link" href="#channels">channels</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Channels to join. Can be empty.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="channelKey">&nbsp;</span><a class="symbol-link" href="#channelKey">channelKey</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Key/passphrase to use when joining channels.
+ Is <span class="inlinecode"><span class="d_keyword">null</span></span> when unspecified.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>pure nothrow @property @safe ushort <span class="symbol-target" id="defaultPort">&nbsp;</span><a class="symbol-link" href="#defaultPort">defaultPort</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Default port for the specified security protocol.
+ <span class="inlinecode">6697</span> for TLS/SSL, and <span class="inlinecode">6667</span> otherwise.</p>
+
+</dl>
+</div>
+</div>
+</div>
+<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="IrcUrlException">&nbsp;</span><a class="symbol-link" href="#IrcUrlException">IrcUrlException</a>: object.Exception;
+</h3></div>
+<div class="declaration-content"><br><br>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>size_t <span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Same as <a class="symbol-link" href="#ParseError.<span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a>"><span class="inlinecode">ParseError.<span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a></span></a>.</p>
+
+</dl>
+</div>
+</div>
+</div>
+<hr><div class="row-fluid declaration"><h3>@safe ConnectionInfo <span class="symbol-target" id="parse">&nbsp;</span><a class="symbol-link" href="#parse">parse</a>(string <i>url</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Parse IRC URLs (also known as "chat links").
+</p>
+
+<p>Channels without a valid prefix are automatically
+ prefixed with '#'.</p>
+<dt>Examples</dt><dd><pre class="d_code">
+ConnectionInfo info;
+
+info = <u>parse</u>(<span class="d_string">"ircs://irc.example.com:6697/foo,bar"</span>);
+
+<span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.com"</span>);
+<span class="d_keyword">assert</span>(info.port == 6697);
+<span class="d_keyword">assert</span>(info.secure);
+<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"foo"</span>, <span class="d_string">"bar"</span>]);
+
+info = <u>parse</u>(<span class="d_string">"irc://irc.example.org/foo?pass"</span>);
+
+<span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.org"</span>);
+<span class="d_keyword">assert</span>(info.port == 0); <span class="d_comment">// No explicit port - try protocol defaults etc.
+</span>
+<span class="d_keyword">assert</span>(!info.secure);
+<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"foo"</span>]);
+<span class="d_keyword">assert</span>(info.channelKey == <span class="d_string">"pass"</span>);
+</pre>
+</dd></dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>struct <span class="symbol-target" id="ParseError">&nbsp;</span><a class="symbol-link" href="#ParseError">ParseError</a>;
+</h3></div>
+<div class="declaration-content"><br><br>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="message">&nbsp;</span><a class="symbol-link" href="#message">message</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Error <span class="symbol-target" id="message">&nbsp;</span><a class="symbol-link" href="#message">message</a>.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>size_t <span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Location in input (zero-based column) the error occured.
+ Ranges from <span class="inlinecode">0 .. $ - 1</span>, where the <span class="inlinecode">$</span> symbol is the length of the input. </p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>pure @safe bool <span class="symbol-target" id="opCast">&nbsp;</span><a class="symbol-link" href="#opCast">opCast</a>(T)();
+</h3></div>
+<div class="declaration-content"><dl><p>Boolean whether or not an error occured. If an error did not occur,
+ <span class="inlinecode">message</span> and <span class="inlinecode">location</span> will not have meaningful values.</p>
+
+<dt>Examples</dt><dd><pre class="d_code">
+<span class="d_keyword">auto</span> error = ParseError(<span class="d_string">"error occured!"</span>, 0);
+<span class="d_keyword">assert</span>(error); <span class="d_comment">// conversion to <span class="inlinecode">bool</span>
+</span>
+</pre>
+</dd></dl>
+</div>
+</div>
+</div>
+<hr><div class="row-fluid declaration"><h3>@trusted ParseError <span class="symbol-target" id="tryParse">&nbsp;</span><a class="symbol-link" href="#tryParse">tryParse</a>(string <i>url</i>, out ConnectionInfo <i>info</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Same as <a class="symbol-link" href="#parse"><span class="inlinecode">parse</span></a>, but returning an error message instead of throwing.
+ Useful for high-volume parsing.</p>
+
+<dt>Examples</dt><dd>Parse list of URLs and write any errors to <span class="inlinecode">stderr</span>
+ with column information.
+<pre class="d_code">
+<span class="d_keyword">import</span> std.stdio : stderr;
+
+<span class="d_keyword">auto</span> urls = [<span class="d_string">"irc://example.com"</span>, <span class="d_string">"ircs://example.org/foo?pass"</span>];
+
+<span class="d_keyword">foreach</span>(<b>url</b>; urls)
+{
+	ConnectionInfo <b>info</b>;
+
+	<span class="d_keyword">if</span>(<span class="d_keyword">auto</span> error = <b>url</b>.<u>tryParse</u>(<b>info</b>))
+	{
+		stderr.writefln(<span class="d_string">"Error parsing URL:\n%s\n%*s\n%s"</span>, <b>url</b>, error.location + 1, <span class="d_string">"^"</span>, error.message);
+		<span class="d_keyword">continue</span>;
+	}
+
+	<span class="d_comment">// Use `info`
+</span>
+}
+</pre>
+</dd></dl>
+</div>
+
+
+				</div>
+				
+				<hr>
+				
+				<footer class="pull-left">
+					<p>Page generated with <a href="https://github.com/JakobOvrum/bootDoc">bootDoc</a>.</p>
+				</footer>
+				
+				<footer class="pull-right">
+					<p>&copy; Jakob Ovrum 2011-2013</p>
+				</footer>
+			</div>
+		</div>
+	</div><!--/.fluid-container-->
+
+	<!-- Bootstrap javascript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="bootDoc/assets/js/jquery.min.js"></script>
+	<script src="bootDoc/assets/js/bootstrap.min.js"></script>
+	
+	<!-- bootDoc javascript
+	================================================== -->
+	<script src="bootDoc/bootdoc.js"></script>
+	
+	</body>
+</html>
+
