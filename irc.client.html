@@ -139,8 +139,13 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="IrcClient">&nbsp;</span><a class="symbol-link" href="#IrcClient">IrcClient</a>;
 </h3></div>
-<div class="declaration-content"><dl><p>Represents an IRC client connection.</p>
+<div class="declaration-content"><dl><p>Represents an IRC client connection.
+</p>
 
+<p>Use the separate type <a href="irc.tracker.html#IrcTracker"><span class="inlinecode">irc.tracker.IrcTracker</span></a> returned by
+ <a href="irc.tracker.html#track"><span class="inlinecode">irc.tracker.track</span></a> to keep track of the channels the
+ user for this connection is a member of, and the members of
+ those channels.</p>
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3> this();
 <br> this(Socket <i>socket</i>);
@@ -155,8 +160,7 @@
  Only the nick name can be changed after connecting.
  Event callbacks can be added both before and after connecting.
 </p>
-<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.connect"><span class="inlinecode">IrcClient.connect</span></a>, <a href="ssl.html#SslSocket"><span class="inlinecode">ssl.SslSocket</span></a>
-</dd>
+<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.connect"><span class="inlinecode">IrcClient.connect</span></a>, </dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="connect">&nbsp;</span><a class="symbol-link" href="#connect">connect</a>(Address <i>serverAddress</i>);
