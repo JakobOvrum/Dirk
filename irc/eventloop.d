@@ -146,7 +146,7 @@ class IrcEventLoop
 	 *
 	 * The _client is automatically removed
 	 * if it is disconnected inside an event
-	 * callback registered on the the _client.
+	 * callback registered on the _client.
 	 * If the _client is disconnected outside
 	 * the event loop, it is the caller's
 	 * responsibility to call $(MREF IrcEventLoop.remove).
