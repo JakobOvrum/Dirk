@@ -5,8 +5,9 @@ import irc.linebuffer;
 
 import std.algorithm;
 import std.array;
-import std.string;
 import std.exception;
+import std.string;
+import std.typetuple : TypeTuple;
 
 /**
  * Structure representing a parsed IRC message.
@@ -20,6 +21,10 @@ struct IrcLine
 	///
 	const(char)[][] arguments;
 }
+
+/// List of the four valid channel prefixes;
+/// &, #, + and !.
+alias channelPrefixes = TypeTuple!('&', '#', '+', '!');
 
 // [:prefix] <command> <parameters ...> [:long parameter]
 // TODO: do something about the allocation of the argument array
@@ -112,6 +117,12 @@ struct IrcUser
 	const(char)[] userName;
 	///
 	const(char)[] hostName;
+
+	// TODO: Change to use sink once formattedWrite supports them
+	string toString() const
+	{
+		return format("%s!%s@%s", nick, userName, hostName);
+	}
 	
 	static:
 	/**

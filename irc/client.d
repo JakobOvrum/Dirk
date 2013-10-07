@@ -430,6 +430,7 @@ class IrcClient
 	void part(in char[] channel)
 	{
 		writef("PART %s", channel);
+		fireEvent(onMePart, channel);
 	}
 	
 	/**
@@ -455,6 +456,18 @@ class IrcClient
 	void queryUserhost(const(char)[][] nicks...)
 	{
 		writef("USERHOST %s", nicks.joiner(" ").castRange!char);
+	}
+
+	/**
+	 * Query information about a particular user.
+	 * Params:
+	 *   nick = target user's nick name
+	 * See_Also:
+	 *   $(MREF IrcClient.onWhoisReply)
+	 */
+	void queryWhois(in char[] nick)
+	{
+		writef("WHOIS %s", nick);
 	}
 	
 	/**
@@ -482,7 +495,94 @@ class IrcClient
 	 *   message, or the name of the channel which the message was sent to.
 	 */
 	void delegate(IrcUser user, in char[] target, in char[] message)[] onMessage;
+
+	/**
+	 * Invoked when a notice is picked up by the user for this client.
+	 * Params:
+	 *   user = _user who sent the notice
+	 *   target = notice _target. This is either the nick of this client in the case of a personal
+	 *   notice, or the name of the channel which the notice was sent to.
+	 */
+	void delegate(IrcUser user, in char[] target, in char[] message)[] onNotice;
+
+	/**
+	 * Invoked when a user receives a new nickname.
+	 *
+	 * When the user is this user, the $(MREF IrcClient.nick) property will return the old nickname
+	 * until after all $(D _onNickChange) callbacks have been invoked.
+	 * Params:
+	 *   user = user which nickname was changed; the $(D nick) field contains the old nickname. Can be this user
+	 *   newNick = new nickname of user
+	 */
+	void delegate(IrcUser user, in char[] newNick)[] onNickChange;
+
+	/**
+	 * Invoked following a call to $(MREF IrcClient.join) when the _channel was successfully joined.
+	 * Params:
+	 *   channel = _channel that was successfully joined
+	 */
+	void delegate(in char[] channel)[] onSuccessfulJoin;
+
+	/**
+	 * Invoked when another user joins a channel that this user is a member of.
+	 * Params:
+	 *   user = joining user
+	 *   channel = channel that was joined
+	 */
+	void delegate(IrcUser user, in char[] channel)[] onJoin;
+
+	/**
+	 * Invoked when another user parts a channel that this user is a member of.
+	 * Params:
+	 *   user = parting user
+	 *   channel = channel that was parted
+	 */
+	void delegate(IrcUser user, in char[] channel)[] onPart;
+
+	// TODO: public?
+	package void delegate(in char[] channel)[] onMePart;
+
+	/**
+	* Invoked when another user disconnects from the network.
+	* Params:
+	*   user = disconnecting user
+	*   comment = quit message
+	*/
+	void delegate(IrcUser user, in char[] comment)[] onQuit;
+
+	/**
+	 * Invoked when a user is kicked (forcefully removed) from a channel that this user is a member of.
+	 * Params:
+	 *   kicker = user that initiated the kick
+	 *   channel = channel from which the user was kicked
+	 *   kickedNick = nickname of the user that was kicked
+	 *   comment = comment sent with the kick; usually describing the reason the user was kicked. Can be null
+	 */
+	void delegate(IrcUser kicker, in char[] channel, in char[] kickedNick, in char[] comment)[] onKick;
+
+	/**
+	 * Invoked when a list of member nicknames for a channel are received.
+	 *
+	 * The list is sent after a successful join to a channel by this user.
+	 * The list for a single invocation is partial;
+	 * the event can be invoked several times for the same channel
+	 * as a response to a single trigger. The complete list is terminated
+	 * when $(MREF IrcClient.onNameListEnd) is invoked.
+	 * Params:
+	 *    channel = channel of which the users are members
+	 *    nickNames = list of member nicknames
+	 */
+	void delegate(in char[] channel, in char[][] nickNames)[] onNameList;
 	
+	/**
+	 * Invoked when the complete list of members of a _channel have been received.
+	 * All invocations of $(D onNameList) between invocations of this event
+	 * are part of the same member list.
+	 * See_Also:
+	 *    $(MREF IrcClient.onNameList)
+	 */
+	void delegate(in char[] channel)[] onNameListEnd;
+
 	/**
 	 * Invoked when a CTCP query is received in a message.
 	 * $(MREF IrcClient.onMessage) is not invoked for the given message
@@ -492,18 +592,8 @@ class IrcClient
 	 *   of the message, and any subsequent CTCP messages in the same notice are
 	 *   discarded. To handle multiple CTCP queries in one message, use
 	 *   $(MREF IrcClient.onMessage) with $(DPREF ctcp, ctcpExtract).
-	 *   
 	 */
 	void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] onCtcpQuery;
-	
-	/**
-	 * Invoked when a notice is picked up by the user for this client.
-	 * Params:
-	 *   user = _user who sent the notice
-	 *   target = notice _target. This is either the nick of this client in the case of a personal
-	 *   notice, or the name of the channel which the notice was sent to.
-	 */
-	void delegate(IrcUser user, in char[] target, in char[] message)[] onNotice;
 	
 	/**
 	 * Invoked when a CTCP reply is received in a notice.
@@ -514,7 +604,6 @@ class IrcClient
 	 *   of the notice, and any subsequent CTCP messages in the same notice are
 	 *   discarded. To handle multiple CTCP replies in one notice, use
 	 *   $(MREF IrcClient.onNotice) with $(DPREF ctcp, ctcpExtract).
-	 *   
 	 */
 	void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] onCtcpReply;
 	
@@ -524,11 +613,11 @@ class IrcClient
 	 * Return a non-null string to provide a new nick. No further callbacks in the list
 	 * are called once a callback provides a nick.
 	 * Params:
-	 *   newnick = the nick name that was requested.
+	 *   newNick = the nick name that was requested.
 	 * Note:
 	 *   The current nick name can be read from the $(MREF IrcClient.nick) property of this client.
 	 */
-	const(char)[] delegate(in char[] newnick)[] onNickInUse;
+	const(char)[] delegate(in char[] newNick)[] onNickInUse;
 
 	/**
 	 * Invoked when a _channel is joined, a _topic is set in a _channel or when
@@ -551,29 +640,38 @@ class IrcClient
 	void delegate(in char[] channel, in char[] nick, in char[] time)[] onTopicInfo;
 
 	/**
-	 * Invoked when a _channel is joined or when the user list of a _channel was requested.
-	 * This may be invoked several times if the entire user list doesn't fit in a single message.
-	 *
-	 * Params:
-	 *   channel
-	 *   names = nick _names of users
-	 */
-	void delegate(in char[] channel, in char[][] names)[] onNamesList;
-
-	/**
-	 * Invoked when the entire user list of a _channel has been sent.
-	 * All invocations of onNamesList for channel prior to this message
-	 * are part of the same user list.
-	 */
-	void delegate(in char[] channel)[] onNamesListEnd;
-	
-	/**
 	 * Invoked with the reply of a userhost query.
 	 * See_Also:
 	 *   $(MREF IrcClient.queryUserhost)
 	 */
 	void delegate(in IrcUser[] users)[] onUserhostReply;
-	
+
+	/**
+	 * Invoked when a WHOIS reply is received.
+	 * See_Also:
+	 *   $(MREF IrcClient.queryWhois)
+	 */
+	// TODO: document more, and maybe parse `channels`
+	void delegate(IrcUser userInfo, in char[] realName)[] onWhoisReply;
+
+	/// Ditto
+	void delegate(in char[] nick, in char[] serverHostName, in char[] serverInfo)[] onWhoisServerReply;
+
+	/// Ditto
+	void delegate(in char[] nick)[] onWhoisOperatorReply;
+
+	/// Ditto
+	void delegate(in char[] nick, int idleTime)[] onWhoisIdleReply;
+
+	/// Ditto
+	void delegate(in char[] nick, in char[][] channels)[] onWhoisChannelsReply;
+
+	/// Ditto
+	void delegate(in char[] nick, in char[] accountName)[] onWhoisAccountReply;
+
+	/// Ditto
+	void delegate(in char[] nick)[] onWhoisEnd;
+
 	protected:
 	IrcUser getUser(in char[] prefix)
 	{
@@ -620,6 +718,7 @@ class IrcClient
 		return true;
 	}
 	
+	// TODO: Switch getting large, change to something more performant?
 	void handle(ref IrcLine line)
 	{
 		switch(line.command)
@@ -628,11 +727,25 @@ class IrcClient
 				writef("PONG :%s", line.arguments[0]);
 				break;
 			case "433":
+				void failed433(Exception cause)
+				{
+					socket.close();
+					_connected = false;
+					throw new IrcErrorException(this, `"433 Nick already in use" was unhandled`, cause);
+				}
+
+				auto failedNick = line.arguments[1];
 				bool handled = false;
 				
 				foreach(cb; onNickInUse)
 				{
-					if(auto newNick = cb(line.arguments[1]))
+					const(char)[] newNick;
+
+					try newNick = cb(failedNick);
+					catch(Exception e)
+						failed433(e);
+
+					if(newNick)
 					{
 						writef("NICK %s", newNick);
 						handled = true;
@@ -641,10 +754,8 @@ class IrcClient
 				}
 				
 				if(!handled)
-				{
-					socket.close();
-					throw new IrcErrorException(this, `"433 Nick already in use" was unhandled`);
-				}
+					failed433(null);
+
 				break;
 			case "PRIVMSG":
 				auto prefix = line.prefix;
@@ -664,17 +775,62 @@ class IrcClient
 					fireEvent(onNotice, getUser(prefix), target, notice);
 				
 				break;
+			case "NICK":
+				auto user = getUser(line.prefix);
+				auto newNick = line.arguments[0];
+
+				scope(exit)
+				{
+					if(m_nick == user.nick)
+						m_nick = newNick.idup;
+				}
+
+				fireEvent(onNickChange, user, newNick);
+				break;
+			case "JOIN":
+				auto user = getUser(line.prefix);
+
+				if(user.nick == m_nick)
+					fireEvent(onSuccessfulJoin, line.arguments[0]);
+				else
+					fireEvent(onJoin, user, line.arguments[0]);
+
+				break;
+			case "353": // TODO: operator/voice status etc. should be propagated to callbacks
+				version(none) auto type = line.arguments[1];
+				auto channelName = line.arguments[2];
+				
+				auto names = line.arguments[3].split();
+				foreach(ref name; names)
+				{
+					auto prefix = name[0];
+					if(prefix == '@' || prefix == '+') // TODO: smarter handling that allows for non-standard stuff
+						name = name[1 .. $];
+				}
+				
+				fireEvent(onNameList, channelName, names);
+				break;
+			case "366":
+				fireEvent(onNameListEnd, line.arguments[0]);
+				break;
+			case "PART":
+				fireEvent(onPart, getUser(line.prefix), line.arguments[0]);
+				break;
+			case "QUIT":
+				fireEvent(onQuit, getUser(line.prefix), line.arguments[0]);
+				break;
+			case "KICK":
+				fireEvent(onKick,
+					getUser(line.prefix),
+					line.arguments[0],
+					line.arguments[1],
+					line.arguments.length > 2? line.arguments[2] : null);
+				break;
 			case "302":
 				IrcUser[5] users;
 				auto n = IrcUser.parseUserhostReply(users, line.arguments[1]);
 				
 				fireEvent(onUserhostReply, users[0 .. n]);
-				break;
-			case "353":
-				fireEvent(onNamesList, line.arguments[2], split(line.arguments[3]));
-				break;
-			case "366":
-				fireEvent(onNamesListEnd, line.arguments[1]);
 				break;
 			case "332":
 				fireEvent(onTopic, line.arguments[1], line.arguments[2]);
@@ -682,7 +838,40 @@ class IrcClient
 			case "333":
 				fireEvent(onTopicInfo, line.arguments[1], line.arguments[2], line.arguments[3]);
 				break;
+			// WHOIS replies
+			case "311":
+				auto user = IrcUser(
+					line.arguments[1], // Nick
+					line.arguments[2]); // Username
+
+				fireEvent(onWhoisReply, user, line.arguments[5]);
+				break;
+			case "312":
+				fireEvent(onWhoisServerReply, line.arguments[1], line.arguments[2], line.arguments[3]);
+				break;
+			case "313":
+				fireEvent(onWhoisOperatorReply, line.arguments[0]);
+				break;
+			case "317":
+				import std.conv : to;
+				fireEvent(onWhoisIdleReply, line.arguments[1], to!int(line.arguments[2]));
+				break;
+			case "319":
+				fireEvent(onWhoisChannelsReply, line.arguments[1], split(line.arguments[2]));
+				break;
+			case "318":
+				fireEvent(onWhoisEnd, line.arguments[1]);
+				break;
+			// Non-standard WHOIS replies
+			//case "307": // UnrealIRCd?
+			//	fireEvent(onWhoisAccountReply, line.arguments[0], line.arguments[1]);
+			//	break;
+			case "330": // Freenode
+				fireEvent(onWhoisAccountReply, line.arguments[1], line.arguments[2]);
+				break;
+			// End of WHOIS replies
 			case "ERROR":
+				_connected = false;
 				throw new IrcErrorException(this, line.arguments[0].idup);
 			case "001":
 				fireEvent(onConnect);

@@ -73,13 +73,39 @@ auto castRange(T, R)(R range)
 
 T* alloc(T)()
 {
-	auto p = malloc(T.sizeof);
-	enforceEx!OutOfMemoryError(p);
-	auto block = p[0 .. T.sizeof];
-	return emplace!T(block);
+	import core.exception : onOutOfMemoryError;
+
+	if(auto p = malloc(T.sizeof))
+	{
+		auto block = p[0 .. T.sizeof];
+		return emplace!T(block);
+	}
+	else
+	{
+		onOutOfMemoryError();
+		assert(false);
+	}
 }
 
-void dealloc(T)(T* p)
+void dealloc(void* p)
 {
 	free(p);
+}
+
+mixin template ExceptionConstructor()
+{
+	@safe pure nothrow
+		this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+		{
+			super(msg, file, line, next);
+		}
+}
+
+mixin template ExceptionConstructor(string defaultMessage)
+{
+	@safe pure nothrow
+		this(string msg = defaultMessage, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+		{
+			super(msg, file, line, next);
+		}
 }
