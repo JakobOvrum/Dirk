@@ -54,6 +54,11 @@ void unsubscribeHandler(T)(ref T[] event, T handler)
 
 /**
  * Represents an IRC client connection.
+ *
+ * Use the separate type $(DPREF tracker, IrcTracker) returned by
+ * $(DPREF tracker, track) to keep track of the channels the
+ * user for this connection is a member of, and the members of
+ * those channels.
  */
 class IrcClient
 {
@@ -80,7 +85,7 @@ class IrcClient
 	 * Only the nick name can be changed after connecting.
 	 * Event callbacks can be added both before and after connecting.
 	 * See_Also:
-	 *   $(MREF IrcClient.connect), $(UPREF ssl, SslSocket)
+	 *   $(MREF IrcClient.connect), $(REF ssl, socket, SslSocket)
 	 */
 	this()
 	{
