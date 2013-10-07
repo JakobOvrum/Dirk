@@ -59,12 +59,14 @@
 	<ul id="module-list-source" class="hidden">
 		
     <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.tracker.html" title="irc.tracker"><i class="icon-th"></i>irc.tracker</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.url.html" title="irc.url"><i class="icon-th"></i>irc.url</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="ssl.socket.html" title="ssl.socket"><i class="icon-th"></i>ssl.socket</a></li>
 	</ul>
 	
 	<div class="navbar navbar-fixed-top">
@@ -100,12 +102,14 @@
 					<noscript>
 						
     <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.tracker.html" title="irc.tracker"><i class="icon-th"></i>irc.tracker</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.url.html" title="irc.url"><i class="icon-th"></i>irc.url</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="ssl.socket.html" title="ssl.socket"><i class="icon-th"></i>ssl.socket</a></li>
 					</noscript>
 					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">irc.ctcp</li>
 				</ul>
@@ -142,16 +146,16 @@
 <dt>Returns</dt><dd>Input range for producing the message</dd>
 </dl>
 <dt>Examples</dt><dd><pre class="d_code">
-	<span class="d_keyword">char</span>[] msg;
-	
-	msg = <u>ctcpMessage</u>(<span class="d_string">"ACTION"</span>, <span class="d_string">"test \n123"</span>).array();
-	<span class="d_keyword">assert</span>(msg == <span class="d_string">"\x01ACTION test \x10n123\x01"</span>);
-	
-	msg = <u>ctcpMessage</u>(<span class="d_string">"FINGER"</span>).array();
-	<span class="d_keyword">assert</span>(msg == <span class="d_string">"\x01FINGER\x01"</span>);
-	
-	msg = <u>ctcpMessage</u>(<span class="d_string">"TEST"</span>, <span class="d_string">"\\test \x01 \r\n\0\x10"</span>).array();
-	<span class="d_keyword">assert</span>(msg == <span class="d_string">"\x01TEST \\\\test \\a \x10r\x10n\x100\x10\x10\x01"</span>);
+<span class="d_keyword">char</span>[] msg;
+
+msg = <u>ctcpMessage</u>(<span class="d_string">"ACTION"</span>, <span class="d_string">"test \n123"</span>).array();
+<span class="d_keyword">assert</span>(msg == <span class="d_string">"\x01ACTION test \x10n123\x01"</span>);
+
+msg = <u>ctcpMessage</u>(<span class="d_string">"FINGER"</span>).array();
+<span class="d_keyword">assert</span>(msg == <span class="d_string">"\x01FINGER\x01"</span>);
+
+msg = <u>ctcpMessage</u>(<span class="d_string">"TEST"</span>, <span class="d_string">"\\test \x01 \r\n\0\x10"</span>).array();
+<span class="d_keyword">assert</span>(msg == <span class="d_string">"\x01TEST \\\\test \\a \x10r\x10n\x100\x10\x10\x01"</span>);
 </pre>
 </dd></div>
 <hr><div class="row-fluid declaration"><h3>auto <span class="symbol-target" id="ctcpExtract">&nbsp;</span><a class="symbol-link" href="#ctcpExtract">ctcpExtract</a>(in char[] <i>message</i>);
@@ -173,8 +177,7 @@
 				</footer>
 				
 				<footer class="pull-right">
-					<p>&copy; Jakob Ovrum 2011-2013
-</p>
+					<p>&copy; Jakob Ovrum 2011-2013</p>
 				</footer>
 			</div>
 		</div>

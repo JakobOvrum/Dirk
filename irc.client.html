@@ -59,12 +59,14 @@
 	<ul id="module-list-source" class="hidden">
 		
     <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.tracker.html" title="irc.tracker"><i class="icon-th"></i>irc.tracker</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.url.html" title="irc.url"><i class="icon-th"></i>irc.url</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="ssl.socket.html" title="ssl.socket"><i class="icon-th"></i>ssl.socket</a></li>
 	</ul>
 	
 	<div class="navbar navbar-fixed-top">
@@ -100,12 +102,14 @@
 					<noscript>
 						
     <li class="sidebar-list-entry tree-leaf"><a href="irc.client.html" title="irc.client"><i class="icon-th"></i>irc.client</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.sslclient.html" title="irc.sslclient"><i class="icon-th"></i>irc.sslclient</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.eventloop.html" title="irc.eventloop"><i class="icon-th"></i>irc.eventloop</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
     <li class="sidebar-list-entry tree-leaf"><a href="irc.protocol.html" title="irc.protocol"><i class="icon-th"></i>irc.protocol</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.exception.html" title="irc.exception"><i class="icon-th"></i>irc.exception</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.ctcp.html" title="irc.ctcp"><i class="icon-th"></i>irc.ctcp</a></li>
-    <li class="sidebar-list-entry tree-leaf"><a href="irc.dcc.html" title="irc.dcc"><i class="icon-th"></i>irc.dcc</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.tracker.html" title="irc.tracker"><i class="icon-th"></i>irc.tracker</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="irc.url.html" title="irc.url"><i class="icon-th"></i>irc.url</a></li>
+	<li class="sidebar-list-entry tree-leaf"><a href="ssl.socket.html" title="ssl.socket"><i class="icon-th"></i>ssl.socket</a></li>
 					</noscript>
 					<li id="symbol-list" class="nav-header sidebar-list-entry hidden">irc.client</li>
 				</ul>
@@ -135,33 +139,33 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="IrcClient">&nbsp;</span><a class="symbol-link" href="#IrcClient">IrcClient</a>;
 </h3></div>
-<div class="declaration-content"><dl><p>Represents an IRC client connection.
-</p>
+<div class="declaration-content"><dl><p>Represents an IRC client connection.</p>
 
-<dt>See Also</dt><dd><a href="irc.sslclient.html#SslIrcClient"><span class="inlinecode">irc.sslclient.SslIrcClient</span></a></dd>
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3> this();
+<br> this(Socket <i>socket</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Create a new unconnected IRC client.
 </p>
 
-<p>User information should be configured before connecting.
+<p>If <span class="inlinecode">socket</span> is provided, it must be an unconnected TCP socket.
+<br><br>
+
+ User information should be configured before connecting.
  Only the nick name can be changed after connecting.
- Event callbacks can be added before and after connecting.
+ Event callbacks can be added both before and after connecting.
 </p>
-<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.connect"><span class="inlinecode">IrcClient.connect</span></a></dd>
+<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.connect"><span class="inlinecode">IrcClient.connect</span></a>, <a href="ssl.html#SslSocket"><span class="inlinecode">ssl.SslSocket</span></a>
+</dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="connect">&nbsp;</span><a class="symbol-link" href="#connect">connect</a>(InternetAddress <i>serverAddress</i>);
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="connect">&nbsp;</span><a class="symbol-link" href="#connect">connect</a>(Address <i>serverAddress</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Connect this client to a server.
 </p>
 
-<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>InternetAddress <i>serverAddress</i></td>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>Address <i>serverAddress</i></td>
 <td>address of server</td>
-</tr>
-<tr><td>type</td>
-<td>type of connection</td>
 </tr>
 </table></dd>
 </dl>
@@ -313,7 +317,7 @@
 
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>inout pure @property inout(InternetAddress) <span class="symbol-target" id="serverAddress">&nbsp;</span><a class="symbol-link" href="#serverAddress">serverAddress</a>();
+<hr><div class="row-fluid declaration"><h3>inout pure @property inout(Address) <span class="symbol-target" id="serverAddress">&nbsp;</span><a class="symbol-link" href="#serverAddress">serverAddress</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Address of the server this client is currently connected to,
  or <span class="d_keyword">null</span> if this client is not connected.</p>
@@ -414,6 +418,18 @@
 <dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.onUserhostReply"><span class="inlinecode">IrcClient.onUserhostReply</span></a></dd>
 </dl>
 </div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="queryWhois">&nbsp;</span><a class="symbol-link" href="#queryWhois">queryWhois</a>(in char[] <i>nick</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Query information about a particular user.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>nick</i></td>
+<td>target user's <i>nick</i> name</td>
+</tr>
+</table></dd>
+<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.onWhoisReply"><span class="inlinecode">IrcClient.onWhoisReply</span></a></dd>
+</dl>
+</div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="quit">&nbsp;</span><a class="symbol-link" href="#quit">quit</a>(in char[] <i>message</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Leave and disconnect from the server.
@@ -447,20 +463,6 @@
 </table></dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] <span class="symbol-target" id="onCtcpQuery">&nbsp;</span><a class="symbol-link" href="#onCtcpQuery">onCtcpQuery</a>;
-</h3></div>
-<div class="declaration-content"><dl><p>Invoked when a CTCP query is received in a message.
- <a class="symbol-link" href="#IrcClient.onMessage"><span class="inlinecode">IrcClient.onMessage</span></a> is not invoked for the given message
- when <span class="symbol-target" id="onCtcpQuery">&nbsp;</span><a class="symbol-link" href="#onCtcpQuery">onCtcpQuery</a> has a non-zero number of registered handlers.
-</p>
-
-<dt>Note:</dt><dd>
-This callback is only invoked when there is a CTCP message at the start
-   of the message, and any subsequent CTCP messages in the same notice are
-   discarded. To handle multiple CTCP queries in one message, use
-   <a class="symbol-link" href="#IrcClient.onMessage"><span class="inlinecode">IrcClient.onMessage</span></a> with <a href="irc.ctcp.html#ctcpExtract"><span class="inlinecode">irc.ctcp.ctcpExtract</span></a>.</dd>
-</dl>
-</div>
 <hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] target, in char[] message)[] <span class="symbol-target" id="onNotice">&nbsp;</span><a class="symbol-link" href="#onNotice">onNotice</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Invoked when a notice is picked up by the user for this client.
@@ -474,6 +476,140 @@ This callback is only invoked when there is a CTCP message at the start
    notice, or the name of the channel which the notice was sent to.</td>
 </tr>
 </table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] newNick)[] <span class="symbol-target" id="onNickChange">&nbsp;</span><a class="symbol-link" href="#onNickChange">onNickChange</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a user receives a new nickname.
+</p>
+
+<p>When the user is this user, the <a class="symbol-link" href="#IrcClient.nick"><span class="inlinecode">IrcClient.nick</span></a> property will return the old nickname
+ until after all <span class="inlinecode">onNickChange</span> callbacks have been invoked.
+</p>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
+<td>user which nickname was changed; the <span class="inlinecode">nick</span> field contains the old nickname. Can be this user</td>
+</tr>
+<tr><td>newNick</td>
+<td>new nickname of user</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(in char[] channel)[] <span class="symbol-target" id="onSuccessfulJoin">&nbsp;</span><a class="symbol-link" href="#onSuccessfulJoin">onSuccessfulJoin</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked following a call to <a class="symbol-link" href="#IrcClient.join"><span class="inlinecode">IrcClient.join</span></a> when the channel was successfully joined.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>channel</td>
+<td>channel that was successfully joined</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] channel)[] <span class="symbol-target" id="onJoin">&nbsp;</span><a class="symbol-link" href="#onJoin">onJoin</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when another user joins a channel that this user is a member of.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
+<td>joining user</td>
+</tr>
+<tr><td>channel</td>
+<td>channel that was joined</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] channel)[] <span class="symbol-target" id="onPart">&nbsp;</span><a class="symbol-link" href="#onPart">onPart</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when another user parts a channel that this user is a member of.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
+<td>parting user</td>
+</tr>
+<tr><td>channel</td>
+<td>channel that was parted</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] comment)[] <span class="symbol-target" id="onQuit">&nbsp;</span><a class="symbol-link" href="#onQuit">onQuit</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when another user disconnects from the network.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>user</td>
+<td>disconnecting user</td>
+</tr>
+<tr><td>comment</td>
+<td>quit message</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser kicker, in char[] channel, in char[] kickedNick, in char[] comment)[] <span class="symbol-target" id="onKick">&nbsp;</span><a class="symbol-link" href="#onKick">onKick</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a user is kicked (forcefully removed) from a channel that this user is a member of.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>kicker</td>
+<td>user that initiated the kick</td>
+</tr>
+<tr><td>channel</td>
+<td>channel from which the user was kicked</td>
+</tr>
+<tr><td>kickedNick</td>
+<td>nickname of the user that was kicked</td>
+</tr>
+<tr><td>comment</td>
+<td>comment sent with the kick; usually describing the reason the user was kicked. Can be <span class="d_keyword">null</span></td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(in char[] channel, in char[][] nickNames)[] <span class="symbol-target" id="onNameList">&nbsp;</span><a class="symbol-link" href="#onNameList">onNameList</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a list of member nicknames for a channel are received.
+</p>
+
+<p>The list is sent after a successful join to a channel by this user.
+ The list for a single invocation is partial;
+ the event can be invoked several times for the same channel
+ as a response to a single trigger. The complete list is terminated
+ when <a class="symbol-link" href="#IrcClient.onNameListEnd"><span class="inlinecode">IrcClient.onNameListEnd</span></a> is invoked.
+</p>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>channel</td>
+<td>channel of which the users are members</td>
+</tr>
+<tr><td>nickNames</td>
+<td>list of member nicknames</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(in char[] channel)[] <span class="symbol-target" id="onNameListEnd">&nbsp;</span><a class="symbol-link" href="#onNameListEnd">onNameListEnd</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when the complete list of members of a channel have been received.
+ All invocations of <span class="inlinecode">onNameList</span> between invocations of this event
+ are part of the same member list.
+</p>
+
+<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.onNameList"><span class="inlinecode">IrcClient.onNameList</span></a></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] <span class="symbol-target" id="onCtcpQuery">&nbsp;</span><a class="symbol-link" href="#onCtcpQuery">onCtcpQuery</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a CTCP query is received in a message.
+ <a class="symbol-link" href="#IrcClient.onMessage"><span class="inlinecode">IrcClient.onMessage</span></a> is not invoked for the given message
+ when <span class="symbol-target" id="onCtcpQuery">&nbsp;</span><a class="symbol-link" href="#onCtcpQuery">onCtcpQuery</a> has a non-zero number of registered handlers.
+</p>
+
+<dt>Note:</dt><dd>
+This callback is only invoked when there is a CTCP message at the start
+   of the message, and any subsequent CTCP messages in the same notice are
+   discarded. To handle multiple CTCP queries in one message, use
+   <a class="symbol-link" href="#IrcClient.onMessage"><span class="inlinecode">IrcClient.onMessage</span></a> with <a href="irc.ctcp.html#ctcpExtract"><span class="inlinecode">irc.ctcp.ctcpExtract</span></a>.</dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] <span class="symbol-target" id="onCtcpReply">&nbsp;</span><a class="symbol-link" href="#onCtcpReply">onCtcpReply</a>;
@@ -490,7 +626,7 @@ This callback is only invoked when there is a CTCP message at the start
    <a class="symbol-link" href="#IrcClient.onNotice"><span class="inlinecode">IrcClient.onNotice</span></a> with <a href="irc.ctcp.html#ctcpExtract"><span class="inlinecode">irc.ctcp.ctcpExtract</span></a>.</dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>const(char)[] delegate(in char[] newnick)[] <span class="symbol-target" id="onNickInUse">&nbsp;</span><a class="symbol-link" href="#onNickInUse">onNickInUse</a>;
+<hr><div class="row-fluid declaration"><h3>const(char)[] delegate(in char[] newNick)[] <span class="symbol-target" id="onNickInUse">&nbsp;</span><a class="symbol-link" href="#onNickInUse">onNickInUse</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Invoked when the requested nick name of the user for this client is already in use.
 </p>
@@ -498,7 +634,7 @@ This callback is only invoked when there is a CTCP message at the start
 <p>Return a non-<span class="d_keyword">null</span> string to provide a new nick. No further callbacks in the list
  are called once a callback provides a nick.
 </p>
-<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>newnick</td>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>newNick</td>
 <td>the nick name that was requested.</td>
 </tr>
 </table></dd>
@@ -532,32 +668,26 @@ The current nick name can be read from the <a class="symbol-link" href="#IrcClie
 </table></dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>void delegate(in char[] channel, in char[][] names)[] <span class="symbol-target" id="onNamesList">&nbsp;</span><a class="symbol-link" href="#onNamesList">onNamesList</a>;
-</h3></div>
-<div class="declaration-content"><dl><p>Invoked when a channel is joined or when the user list of a channel was requested.
- This may be invoked several times if the entire user list doesn't fit in a single message.
-</p>
-
-<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>names</td>
-<td>nick names of users</td>
-</tr>
-</table></dd>
-</dl>
-</div>
-<hr><div class="row-fluid declaration"><h3>void delegate(in char[] channel)[] <span class="symbol-target" id="onNamesListEnd">&nbsp;</span><a class="symbol-link" href="#onNamesListEnd">onNamesListEnd</a>;
-</h3></div>
-<div class="declaration-content"><dl><p>Invoked when the entire user list of a channel has been sent.
- All invocations of onNamesList for channel prior to this message
- are part of the same user list.</p>
-
-</dl>
-</div>
 <hr><div class="row-fluid declaration"><h3>void delegate(in IrcUser[] users)[] <span class="symbol-target" id="onUserhostReply">&nbsp;</span><a class="symbol-link" href="#onUserhostReply">onUserhostReply</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Invoked with the reply of a userhost query.
 </p>
 
 <dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.queryUserhost"><span class="inlinecode">IrcClient.queryUserhost</span></a></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(IrcUser userInfo, in char[] realName)[] <span class="symbol-target" id="onWhoisReply">&nbsp;</span><a class="symbol-link" href="#onWhoisReply">onWhoisReply</a>;
+<br>void delegate(in char[] nick, in char[] serverHostName, in char[] serverInfo)[] <span class="symbol-target" id="onWhoisServerReply">&nbsp;</span><a class="symbol-link" href="#onWhoisServerReply">onWhoisServerReply</a>;
+<br>void delegate(in char[] nick)[] <span class="symbol-target" id="onWhoisOperatorReply">&nbsp;</span><a class="symbol-link" href="#onWhoisOperatorReply">onWhoisOperatorReply</a>;
+<br>void delegate(in char[] nick, int idleTime)[] <span class="symbol-target" id="onWhoisIdleReply">&nbsp;</span><a class="symbol-link" href="#onWhoisIdleReply">onWhoisIdleReply</a>;
+<br>void delegate(in char[] nick, in char[][] channels)[] <span class="symbol-target" id="onWhoisChannelsReply">&nbsp;</span><a class="symbol-link" href="#onWhoisChannelsReply">onWhoisChannelsReply</a>;
+<br>void delegate(in char[] nick, in char[] accountName)[] <span class="symbol-target" id="onWhoisAccountReply">&nbsp;</span><a class="symbol-link" href="#onWhoisAccountReply">onWhoisAccountReply</a>;
+<br>void delegate(in char[] nick)[] <span class="symbol-target" id="onWhoisEnd">&nbsp;</span><a class="symbol-link" href="#onWhoisEnd">onWhoisEnd</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a WHOIS reply is received.
+</p>
+
+<dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.queryWhois"><span class="inlinecode">IrcClient.queryWhois</span></a></dd>
 </dl>
 </div>
 </div>
@@ -573,8 +703,7 @@ The current nick name can be read from the <a class="symbol-link" href="#IrcClie
 				</footer>
 				
 				<footer class="pull-right">
-					<p>&copy; Jakob Ovrum 2011-2013
-</p>
+					<p>&copy; Jakob Ovrum 2011-2013</p>
 				</footer>
 			</div>
 		</div>
