@@ -54,8 +54,6 @@ void unsubscribeHandler(T)(ref T[] event, T handler)
 
 /**
  * Represents an IRC client connection.
- * See_Also:
- *    $(DPREF sslclient, SslIrcClient)
  */
 class IrcClient
 {
