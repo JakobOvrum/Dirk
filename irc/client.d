@@ -85,7 +85,7 @@ class IrcClient
 	 * Only the nick name can be changed after connecting.
 	 * Event callbacks can be added both before and after connecting.
 	 * See_Also:
-	 *   $(MREF IrcClient.connect), $(REF ssl, socket, SslSocket)
+	 *   $(MREF IrcClient.connect), $(RREF ssl, socket, SslSocket)
 	 */
 	this()
 	{
