@@ -41,8 +41,9 @@ IRC_SOURCES = \
 	irc/exception.d \
 	irc/linebuffer.d \
 	irc/protocol.d \
-	irc/sslclient.d \
 	irc/testing.d \
+	irc/tracker.d \
+	irc/url.d \
 	irc/util.d
 
 LIBEV_SOURCES = \
@@ -54,6 +55,7 @@ LOADER_SOURCES = \
 	loader/windows.d
 
 SSL_SOURCES = \
-	ssl/openssl.d
+	ssl/openssl.d \
+	ssl/socket.d
 
 SOURCES = $(IRC_SOURCES) $(LIBEV_SOURCES) $(LOADER_SOURCES) $(SSL_SOURCES)  
