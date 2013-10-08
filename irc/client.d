@@ -884,6 +884,7 @@ class IrcClient
 				_connected = false;
 				throw new IrcErrorException(this, line.arguments[0].idup);
 			case "001":
+				m_nick = line.arguments[0].idup;
 				fireEvent(onConnect);
 				break;
 			default:
