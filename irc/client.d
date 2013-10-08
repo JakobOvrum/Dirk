@@ -165,7 +165,7 @@ class IrcClient
 	/**
 	 * Write a raw message to the connection stream.
 	 *
-	 * If there are more than one argument, then the first argument is formatted with the subsequent ones.
+	 * If there is more than one argument, then the first argument is formatted with the subsequent ones.
 	 * Arguments must not contain newlines.
 	 * Messages longer than 510 characters (UTF-8 code units) will be cut off.
 	 * Params:
@@ -197,12 +197,13 @@ class IrcClient
 		static linePattern = ctRegex!(`[^\r\n]+`, "g");
 
 		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2;
+		static immutable lineHead = method ~ " %s :%s";
 
 		foreach(m; match(message, linePattern))
 		{
 			auto line = cast(const ubyte[])m.hit;
 			foreach(chunk; line.chunks(maxMsgLength))
-				writef(method ~ " %s :%s", target, cast(const char[])chunk);
+				writef(lineHead, target, cast(const char[])chunk);
 		}
 	}
 	
