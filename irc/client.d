@@ -128,8 +128,10 @@ class IrcClient
 		m_address = serverAddress;
 		_connected = true;
 
-		writef("USER %s * * :%s", userName, realName);
+		// TODO: Implement `PASS`
+
 		writef("NICK %s", nick);
+		writef("USER %s * * :%s", userName, realName); // TODO: Initial user-mode argument
 	}
 	
 	/**
@@ -481,7 +483,7 @@ class IrcClient
 	/**
 	 * Leave and disconnect from the server.
 	 * Params:
-	 *   message = _quit _message
+	 *   message = comment sent in _quit notification
 	 * Throws:
 	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
