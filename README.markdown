@@ -1,25 +1,30 @@
-[![Build Status](http://joshrsimmons.com:8080/buildStatus/icon?job=Dirk_x86)](http://joshrsimmons.com:8080/view/IRC/job/Dirk_x86/)
 Dirk
 ============================================
-Dirk is an IRC library for the D programming language.
+Dirk is an IRC client library for the D programming language.
 
-It aims for a complete and correct implementation of the IRC protocol and related protocols
-with a safe interface.
-
-It does not aim to be a bot framework; those should be built on top of Dirk as separate projects.
+It aims for a complete and correct implementation of the
+IRC client protocol ([RFC 2812](https://tools.ietf.org/html/rfc2812))
+and related protocols (CTCP and DCC) with a safe interface.
 
 Dirk aims to be as efficient as possible (in terms of both CPU and memory) to cater to the requirements
-of any possible user of IRC in D.
+of any imaginable use of IRC.
+
+For an IRC bot framework built on Dirk, see [Diggler](https://github.com/JakobOvrum/Diggler).
+
+Dirk depends on [libev](http://software.schmorp.de/pkg/libev.html) for the
+event loop.
 
 **Please report bugs and requests to the [issue tracker](https://github.com/JakobOvrum/Dirk/issues). Thanks!**
 
 Directory Structure
 ============================================
 
- * `irc` - the Dirk package.
+ * `irc` - the Dirk source package.
  * `visuald` - [VisualD](http://www.dsource.org/projects/visuald) project files.
  * `test` - unittest executable (when built).
  * `lib` - Dirk library files (when built).
+ * `extlib/ev.obj` - libev object file in OMF format for convenience on Windows.
+ * `ssl` - utility package for lazily loading OpenSSL at runtime for SSL/TLS connections.
 
 [Documentation](http://jakobovrum.github.com/Dirk/)
 ============================================
@@ -33,9 +38,9 @@ link to `lib/dirk` (release build) or `lib/dirk-d` (debug build).
 
 Example:
 
-    dmd main.d -IDirk -IDirk/libev Dirk/lib/dirk.a
+    dmd main.d -IDirk -IDirk/libev -L-lev Dirk/lib/dirk.a
 
-(Note: on Windows, the file extension for the library may be `.lib` in many cases)
+(Note: on Windows, the file extension for the static libraries may be `.lib` in many cases)
 
 Building on Windows
 ============================================
@@ -45,10 +50,6 @@ can be used to build the library files on Windows.
 Building in General
 ============================================
 Use the included [makefile](http://github.com/JakobOvrum/Dirk/blob/master/Makefile).
-
-Continuous Integration
-============================================
-An instance of Jenkins CI for Dirk can be found [here](http://www.joshrsimmons.com:8080/view/IRC/).
 
 License
 ============================================
