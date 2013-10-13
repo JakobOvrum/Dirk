@@ -211,17 +211,19 @@ ConnectionInfo info;
 info = <u>parse</u>(<span class="d_string">"ircs://irc.example.com:6697/foo,bar"</span>);
 
 <span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.com"</span>);
+<span class="d_keyword">assert</span>(info.explicitPort == 6697);
 <span class="d_keyword">assert</span>(info.port == 6697);
 <span class="d_keyword">assert</span>(info.secure);
-<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"foo"</span>, <span class="d_string">"bar"</span>]);
+<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"#foo"</span>, <span class="d_string">"#bar"</span>]);
 
 info = <u>parse</u>(<span class="d_string">"irc://irc.example.org/foo?pass"</span>);
 
 <span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.org"</span>);
-<span class="d_keyword">assert</span>(info.port == 0); <span class="d_comment">// No explicit port - try protocol defaults etc.
+<span class="d_keyword">assert</span>(info.explicitPort == 0);
+<span class="d_keyword">assert</span>(info.port == 6667); <span class="d_comment">// No explicit port, so it falls back to the default IRC port
 </span>
 <span class="d_keyword">assert</span>(!info.secure);
-<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"foo"</span>]);
+<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"#foo"</span>]);
 <span class="d_keyword">assert</span>(info.channelKey == <span class="d_string">"pass"</span>);
 </pre>
 </dd></dl>

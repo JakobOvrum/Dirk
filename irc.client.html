@@ -178,10 +178,11 @@
 </div>
 <hr><div class="row-fluid declaration"><h3>bool <span class="symbol-target" id="read">&nbsp;</span><a class="symbol-link" href="#read">read</a>();
 </h3></div>
-<div class="declaration-content"><dl><p>Read once from the socket, parse all complete messages and invoke registered callbacks.
+<div class="declaration-content"><dl><p>Read all available data from the connection,
+ parse all complete IRC messages and invoke registered callbacks.
 </p>
 
-<dt>Returns</dt><dd><span class="inlinecode"><span class="d_keyword">true</span></span> when the connection was closed.
+<dt>Returns</dt><dd><span class="inlinecode"><span class="d_keyword">true</span></span> if the connection was closed.
 </dd>
 <dt>See Also</dt><dd><a href="irc.eventloop.html#IrcEventLoop.run"><span class="inlinecode">irc.eventloop.IrcEventLoop.run</span></a></dd>
 </dl>
