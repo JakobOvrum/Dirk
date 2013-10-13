@@ -78,23 +78,25 @@ ConnectionInfo parse(string url) @safe
 }
 
 ///
-pure unittest
+unittest
 {
 	ConnectionInfo info;
 
 	info = parse("ircs://irc.example.com:6697/foo,bar");
 
 	assert(info.address == "irc.example.com");
+	assert(info.explicitPort == 6697);
 	assert(info.port == 6697);
 	assert(info.secure);
-	assert(info.channels == ["foo", "bar"]);
+	assert(info.channels == ["#foo", "#bar"]);
 
 	info = parse("irc://irc.example.org/foo?pass");
 
 	assert(info.address == "irc.example.org");
-	assert(info.port == 0); // No explicit port - try protocol defaults etc.
+	assert(info.explicitPort == 0);
+	assert(info.port == 6667); // No explicit port, so it falls back to the default IRC port
 	assert(!info.secure);
-	assert(info.channels == ["foo"]);
+	assert(info.channels == ["#foo"]);
 	assert(info.channelKey == "pass");
 }
 
@@ -245,7 +247,7 @@ unittest
 	}
 }
 
-pure unittest
+unittest
 {
 	import std.stdio : writeln;
 
@@ -269,19 +271,19 @@ pure unittest
 			 ConnectionInfo("example.org", 6697, true)
 		),
 		Test("iRc://example.info/example",
-			 ConnectionInfo("example.info", 0, false, ["example"])
+			 ConnectionInfo("example.info", 0, false, ["#example"])
 		),
 		Test("IRCS://example.info/example?passphrase",
-			 ConnectionInfo("example.info", 0, true, ["example"], "passphrase")
+			 ConnectionInfo("example.info", 0, true, ["#example"], "passphrase")
 		),
 		Test("irc://test/example,test",
-			 ConnectionInfo("test", 0, false, ["example", "test"])
+			 ConnectionInfo("test", 0, false, ["#example", "#test"])
 		),
 		Test("ircs://test/example,test,foo?pass",
-			 ConnectionInfo("test", 0, true, ["example", "test", "foo"], "pass")
+			 ConnectionInfo("test", 0, true, ["#example", "#test", "#foo"], "pass")
 		),
 		Test("ircs://example.com:+6697/foo,bar,baz?pass",
-			 ConnectionInfo("example.com", 6697, true, ["foo", "bar", "baz"], "pass")
+			 ConnectionInfo("example.com", 6697, true, ["#foo", "#bar", "#baz"], "pass")
 		)
 	];
 
