@@ -125,6 +125,7 @@ class IrcClient
 		enforceEx!UnconnectedClientException(!connected, "IrcClient is already connected");
 
 		socket.connect(serverAddress);
+
 		m_address = serverAddress;
 		_connected = true;
 
@@ -135,30 +136,43 @@ class IrcClient
 	}
 	
 	/**
-	 * Read once from the socket, parse all complete messages and invoke registered callbacks.
+	 * Read all available data from the connection,
+	 * parse all complete IRC messages and invoke registered callbacks.
 	 * Returns:
-	 * $(D true) when the connection was closed.
+	 * $(D true) if the connection was closed.
 	 * See_Also:
 	 *   $(DPREF eventloop, IrcEventLoop.run)
 	 */
 	bool read()
 	{
 		enforceEx!UnconnectedClientException(connected, "cannot read from unconnected IrcClient");
-		
-		auto received = socket.receive(buffer[lineBuffer.position .. $]);
-		if(received == Socket.ERROR)
+
+		while(connected)
 		{
-			throw new Exception("socket read operation failed");
-		}
-		else if(received == 0)
-		{
-			debug(Dirk) std.stdio.writeln("remote ended connection");
-			socket.close();
-			_connected = false;
-			return true;
+			socket.blocking = false; // TODO: Make writes non-blocking too, so this isn't needed
+			auto received = socket.receive(buffer[lineBuffer.position .. $]);
+			if(received == Socket.ERROR)
+			{
+				if(wouldHaveBlocked())
+				{
+					socket.blocking = true;
+					break;
+				}
+				else
+					throw new Exception("socket read operation failed: " ~ socket.getErrorText());
+			}
+			else if(received == 0)
+			{
+				debug(Dirk) std.stdio.writeln("remote ended connection");
+				socket.close();
+				_connected = false;
+				return true;
+			}
+
+			socket.blocking = true;
+			lineBuffer.commit(received);
 		}
 
-		lineBuffer.commit(received);
 		return !connected;
 	}
 
