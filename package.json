@@ -1,0 +1,19 @@
+{
+	"name": "dirk",
+	"description": "Standard-compliant, high-performance IRC library",
+	"authors": ["Jakob Ovrum"],
+	"copyright": "Copyright© Jakob Ovrum 2011-2013",
+	"homepage": "https://github.com/JakobOvrum/Dirk",
+	"license": "MIT",
+
+	"targetType": "library",
+	"targetPath": "lib",
+
+	"sourcePaths": ["irc", "libev", "ssl", "loader"],
+	"mainSourceFile": "irc/testing.d",
+	"libs": ["phobos"],
+
+	"libs-posix": ["dl", "ev"],
+	"libs-windows-gnu-ldc": ["ev"],
+	"sourceFiles-windows-x86-dmd": ["extlib/ev.obj"],
+}

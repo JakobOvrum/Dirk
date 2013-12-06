@@ -16,5 +16,8 @@
 # Documentation
 /docs
 
+# Dub
+/.dub
+
 # Scripts
 /list_sources.d
