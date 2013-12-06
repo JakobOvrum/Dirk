@@ -1,4 +1,4 @@
-module irc.sslclient;
+module ssl.socket;
 
 import std.exception;
 import std.socket;
