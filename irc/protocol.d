@@ -137,10 +137,10 @@ struct IrcUser
 			user.nick = prefix.munch("^!");
 			if(prefix.length > 0)
 			{
-				prefix = prefix[1..$];
+				prefix = prefix[1 .. $];
 				user.userName = prefix.munch("^@");
-				prefix = prefix[1..$];
-				user.hostName = prefix;
+				if(prefix.length > 0)
+					user.hostName = prefix[1 .. $];
 			}
 		}
 		
