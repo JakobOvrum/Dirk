@@ -7,10 +7,10 @@ import std.socket;
 import irc.client;
 import irc.protocol;
 
-immutable nickName = "TestNick";
+string nickName = "TestNick";
 immutable userName = "user";
 immutable realName = "Test Name";
-IrcUser testUser = IrcUser(nickName, userName, "test.org");
+auto testUser = IrcUser("TestNick", userName, "test.org");
 
 class TestConnection
 {
@@ -135,14 +135,15 @@ unittest
 	auto origin = "testserver";
 	auto client = conn.client;
 
-	template TestEvent(string eventName)
+	struct TestEvent(string eventName)
 	{
 		import std.traits;
-		static bool ran = false;
-
 		alias Args = ParameterTypeTuple!(typeof(mixin("IrcClient." ~ eventName)[0]));
 
-		static void delegate(Args) handler;
+		void delegate(Args) handler;
+		bool prepared = false, ran = false;
+
+		@disable this(this);
 
 		void prepare(Args expectedArgs)
 		{
@@ -152,10 +153,12 @@ unittest
 			};
 
 			mixin("client." ~ eventName) ~= handler;
+			prepared = true;
 		}
 
 		void check()
 		{
+			assert(prepared);
 			assert(ran);
 			mixin("client." ~ eventName).unsubscribeHandler(handler);
 		}
@@ -173,20 +176,59 @@ unittest
 	conn.assertLine("NICK", nickName);
 	conn.assertLine("USER", userName, null, null, realName);
 
-	alias OnConnect = TestEvent!"onConnect";
-	OnConnect.prepare();
+	TestEvent!"onConnect" onConnect;
+	onConnect.prepare();
 	conn.injectfln(":%s 001 %s :Welcome to the test server", origin, nickName);
 	handleClientEvents();
-	OnConnect.check();
+	onConnect.check();
 
 	client.join("#test");
 	conn.assertLine("JOIN", "#test");
 
-	alias OnSuccessfulJoin = TestEvent!"onSuccessfulJoin";
-	OnSuccessfulJoin.prepare("#test");
+	TestEvent!"onSuccessfulJoin" onSuccessfulJoin;
+	onSuccessfulJoin.prepare("#test");
 	conn.injectfln(":%s JOIN #test", testUser);
 	handleClientEvents();
-	OnSuccessfulJoin.check();
+	onSuccessfulJoin.check();
+
+	TestEvent!"onMessage" onMessage;
+	onMessage.prepare(IrcUser("nick", "user", null), "#test", "hello world");
+	conn.injectfln(":nick!user PRIVMSG #test :hello world");
+	handleClientEvents();
+	onMessage.check();
+
+	onMessage = TestEvent!"onMessage"();
+	onMessage.prepare(IrcUser("nick", "user", "host"), "#test", "hi");
+	conn.injectfln(":nick!user@host PRIVMSG #test hi");
+	handleClientEvents();
+	onMessage.check();
+
+	TestEvent!"onNotice" onNotice;
+	onNotice.prepare(IrcUser(origin), nickName, "foo bar");
+	conn.injectfln(":%s NOTICE %s :foo bar", origin, nickName);
+	handleClientEvents();
+	onNotice.check();
+
+	TestEvent!"onNickChange" onNickChange;
+	onNickChange.prepare(testUser, "newNick");
+	conn.injectfln(":%s NICK newNick", testUser);
+	testUser.nick = "newNick";
+	nickName = "newNick";
+	handleClientEvents();
+	onNickChange.check();
+
+	auto otherUser = IrcUser("othernick", "other", "other.org");
+	TestEvent!"onJoin" onJoin;
+	onJoin.prepare(otherUser, "#test");
+	conn.injectfln(":%s JOIN #test", otherUser);
+	handleClientEvents();
+	onJoin.check();
+
+	TestEvent!"onPart" onPart;
+	onPart.prepare(otherUser, "#test");
+	conn.injectfln(":%s PART #test", otherUser);
+	handleClientEvents();
+	onPart.check();
 
 	client.quit("test");
 	conn.assertLine("QUIT", "test");
