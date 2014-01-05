@@ -10,6 +10,7 @@
 	"targetPath": "lib",
 
 	"sourcePaths": ["irc", "libev", "ssl", "loader"],
+	"importPaths": ["irc", "libev", "ssl", "loader"],
 	"mainSourceFile": "irc/testing.d",
 	"libs": ["phobos"],
 
