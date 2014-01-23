@@ -11,7 +11,6 @@
 
 	"sourcePaths": ["irc", "libev", "ssl", "loader"],
 	"mainSourceFile": "irc/testing.d",
-	"libs": ["phobos"],
 
 	"libs-posix": ["dl", "ev"],
 	"libs-windows-gnu-ldc": ["ev"],
