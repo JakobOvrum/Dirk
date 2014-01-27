@@ -10,6 +10,7 @@
 	"targetPath": "lib",
 
 	"sourcePaths": ["irc", "libev", "ssl", "loader"],
+	"importPaths": [".", "libev"],
 	"mainSourceFile": "irc/testing.d",
 
 	"libs-posix": ["dl", "ev"],
