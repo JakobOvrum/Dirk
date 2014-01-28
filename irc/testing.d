@@ -7,10 +7,8 @@ import std.socket;
 import irc.client;
 import irc.protocol;
 
-string nickName = "TestNick";
-immutable userName = "user";
-immutable realName = "Test Name";
-auto testUser = IrcUser("TestNick", userName, "test.org");
+immutable testRealName = "Test Name";
+auto testUser = IrcUser("TestNick", "user", "test.org");
 
 class TestConnection
 {
@@ -32,9 +30,9 @@ class TestConnection
 
 		this.clientSocket = new TcpSocket();
 		this.client = new IrcClient(clientSocket);
-		client.nick = nickName;
-		client.userName = userName;
-		client.realName = realName;
+		client.nickName = testUser.nickName;
+		client.userName = testUser.userName.idup;
+		client.realName = testRealName;
 
 		this.client.connect(listener.localAddress);
 
@@ -101,7 +99,7 @@ class TestConnection
 
 		void assertOriginator(IrcUser originator)
 		{
-			assert(originator.nick == nickName, `expected nickname "%s", got "%s")`.format(nickName, originator.nick));
+			assert(originator.nickName == testUser.nickName, `expected nickname "%s", got "%s")`.format(testUser.nickName, originator.nickName));
 			assert(originator.userName == null, `got username, expected none`);
 			assert(originator.hostName == null, `got hostname, expected none`);
 		}
@@ -138,18 +136,27 @@ unittest
 	struct TestEvent(string eventName)
 	{
 		import std.traits;
-		alias Args = ParameterTypeTuple!(typeof(mixin("IrcClient." ~ eventName)[0]));
+		alias HandlerType = typeof(mixin("IrcClient." ~ eventName)[0]);
+		alias Args = ParameterTypeTuple!HandlerType;
+		alias Ret = ReturnType!HandlerType;
 
-		void delegate(Args) handler;
+		Ret delegate(Args) handler;
 		bool prepared = false, ran = false;
 
 		@disable this(this);
 
-		void prepare(Args expectedArgs)
+		static if(is(Ret == void))
+			alias ExpectedRet = TypeTuple!();
+		else
+			alias ExpectedRet = Ret;
+
+		void prepare(ExpectedRet expectedRet, Args expectedArgs)
 		{
-			handler = delegate void(Args args) {
+			handler = delegate Ret(Args args) {
 				ran = true;
 				assert(args == expectedArgs);
+				static if (!is(Ret == void))
+					return expectedRet;
 			};
 
 			mixin("client." ~ eventName) ~= handler;
@@ -173,14 +180,29 @@ unittest
 		assert(!client.read());
 	}
 
-	conn.assertLine("NICK", nickName);
-	conn.assertLine("USER", userName, null, null, realName);
+	conn.assertLine("NICK", testUser.nickName);
+	conn.assertLine("USER", testUser.userName, null, null, testRealName);
+
+	{
+		TestEvent!"onNickInUse" onNickInUse;
+		auto newNickName = testUser.nickName ~ "_";
+		onNickInUse.prepare(newNickName, testUser.nickName);
+		conn.injectfln(":%s 433 %s :Nickname is already in use", origin, testUser.nickName);
+		handleClientEvents();
+		onNickInUse.check();
+		conn.assertLine("NICK", newNickName);
+		testUser.nickName = newNickName;
+	}
 
 	TestEvent!"onConnect" onConnect;
 	onConnect.prepare();
-	conn.injectfln(":%s 001 %s :Welcome to the test server", origin, nickName);
+	conn.injectfln(":%s 001 %s :Welcome to the test server", origin, testUser.nickName);
 	handleClientEvents();
 	onConnect.check();
+
+	conn.injectfln(":%s PING :hello world", origin);
+	handleClientEvents();
+	conn.assertLine("PONG", "hello world");
 
 	client.join("#test");
 	conn.assertLine("JOIN", "#test");
@@ -190,6 +212,18 @@ unittest
 	conn.injectfln(":%s JOIN #test", testUser);
 	handleClientEvents();
 	onSuccessfulJoin.check();
+
+	TestEvent!"onNameList" onNameList;
+	onNameList.prepare("#test", ["a", "b", "c"]);
+	conn.injectfln(":%s 353 = #test :a +b @c", origin);
+	handleClientEvents();
+	onNameList.check();
+
+	TestEvent!"onNameListEnd" onNameListEnd;
+	onNameListEnd.prepare("#test");
+	conn.injectfln(":%s 366 #test :End of NAMES list");
+	handleClientEvents();
+	onNameListEnd.check();
 
 	TestEvent!"onMessage" onMessage;
 	onMessage.prepare(IrcUser("nick", "user", null), "#test", "hello world");
@@ -204,16 +238,16 @@ unittest
 	onMessage.check();
 
 	TestEvent!"onNotice" onNotice;
-	onNotice.prepare(IrcUser(origin), nickName, "foo bar");
-	conn.injectfln(":%s NOTICE %s :foo bar", origin, nickName);
+	onNotice.prepare(IrcUser(origin), testUser.nickName, "foo bar");
+	conn.injectfln(":%s NOTICE %s :foo bar", origin, testUser.nickName);
 	handleClientEvents();
 	onNotice.check();
 
 	TestEvent!"onNickChange" onNickChange;
 	onNickChange.prepare(testUser, "newNick");
 	conn.injectfln(":%s NICK newNick", testUser);
-	testUser.nick = "newNick";
-	nickName = "newNick";
+	testUser.nickName = "newNick";
+	testUser.nickName = "newNick";
 	handleClientEvents();
 	onNickChange.check();
 
@@ -229,6 +263,32 @@ unittest
 	conn.injectfln(":%s PART #test", otherUser);
 	handleClientEvents();
 	onPart.check();
+
+	TestEvent!"onMePart" onMePart;
+	onMePart.prepare("#test");
+	client.part("#test");
+	conn.assertLine("PART", "#test");
+	conn.injectfln(":%s PART #test", testUser);
+	handleClientEvents();
+	onMePart.check();
+
+	client.join("#test");
+	conn.assertLine("JOIN", "#test");
+
+	TestEvent!"onKick" onKick;
+	onKick.prepare(testUser, "#test", testUser.nickName, "test reason");
+	client.kick("#test", testUser.nickName, "test reason");
+	conn.assertLine("KICK", "#test", testUser.nickName, "test reason");
+	conn.injectfln(":%s KICK #test %s :test reason", testUser, testUser.nickName);
+	handleClientEvents();
+	onKick.check();
+
+	auto quittingUser = IrcUser("iquit", "quitter", "quitting.org");
+	TestEvent!"onQuit" onQuit;
+	onQuit.prepare(quittingUser, "Goodbye!");
+	conn.injectfln(":%s QUIT :Goodbye!", quittingUser);
+	handleClientEvents();
+	onQuit.check();
 
 	client.quit("test");
 	conn.assertLine("QUIT", "test");
