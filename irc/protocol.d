@@ -112,16 +112,18 @@ unittest
 struct IrcUser
 {
 	///
-	const(char)[] nick;
+	const(char)[] nickName;
 	///
 	const(char)[] userName;
 	///
 	const(char)[] hostName;
 
+	deprecated alias nick = nickName;
+
 	// TODO: Change to use sink once formattedWrite supports them
 	string toString() const
 	{
-		return format("%s!%s@%s", nick, userName, hostName);
+		return format("%s!%s@%s", nickName, userName, hostName);
 	}
 	
 	static:
@@ -134,7 +136,7 @@ struct IrcUser
 		
 		if(prefix !is null)
 		{
-			user.nick = prefix.munch("^!");
+			user.nickName = prefix.munch("^!");
 			if(prefix.length > 0)
 			{
 				prefix = prefix[1 .. $];
@@ -163,7 +165,7 @@ struct IrcUser
 			if(strUser.strip.empty) // ???
 				return i;
 			
-			user.nick = strUser.munch("^=");
+			user.nickName = strUser.munch("^=");
 			strUser.popFront();
 			
 			user.userName = strUser.munch("^@");
@@ -190,7 +192,7 @@ unittest
 	IrcUser user;
 	
 	user = IrcUser.fromPrefix("foo!bar@baz");
-	assert(user.nick == "foo");
+	assert(user.nickName == "foo");
 	assert(user.userName == "bar");
 	assert(user.hostName == "baz");
 	

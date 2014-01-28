@@ -91,7 +91,7 @@ class DccServer
 	// its hostname from the IRC server
 	void queryUserhost()
 	{
-		queriedNick = client.nick;
+		queriedNick = client.nickName;
 		client.queryUserhost(queriedNick);
 		client.onUserhostReply ~= &onUserhostReply;
 	}
@@ -108,7 +108,7 @@ class DccServer
 		
 		foreach(ref user; users)
 		{
-			if(user.nick == queriedNick)
+			if(user.nickName == queriedNick)
 			{
 				clientAddress = user.hostName;
 				client.onUserhostReply.unsubscribeHandler(&onUserhostReply);

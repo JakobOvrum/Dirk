@@ -131,7 +131,7 @@ class IrcClient
 
 		// TODO: Implement `PASS`
 
-		writef("NICK %s", nick);
+		writef("NICK %s", nickName);
 		writef("USER %s * * :%s", userName, realName); // TODO: Initial user-mode argument
 	}
 	
@@ -393,24 +393,24 @@ class IrcClient
 	 *
 	 * Setting this property when connected can cause the $(MREF IrcClient.onNickInUse) event to fire.
 	 */
-	string nick() const pure @property
+	string nickName() const pure @property
 	{
 		return m_nick;
 	}
 	
 	/// Ditto
-	void nick(in char[] newNick) @property
+	void nickName(in char[] newNick) @property
 	{
 		enforce(!newNick.empty);
 		if(connected) // m_nick will be set later if the nick is accepted.
 			writef("NICK %s", newNick);
 		else
-			m_nick = nick.idup;
+			m_nick = newNick.idup;
 	}
 	
 	/// Ditto
 	// Duplicated to show up nicer in DDoc - previously used a template and aliases
-	void nick(string newNick) @property
+	void nickName(string newNick) @property
 	{
 		enforce(!newNick.empty);
 		if(connected) // m_nick will be set later if the nick is accepted.
@@ -418,6 +418,8 @@ class IrcClient
 		else
 			m_nick = newNick;
 	}
+
+	deprecated alias nick = nickName;
 	
 	/**
 	 * Join a _channel.
@@ -805,7 +807,7 @@ class IrcClient
 
 				scope(exit)
 				{
-					if(m_nick == user.nick)
+					if(m_nick == user.nickName)
 						m_nick = newNick.idup;
 				}
 
@@ -814,7 +816,7 @@ class IrcClient
 			case "JOIN":
 				auto user = getUser(line.prefix);
 
-				if(user.nick == m_nick)
+				if(user.nickName == m_nick)
 					fireEvent(onSuccessfulJoin, line.arguments[0]);
 				else
 					fireEvent(onJoin, user, line.arguments[0]);

@@ -52,7 +52,7 @@ class IrcTracker
 		auto channel = IrcChannel(channelName.idup);
 
 		// Give the channel identity by initializing the AA
-		channel._users = [_client.nick: IrcUser(_client.nick, _client.userName, _client.realName)];
+		channel._users = [_client.nickName: IrcUser(_client.nickName, _client.userName, _client.realName)];
 
 		_channels[channel.name] = channel;
 	}
@@ -74,8 +74,8 @@ class IrcTracker
 
 		if(auto channel = channelName in _channels)
 		{
-			auto immNick = user.nick.idup;
-			user.nick = immNick;
+			auto immNick = user.nickName.idup;
+			user.nickName = immNick;
 			channel._users[immNick] = user;
 		}
 	}
@@ -94,7 +94,7 @@ class IrcTracker
 
 	void onPart(IrcUser user, in char[] channelName)
 	{
-		onLeave(channelName, user.nick);
+		onLeave(channelName, user.nickName);
 	}
 
 	void onKick(IrcUser kicker, in char[] channelName, in char[] nick, in char[] comment)
@@ -107,28 +107,28 @@ class IrcTracker
 		debug(IrcTracker) writefln("%s quit", user.nick);
 		foreach(ref channel; _channels)
 		{
-			if(user.nick in channel._users)
+			if(user.nickName in channel._users)
 			{
 				debug(IrcTracker) writefln("%s left %s by quitting", user.nick, channel.name);
-				channel._users.remove(user.nick.idup /* ew */);
+				channel._users.remove(user.nickName.idup /* ew */);
 			}
 		}
 	}
 
 	void onNickChange(IrcUser user, in char[] newNick)
 	{
-		if(user.nick != _client.nick)
+		if(user.nickName != _client.nickName)
 		{
 			string immNewNick;
 
 			foreach(ref channel; _channels)
 			{
-				if(auto userInSet = user.nick in channel._users)
+				if(auto userInSet = user.nickName in channel._users)
 				{
 					if(!immNewNick)
 						immNewNick = newNick.idup;
 
-					userInSet.nick = immNewNick;
+					userInSet.nickName = immNewNick;
 				}
 			}
 		}
