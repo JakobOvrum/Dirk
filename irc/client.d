@@ -17,6 +17,7 @@ import std.array;
 import std.range;
 import std.regex; // TEMP: For EOL identification
 import std.string : format, sformat, munch;
+import std.traits;
 
 //debug=Dirk;
 debug(Dirk) static import std.stdio;
@@ -471,7 +472,71 @@ class IrcClient
 	{
 		writef("PART %s :%s", channel, message);
 	}
+
+	/**
+	 * Kick one or more _users from a _channel.
+	 *
+	 * This _user must have channel operator status in $(D channel).
+	 * Params:
+	 *   channel = _channel to kick user(s) from
+	 *   users = _user(s) to kick
+	 *   comment = _comment to broadcast with the _kick message,
+	 *      which typically contains the reason the _user is being kicked
+	 */
+	void kick()(in char[] channel, in char[] user)
+	{
+		writef("KICK %s %s", channel, user);
+	}
 	
+	/// Ditto
+	void kick()(in char[] channel, in char[] user, in char[] comment)
+	{
+		writef("KICK %s %s :%s", channel, user, comment);
+	}
+
+	/// Ditto
+	void kick(Range)(in char[] channel, Range users)
+		if(isInputRange!Range && isSomeString!(ElementType!Range))
+	{
+		writef("KICK %s %(%s%|,%)", channel, users);
+	}
+
+	/// Ditto
+	void kick(Range)(in char[] channel, Range users, in char[] comment)
+		if(isInputRange!Range && isSomeString!(ElementType!Range))
+	{
+		writef("KICK %s %(%s%|,%) :%s", channel, users, comment);
+	}
+
+	/**
+	 * Kick users from channels in a single message.
+	 *
+	 * $(D channelUserPairs) must be a range of $(STDREF typecons, Tuple)
+	 * pairs of strings, where the first string is the name of a channel
+	 * and the second string is the user to kick from that channel.
+	 */
+	void kick(Range)(Range channelUserPairs)
+		if(isInputRange!Range &&
+		   isTuple!(ElementType!Range) && ElementType!Range.length == 2 &&
+		   allSatisfy!(isSomeString, ElementType!Range.Types))
+	{
+		writef("KICK %(%s%|,%) %(%s%|,%)",
+			   channelUserPairs.map!(pair => pair[0]),
+			   channelUserPairs.map!(pair => pair[1]));
+	}
+
+	/// Ditto
+	void kick(Range)(Range channelUserPairs, in char[] comment)
+		if(isInputRange!Range &&
+		   isTuple!(ElementType!Range) && ElementType!Range.length == 2 &&
+		   allSatisfy!(isSomeString, ElementType!Range.Types))
+	{
+		writef("KICK %(%s%|,%) %(%s%|,%) :%s",
+			   channelUserPairs.map!(pair => pair[0]),
+			   channelUserPairs.map!(pair => pair[1]),
+			   comment);
+	}
+
 	/**
 	 * Query the username and hostname of up to 5 users.
 	 * Params:
