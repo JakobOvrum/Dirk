@@ -13,6 +13,9 @@
 /*.obj
 /*.exe
 
+# DMD code coverage files
+*.lst
+
 # Documentation
 /docs
 
