@@ -142,6 +142,65 @@
 <div class="declaration-content"><dl><p>Hub for new DCC connections.</p>
 
 </dl>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3> this(IrcEventLoop <i>eventLoop</i>, IrcClient <i>client</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Create a new DCC server given the event loop
+ and IRC client to be associated with this
+ server.
+</p>
+
+<p>The event loop is used to schedule reads and
+ writes for open DCC connections.
+<br><br>
+
+ The associated IRC client is used to send
+ DCC/CTCP notifications as well as to look up
+ the Internet address to advertise for this
+ server.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const pure @property uint <span class="symbol-target" id="clientAddress">&nbsp;</span><a class="symbol-link" href="#clientAddress">clientAddress</a>();
+<br>pure @property void <span class="symbol-target" id="clientAddress">&nbsp;</span><a class="symbol-link" href="#clientAddress">clientAddress</a>(uint <i>addr</i>);
+<br>@property void <span class="symbol-target" id="clientAddress">&nbsp;</span><a class="symbol-link" href="#clientAddress">clientAddress</a>(in char[] <i>hostName</i>);
+<br>@property void <span class="symbol-target" id="clientAddress">&nbsp;</span><a class="symbol-link" href="#clientAddress">clientAddress</a>(Address <i>address</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>The IP address of the DCC server in network byte order.
+</p>
+
+<p>If not explicitly provided, this defaults to the result of
+ looking up the hostname for the associated IRC client.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="setPortRange">&nbsp;</span><a class="symbol-link" href="#setPortRange">setPortRange</a>(ushort <i>lower</i>, ushort <i>upper</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Set the port range for accepting connections.
+</p>
+
+<p>The server selects a port in this range when
+ initiating connections. The default range is
+ 49152–65535. The range is inclusive on both
+ ends.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>DccChat <span class="symbol-target" id="inviteChat">&nbsp;</span><a class="symbol-link" href="#inviteChat">inviteChat</a>(in char[] <i>nick</i>, uint <i>timeout</i> = 10);
+</h3></div>
+<div class="declaration-content"><dl><p>Invite the given user to a DCC chat session.
+</p>
+
+<p>The associated IRC client must be connected.
+</p>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>nick</i></td>
+<td>nick of user to invite</td>
+</tr>
+<tr><td>uint <i>timeout</i></td>
+<td>time in seconds to wait for the
+   invitation to be accepted</td>
+</tr>
+</table></dd>
+<dt>Returns</dt><dd>A listening DCC chat session object</dd>
+</dl>
+</div>
+</div>
 </div>
 <hr><div class="row-fluid declaration"><h3>abstract class <span class="symbol-target" id="DccConnection">&nbsp;</span><a class="symbol-link" href="#DccConnection">DccConnection</a>;
 </h3></div>
@@ -177,6 +236,60 @@
 </div>
 
 </div>
+<hr><div class="row-fluid declaration"><h3>protected  this(Socket <i>socket</i>, uint <i>timeout</i>, State <i>initialState</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Initialize a DCC resource with the given socket, <i>timeout</i> value and state.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>protected final void <span class="symbol-target" id="write">&nbsp;</span><a class="symbol-link" href="#write">write</a>(in void[] <i>data</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Write to this connection.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>protected abstract void <span class="symbol-target" id="onConnected">&nbsp;</span><a class="symbol-link" href="#onConnected">onConnected</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when the connection has been established.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>protected abstract void <span class="symbol-target" id="onDisconnected">&nbsp;</span><a class="symbol-link" href="#onDisconnected">onDisconnected</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when the connection was closed cleanly.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>protected abstract bool <span class="symbol-target" id="onRead">&nbsp;</span><a class="symbol-link" href="#onRead">onRead</a>(in void[] <i>data</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when data was received.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>immutable uint <span class="symbol-target" id="timeout">&nbsp;</span><a class="symbol-link" href="#timeout">timeout</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>The timeout value of this connection in seconds.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>abstract @property string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Name of this resource.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(Exception e)[] <span class="symbol-target" id="onError">&nbsp;</span><a class="symbol-link" href="#onError">onError</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when an error occurs.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate()[] <span class="symbol-target" id="onTimeout">&nbsp;</span><a class="symbol-link" href="#onTimeout">onTimeout</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a listening connection has timed out.</p>
+
+</dl>
+</div>
 </div>
 </div>
 <hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="DccChat">&nbsp;</span><a class="symbol-link" href="#DccChat">DccChat</a>: irc.dcc.DccConnection;
@@ -184,6 +297,70 @@
 <div class="declaration-content"><dl><p>Represents a DCC chat session.</p>
 
 </dl>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>@property string <span class="symbol-target" id="name">&nbsp;</span><a class="symbol-link" href="#name">name</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>Always the string "chat".</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate()[] <span class="symbol-target" id="onConnect">&nbsp;</span><a class="symbol-link" href="#onConnect">onConnect</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when the session has started.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate()[] <span class="symbol-target" id="onFinish">&nbsp;</span><a class="symbol-link" href="#onFinish">onFinish</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when the session has cleanly ended.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void delegate(in char[] line)[] <span class="symbol-target" id="onMessage">&nbsp;</span><a class="symbol-link" href="#onMessage">onMessage</a>;
+</h3></div>
+<div class="declaration-content"><dl><p>Invoked when a line of text has been received.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="send">&nbsp;</span><a class="symbol-link" href="#send">send</a>(in char[] <i>message</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a single chat message.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>message</i></td>
+<td>message to send. Must not contain newlines.</td>
+</tr>
+</table></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="sendf">&nbsp;</span><a class="symbol-link" href="#sendf">sendf</a>(FmtArgs...)(in char[] <i>fmt</i>, FmtArgs <i>fmtArgs</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send a single, formatted chat message.
+</p>
+
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] fmt</td>
+<td>format of message to send. Must not contain newlines.</td>
+</tr>
+<tr><td>FmtArgs fmtArgs</td>
+<td><span class="inlinecode">fmt</span> is formatted with these arguments.</td>
+</tr>
+</table></dd>
+<dt>See Also</dt><dd><a href="http://dlang.org/phobos/std_format.html#formattedWrite"><span class="inlinecode">std.format.formattedWrite</span></a></dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="sendMultiple">&nbsp;</span><a class="symbol-link" href="#sendMultiple">sendMultiple</a>(in char[] <i>messages</i>);
+</h3></div>
+<div class="declaration-content"><dl><p>Send chat messages.
+ Each message must be terminated with the character <span class="inlinecode">\n</span>.</p>
+
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="finish">&nbsp;</span><a class="symbol-link" href="#finish">finish</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>End the chat session.</p>
+
+</dl>
+</div>
+</div>
 </div>
 
 
