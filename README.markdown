@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/JakobOvrum/Dirk.png?branch=master)](https://travis-ci.org/JakobOvrum/Dirk)
 Dirk
 ============================================
 Dirk is an IRC client library for the D programming language.
