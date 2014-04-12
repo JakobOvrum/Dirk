@@ -87,7 +87,7 @@ class IrcTracker
 
 	// Utility function
 	void onLeave(in char[] channelName, in char[] nick)
-	{ 
+	{
 		debug(IrcTracker) writefln("%s left %s", nick, channelName);
 		_channels[channelName]._users.remove(nick.idup /* ew */);
 	}
@@ -204,7 +204,7 @@ class IrcTracker
 	}
 
 	/**
-	* Lookup a channel on this tracker by name. 
+	* Lookup a channel on this tracker by name.
 	* The channel name must include the channel name prefix.
 	*
 	* Params:

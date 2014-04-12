@@ -27,36 +27,36 @@ private:
 auto lowQuote(Range)(Range payload) if(isInputRange!Range)
 {
 	alias ubyte C;
-	
+
 	static if(is(Range : const(char)[]))
 		alias const(ubyte)[] R;
 	else
 		alias Range R;
-	
+
 	static struct Quoter
 	{
 		private:
 		R data;
 		C override_;
-		
+
 		public:
 		bool empty()
 		{
 			return override_ == C.init && data.empty;
 		}
-		
+
 		C front()
 		{
 			if(override_ != C.init)
 				return override_;
-			
+
 			auto front = data.front;
 			if(front == '\0' || front == '\r' || front == '\n')
 				return CtcpToken.quote;
-			
+
 			return front;
 		}
-		
+
 		void popFront()
 		{
 			if(override_ != C.init)
@@ -64,9 +64,9 @@ auto lowQuote(Range)(Range payload) if(isInputRange!Range)
 				override_ = C.init;
 				return;
 			}
-			
+
 			char prev = data.front;
-			
+
 			switch(prev)
 			{
 				case '\0':
@@ -83,7 +83,7 @@ auto lowQuote(Range)(Range payload) if(isInputRange!Range)
 					break;
 				default:
 			}
-			
+
 			data.popFront();
 		}
 	}
@@ -102,7 +102,7 @@ auto lowDequote(Range)(Range quoted)
 		alias const(ubyte)[] R;
 	else
 		alias Range R;
-	
+
 	static struct Dequoter
 	{
 		private:
@@ -133,10 +133,10 @@ auto lowDequote(Range)(Range quoted)
 						break;
 				}
 			}
-			
+
 			return front;
 		}
-		
+
 		private bool skipQuote()
 		{
 			if(!remaining.empty && remaining.front == CtcpToken.quote)
@@ -154,7 +154,7 @@ auto lowDequote(Range)(Range quoted)
 			wasQuote = skipQuote();
 		}
 	}
-	
+
 	auto dequoter = Dequoter(cast(R)quoted);
 	dequoter.wasQuote = dequoter.skipQuote();
 	return dequoter;
@@ -185,36 +185,36 @@ unittest
 auto ctcpQuote(Range)(Range payload) if(isInputRange!Range)
 {
 	alias ubyte C;
-	
+
 	static if(is(Range : const(char)[]))
 		alias const(ubyte)[] R;
 	else
 		alias Range R;
-	
+
 	static struct Quoter
 	{
 		private:
 		R data;
 		C override_;
-		
+
 		public:
 		bool empty()
 		{
 			return override_ == C.init && data.empty;
 		}
-		
+
 		C front()
 		{
 			if(override_ != C.init)
 				return override_;
-			
+
 			auto front = data.front;
 			if(front == CtcpToken.delimiter)
 				return '\\';
-			
+
 			return front;
 		}
-		
+
 		void popFront()
 		{
 			if(override_ != C.init)
@@ -222,9 +222,9 @@ auto ctcpQuote(Range)(Range payload) if(isInputRange!Range)
 				override_ = C.init;
 				return;
 			}
-			
+
 			char prev = data.front;
-			
+
 			switch(prev)
 			{
 				case '\\':
@@ -235,7 +235,7 @@ auto ctcpQuote(Range)(Range payload) if(isInputRange!Range)
 					break;
 				default:
 			}
-			
+
 			data.popFront();
 		}
 	}
@@ -246,7 +246,7 @@ auto ctcpQuote(Range)(Range payload) if(isInputRange!Range)
 unittest
 {
 	import std.array : array;
-	
+
 	assert(ctcpQuote("hello, world").array() == "hello, world");
 	assert(ctcpQuote("\\hello, \x01world\x01").array() == `\\hello, \aworld\a`);
 	assert(ctcpQuote(`hello, \world\`).array() == `hello, \\world\\`);
@@ -263,7 +263,7 @@ auto ctcpDequote(Range)(Range quoted)
 		alias const(ubyte)[] R;
 	else
 		alias Range R;
-	
+
 	static struct Dequoter
 	{
 		private:
@@ -279,7 +279,7 @@ auto ctcpDequote(Range)(Range quoted)
 		char front() pure
 		{
 			auto front = remaining.front;
-			
+
 			if(wasQuote)
 			{
 				switch(front)
@@ -290,7 +290,7 @@ auto ctcpDequote(Range)(Range quoted)
 						break;
 				}
 			}
-			
+
 			return front;
 		}
 
@@ -304,7 +304,7 @@ auto ctcpDequote(Range)(Range quoted)
 			else
 				return false;
 		}
-		
+
 		void popFront()
 		{
 			remaining.popFront();
@@ -322,16 +322,16 @@ unittest
 	import std.algorithm : equal;
 
 	auto example = "Hi there!\nHow are you? \\K?";
-	
+
 	auto ctcpQuoted = example.ctcpQuote();
 	auto lowQuoted = ctcpQuoted.lowQuote();
-	
+
 	auto lowDequoted = lowQuoted.array().lowDequote();
 	auto ctcpDequoted = lowDequoted.array().ctcpDequote();
-	
+
 	assert(cast(string)ctcpQuoted.array() == "Hi there!\nHow are you? \\\\K?");
 	assert(cast(string)lowQuoted.array() == "Hi there!\x10nHow are you? \\\\K?");
-	
+
 	assert(lowDequoted.equal(ctcpQuoted));
 	assert(ctcpDequoted.array() == example);
 }
@@ -348,7 +348,7 @@ public:
 auto ctcpMessage(in char[] tag, in char[] data)
 {
 	alias const(ubyte)[] Ascii;
-		
+
 	auto message = values(cast(Ascii)tag, cast(Ascii)data)
 	             .joiner(cast(Ascii)" ")
 	             .ctcpQuote()
@@ -367,13 +367,13 @@ auto ctcpMessage(in char[] contents)
 unittest
 {
 	char[] msg;
-	
+
 	msg = ctcpMessage("ACTION", "test \n123").array();
 	assert(msg == "\x01ACTION test \x10n123\x01");
-	
+
 	msg = ctcpMessage("FINGER").array();
 	assert(msg == "\x01FINGER\x01");
-	
+
 	msg = ctcpMessage("TEST", "\\test \x01 \r\n\0\x10").array();
 	assert(msg == "\x01TEST \\\\test \\a \x10r\x10n\x100\x10\x10\x01");
 }
@@ -389,19 +389,19 @@ auto ctcpExtract(in char[] message)
 	{
 		const(char)[] remaining;
 		size_t frontLength;
-		
+
 		bool empty() const pure
 		{
 			return remaining.empty;
 		}
-		
+
 		auto front() const
 		{
 			return remaining[0 .. frontLength - 1]
 			    .ctcpDequote()
 			    .lowDequote();
 		}
-		
+
 		private size_t findStandaloneDelim() pure
 		{
 			foreach(i, char c; remaining)
@@ -411,41 +411,41 @@ auto ctcpExtract(in char[] message)
 					if((i > 0 && remaining[i - 1] == CtcpToken.delimiter) ||
 					   (i < remaining.length - 1 && remaining[i + 1] == CtcpToken.delimiter))
 						continue;
-					
+
 					return i;
 				}
 			}
-			
+
 			return remaining.length;
 		}
-		
+
 		void popFront() pure
 		{
 			remaining = remaining[frontLength .. $];
-			
+
 			auto even = findStandaloneDelim();
 			if(even == remaining.length)
 			{
 				remaining = null;
 				return;
 			}
-			
+
 			remaining = remaining[even + 1 .. $];
-			
+
 			auto odd = findStandaloneDelim();
 			if(odd == remaining.length)
 			{
 				remaining = null;
 				return;
 			}
-			
+
 			frontLength = odd + 1;
 		}
 	}
-	
+
 	auto extractor = Extractor(message);
 	extractor.popFront();
-	
+
 	return extractor;
 }
 
@@ -454,26 +454,26 @@ unittest
 	// Chain is useless...
 	auto first = ctcpMessage("FINGER").array();
 	auto second = ctcpMessage("TEST", "one\r\ntwo").array();
-	
+
 	auto allMsgs = cast(string)("head" ~ first ~ "mid" ~ second ~ "tail");
-	
+
 	auto r = allMsgs.ctcpExtract();
 	assert(!r.empty);
-	
+
 	assert(r.front.array() == "FINGER");
-	
+
 	r.popFront();
 	assert(!r.empty);
-	
+
 	assert(r.front.array() == "TEST one\r\ntwo");
-	
+
 	r.popFront();
 	assert(r.empty);
-	
+
 	allMsgs = "test";
 	r = allMsgs.ctcpExtract();
 	assert(r.empty);
-	
+
 	allMsgs = "\x01test";
 	r = allMsgs.ctcpExtract();
 	assert(r.empty);

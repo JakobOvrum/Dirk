@@ -44,27 +44,27 @@ class DccServer
 	IrcEventLoop eventLoop;
 	IrcClient client;
 	uint clientAddress_ = 0;
-	
+
 	ushort portStart, portEnd;
 	ushort lastPort;
-	
+
 	string queriedNick;
-	
+
 	static struct Offer
 	{
 		enum State { pendingAddress, listening, sending, declined, finished }
 		State state;
 	}
-	
+
 	Offer[] sendQueue;
-	
+
 	Tuple!(Socket, ushort) allocatePort()
 	{
 		auto portRange = iota(portStart, portEnd + 1);
-		
+
 		auto ports = portRange.cycle(lastPort);
 		ports.popFront(); // skip last used port
-		
+
 		size_t tries = 0;
 		auto socket = new TcpSocket();
 		foreach(lport; ports)
@@ -83,10 +83,10 @@ class DccServer
 					throw new DccException("no available port in assigned range", e);
 			}
 		}
-		
+
 		assert(false);
 	}
-	
+
 	// Figure out the client address by getting
 	// its hostname from the IRC server
 	void queryUserhost()
@@ -95,7 +95,7 @@ class DccServer
 		client.queryUserhost(queriedNick);
 		client.onUserhostReply ~= &onUserhostReply;
 	}
-	
+
 	void onUserhostReply(in IrcUser[] users)
 	{
 		// If a client address has ben set
@@ -105,7 +105,7 @@ class DccServer
 			client.onUserhostReply.unsubscribeHandler(&onUserhostReply);
 			return;
 		}
-		
+
 		foreach(ref user; users)
 		{
 			if(user.nickName == queriedNick)
@@ -116,7 +116,7 @@ class DccServer
 			}
 		}
 	}
-	
+
 	public:
 	/**
 	 * Create a new DCC server given the event loop
@@ -135,9 +135,9 @@ class DccServer
 	{
 		this.eventLoop = eventLoop;
 		this.client = client;
-		
+
 		setPortRange(49152, 65535);
-		
+
 		if(client.connected)
 			queryUserhost();
 		else
@@ -146,14 +146,14 @@ class DccServer
 			{
 				if(clientAddress != 0)
 					queryUserhost();
-				
+
 				client.onConnect.unsubscribeHandler(&onConnect);
 			}
-			
+
 			client.onConnect ~= &onConnect;
 		}
 	}
-	
+
 	/**
 	 * The IP address of the DCC server in network byte order.
 	 *
@@ -164,13 +164,13 @@ class DccServer
 	{
 		return clientAddress_;
 	}
-	
+
 	/// Ditto
 	void clientAddress(uint addr) pure @property
 	{
 		clientAddress_ = addr;
 	}
-	
+
 	/// Ditto
 	void clientAddress(in char[] hostName) @property
 	{
@@ -178,17 +178,17 @@ class DccServer
 
 		if(addresses.empty)
 			return;
-		
+
 		auto address = addresses[0];
 		clientAddress = htonl((cast(sockaddr_in*)address.name).sin_addr.s_addr);
 	}
-	
+
 	/// Ditto
 	void clientAddress(Address address) @property
 	{
 		clientAddress = htonl((cast(sockaddr_in*)address.name).sin_addr.s_addr);
 	}
-	
+
 	/**
 	 * Set the port range for accepting connections.
 	 *
@@ -200,13 +200,13 @@ class DccServer
 	void setPortRange(ushort lower, ushort upper)
 	{
 		enforce(lower < upper);
-		
+
 		portStart = lower;
 		portEnd = upper;
-		
+
 		lastPort = uniform(portStart, portEnd);
 	}
-	
+
 	/+/**
 	 * Send a resource (typically a file) to the given user.
 	 *
@@ -215,16 +215,16 @@ class DccServer
 	void send(in char[] nick, DccConnection resource)
 	{
 		enforce(client.connected, "client must be connected before using DCC SEND");
-		
+
 		auto port = 0;
 		auto len = 0;
-		
+
 		auto query = format("SEND %s %d %d %d",
 		    resource.name, clientAddress, port, len);
-		
+
 		client.ctcpQuery(nick, "DCC", query);
 	}+/
-	
+
 	/**
 	 * Invite the given user to a DCC chat session.
 	 *
@@ -239,22 +239,22 @@ class DccServer
 	DccChat inviteChat(in char[] nick, uint timeout = 10)
 	{
 		enforce(client.connected, "client must be connected before using DCC CHAT");
-		
+
 		auto results = allocatePort();
 		auto socket = results[0];
 		auto port = results[1];
-		
+
 		client.ctcpQuery(nick, "DCC",
 		    format("CHAT chat %d %d", clientAddress, port));
-		
+
 		socket.listen(1);
-		
+
 		auto dccChat = new DccChat(socket, timeout);
 		dccChat.eventLoop = eventLoop;
 		dccChat.eventIndex = eventLoop.add(dccChat);
 		return dccChat;
 	}
-	
+
 	void closeConnection(DccConnection conn)
 	{
 		eventLoop.remove(conn.eventIndex);
@@ -274,19 +274,19 @@ abstract class DccConnection
 		connected, /// This is an active connection.
 		closed /// This DCC session has ended.
 	}
-	
+
 	/// Ditto
 	State state = State.preConnect;
-	
+
 	private:
 	IrcEventLoop eventLoop;
-	
+
 	package:
 	Socket socket; // Refers to either a server or client
 	DccEventIndex eventIndex;
-	
+
 	enum Event { none, connectionEstablished, finished }
-	
+
 	final Event read()
 	{
 		final switch(state) with(State)
@@ -294,16 +294,16 @@ abstract class DccConnection
 			case preConnect:
 				auto conn = socket.accept();
 				socket.close();
-				
+
 				socket = conn;
 				state = connected;
-				
+
 				onConnected();
-				
+
 				return Event.connectionEstablished;
-			case connected:			
+			case connected:
 				static ubyte[1024] buffer; // TODO
-				
+
 				auto received = socket.receive(buffer);
 				if(received <= 0)
 				{
@@ -311,11 +311,11 @@ abstract class DccConnection
 					onDisconnected();
 					return Event.finished;
 				}
-				
+
 				auto data = buffer[0 .. received];
-				
+
 				bool finished = onRead(data);
-				
+
 				if(finished)
 				{
 					state = closed;
@@ -327,19 +327,19 @@ abstract class DccConnection
 			case closed, timedOut:
 				assert(false);
 		}
-		
+
 		return Event.none;
 	}
-	
+
 	final void doTimeout()
 	{
 		state = State.timedOut;
 		socket.close();
-		
+
 		foreach(callback; onTimeout)
 			callback();
 	}
-	
+
 	protected:
 	/**
 	 * Initialize a DCC resource with the given _socket, timeout value and state.
@@ -350,7 +350,7 @@ abstract class DccConnection
 		this.timeout = timeout;
 		this.socket = socket;
 	}
-	
+
 	/**
 	 * Write to this connection.
 	 */
@@ -358,34 +358,34 @@ abstract class DccConnection
 	{
 		socket.send(data);
 	}
-	
+
 	/**
 	 * Invoked when the connection has been established.
 	 */
 	abstract void onConnected();
-	
+
 	/**
 	 * Invoked when the connection was closed cleanly.
 	 */
 	abstract void onDisconnected();
-	
+
 	/**
 	 * Invoked when _data was received.
 	 */
 	abstract bool onRead(in void[] data);
-	
+
 	public:
 	/// The _timeout value of this connection in seconds.
 	immutable uint timeout;
-	
+
 	/// Name of this resource.
 	abstract string name() @property;
-	
+
 	/**
 	 * Invoked when an error occurs.
 	 */
 	void delegate(Exception e)[] onError;
-	
+
 	/**
 	 * Invoked when a listening connection has timed out.
 	 */
@@ -397,70 +397,70 @@ class DccChat : DccConnection
 {
 	private:
 	import irc.linebuffer;
-	
+
 	char[] buffer; // TODO: use dynamically expanding buffer?
 	LineBuffer lineBuffer;
-	
+
 	this(Socket server, uint timeout)
 	{
 		super(server, timeout, State.preConnect);
-		
+
 		buffer = new char[2048];
 		lineBuffer = LineBuffer(buffer, &handleLine);
 	}
-	
+
 	protected:
 	void handleLine(in char[] line)
 	{
 		foreach(callback; onMessage)
 			callback(line);
 	}
-	
+
 	override void onConnected()
 	{
 		foreach(callback; onConnect)
 			callback();
 	}
-	
+
 	override void onDisconnected()
 	{
 		foreach(callback; onFinish)
 			callback();
 	}
-	
+
 	override bool onRead(in void[] data)
 	{
 		auto remaining = cast(const(char)[])data;
-		
+
 		while(!remaining.empty)
 		{
 			auto space = buffer[lineBuffer.position .. $];
-			
+
 			auto len = min(remaining.length, space.length);
-			
+
 			space[0 .. len] = remaining[0 .. len];
-			
+
 			lineBuffer.commit(len);
-			
+
 			remaining = remaining[len .. $];
 		}
-		
+
 		return false;
 	}
-	
+
 	public:
 	/// Always the string "chat".
 	override string name() @property { return "chat"; }
-	
+
 	/// Invoked when the session has started.
 	void delegate()[] onConnect;
-	
+
 	/// Invoked when the session has cleanly ended.
 	void delegate()[] onFinish;
-	
+
 	/// Invoked when a line of text has been received.
 	void delegate(in char[] line)[] onMessage;
-	
+
 	/**
 	 * Send a single chat _message.
 	 * Params:
@@ -471,7 +471,7 @@ class DccChat : DccConnection
 		write(message);
 		write("\n"); // TODO: worth avoiding?
 	}
-	
+
 	/**
 	 * Send a single, formatted chat message.
 	 * Params:
@@ -485,7 +485,7 @@ class DccChat : DccConnection
 		write(format(fmt, fmtArgs)); // TODO: reusable buffer
 		write("\n"); // TODO: worth avoiding?
 	}
-	
+
 	/**
 	 * Send chat _messages.
 	 * Each message must be terminated with the character $(D \n).
@@ -494,7 +494,7 @@ class DccChat : DccConnection
 	{
 		write(messages);
 	}
-	
+
 	/**
 	 * End the chat session.
 	 */
@@ -502,7 +502,7 @@ class DccChat : DccConnection
 	{
 		socket.close();
 		eventLoop.remove(eventIndex);
-		
+
 		foreach(callback; onFinish)
 			callback();
 	}

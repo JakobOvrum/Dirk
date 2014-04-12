@@ -43,7 +43,7 @@ struct LineBuffer
 			if(buffer[i] == '\n')
 			{
 				auto line = buffer[lineStart .. i];
-				
+
 				if(line.length > 0 && line[$ - 1] == '\r')
 					--line.length; // Skip \r
 
@@ -60,7 +60,7 @@ struct LineBuffer
 
 		bufferPos = nextBufferPos;
 	}
-	
+
 	private:
 	size_t moveDown()
 	{

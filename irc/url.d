@@ -107,7 +107,7 @@ struct ParseError
 	string message;
 
 	/// Location in input (zero-based column) the error occured.
-	/// Ranges from $(D 0 .. $ - 1), where the $(D $) symbol is the length of the input. 
+	/// Ranges from $(D 0 .. $ - 1), where the $(D $) symbol is the length of the input.
 	size_t location = 0;
 
 	private bool wasError = true;
@@ -143,7 +143,7 @@ ParseError tryParse(string url, out ConnectionInfo info) @trusted /+ @safe nothr
 		);
 
 	typeof(url.match(urlPattern)) m;
-	
+
 	try m = url.match(urlPattern);
 	catch(Exception ex)
 	{
@@ -295,11 +295,11 @@ unittest
 		auto error = tryParse(test.url, result);
 
 		scope(failure) debug writeln(error);
-		
+
 		assert(!error);
 
 		scope(failure) debug writeln(result);
-		
+
 		assert(result.address == test.expectedResult.address, msg);
 		assert(result.port == test.expectedResult.port, msg);
 		assert(result.secure == test.expectedResult.secure, msg);

@@ -29,27 +29,27 @@ alias channelPrefixes = TypeTuple!('&', '#', '+', '!');
 // [:prefix] <command> <parameters ...> [:long parameter]
 // TODO: do something about the allocation of the argument array
 bool parse(const(char)[] raw, out IrcLine line)
-{	
+{
 	if(raw[0] == ':')
 	{
 		raw = raw[1..$];
 		line.prefix = raw.munch("^ ");
 		raw.munch(" ");
 	}
-	
+
 	line.command = raw.munch("^ ");
 	raw.munch(" ");
-	
+
 	const(char)[] params = raw.munch("^:");
 	while(params.length > 0)
 	{
 		line.arguments ~= params.munch("^ ");
 		params.munch(" ");
 	}
-	
+
 	if(raw.length > 0)
 		line.arguments ~= raw[1..$];
-		
+
 	return true;
 }
 
@@ -66,7 +66,7 @@ unittest
 		IrcLine output;
 		bool valid = true;
 	}
-	
+
 	static InputOutput[] testData = [
 		{
 			input: "PING 123456".dup,
@@ -81,7 +81,7 @@ unittest
 			output: {prefix: "foo!bar@baz", command: "PRIVMSG", arguments: ["#channel", "hello, world!"]}
 		}
 	];
-	
+
 	foreach(i, test; testData)
 	{
 		IrcLine line;
@@ -125,7 +125,7 @@ struct IrcUser
 	{
 		return format("%s!%s@%s", nickName, userName, hostName);
 	}
-	
+
 	static:
 	/**
 	 * Create an IRC user from a message prefix.
@@ -133,7 +133,7 @@ struct IrcUser
 	IrcUser fromPrefix(const(char)[] prefix)
 	{
 		IrcUser user;
-		
+
 		if(prefix !is null)
 		{
 			user.nickName = prefix.munch("^!");
@@ -145,44 +145,44 @@ struct IrcUser
 					user.hostName = prefix[1 .. $];
 			}
 		}
-		
-		return user;		
+
+		return user;
 	}
-	
+
 	/**
 	 * Create users from userhost reply.
 	 */
 	size_t parseUserhostReply(ref IrcUser[5] users, in char[] reply)
-	{	
-		auto splitter = reply.splitter(" "); 
+	{
+		auto splitter = reply.splitter(" ");
 		foreach(i, ref user; users)
 		{
 			if(splitter.empty)
 				return i;
-			
+
 			auto strUser = splitter.front;
-			
+
 			if(strUser.strip.empty) // ???
 				return i;
-			
+
 			user.nickName = strUser.munch("^=");
 			strUser.popFront();
-			
+
 			user.userName = strUser.munch("^@");
 			if(!strUser.empty)
 				strUser.popFront();
-			
+
 			if(user.userName[0] == '-' || user.userName[0] == '+')
 			{
 				// TODO: away stuff
 				user.userName.popFront();
 			}
-			
+
 			user.hostName = strUser;
-			
+
 			splitter.popFront();
 		}
-		
+
 		return 5;
 	}
 }
@@ -190,11 +190,11 @@ struct IrcUser
 unittest
 {
 	IrcUser user;
-	
+
 	user = IrcUser.fromPrefix("foo!bar@baz");
 	assert(user.nickName == "foo");
 	assert(user.userName == "bar");
 	assert(user.hostName == "baz");
-	
+
 	// TODO: figure out which field to fill with prefixes like "irc.server.net"
 }

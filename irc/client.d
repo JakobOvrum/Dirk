@@ -31,7 +31,7 @@ enum IRC_MAX_LEN = 510;
 class IrcErrorException : Exception
 {
 	IrcClient client;
-	
+
 	this(IrcClient client, string message, string file = __FILE__, size_t line = __LINE__)
 	{
 		super(message, file, line);
@@ -49,7 +49,7 @@ void unsubscribeHandler(T)(ref T[] event, T handler)
 {
 	enum strategy =
 	    is(ReturnType!T == void)? SwapStrategy.unstable : SwapStrategy.stable;
-	
+
 	event = event.remove!(e => e == handler, strategy);
 }
 
@@ -69,7 +69,7 @@ class IrcClient
 	string m_name = "dirk";
 	Address m_address = null;
 	bool _connected = false;
-	
+
 	char[] buffer;
 	LineBuffer lineBuffer;
 
@@ -115,7 +115,7 @@ class IrcClient
 
 		this.lineBuffer = LineBuffer(buffer, &onReceivedLine);
 	}
-	
+
 	/**
 	 * Connect this client to a server.
 	 * Params:
@@ -135,7 +135,7 @@ class IrcClient
 		writef("NICK %s", nickName);
 		writef("USER %s * * :%s", userName, realName); // TODO: Initial user-mode argument
 	}
-	
+
 	/**
 	 * Read all available data from the connection,
 	 * parse all complete IRC messages and invoke registered callbacks.
@@ -178,7 +178,7 @@ class IrcClient
 	}
 
 	static char[1540] formatBuffer;
-	
+
 	/**
 	 * Write a raw message to the connection stream.
 	 *
@@ -196,12 +196,12 @@ class IrcClient
 	void writef(T...)(const(char)[] rawline, T fmtArgs)
 	{
 		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
-		
+
 		static if(fmtArgs.length > 0)
 		{
 			rawline = sformat(formatBuffer, rawline, fmtArgs);
 		}
-		
+
 		debug(Dirk) std.stdio.writefln(`<< "%s" (length: %d)`, rawline, rawline.length);
 
 		socket.send(rawline);
@@ -223,7 +223,7 @@ class IrcClient
 				writef(lineHead, target, cast(const char[])chunk);
 		}
 	}
-	
+
 	/**
 	 * Send lines of chat to a channel or user.
 	 * Each line in $(D message) is sent as one _message.
@@ -304,13 +304,13 @@ class IrcClient
 	{
 		send(target, ctcpMessage(query).array());
 	}
-	
+
 	/// Ditto
 	void ctcpQuery(in char[] target, in char[] tag, in char[] data)
 	{
 		send(target, ctcpMessage(tag, data).array());
 	}
-	
+
 	/**
 	 * Send a CTCP _reply to a user.
 	 */
@@ -318,13 +318,13 @@ class IrcClient
 	{
 		notice(targetNick, ctcpMessage(reply).array());
 	}
-	
+
 	/// Ditto
 	void ctcpReply(in char[] targetNick, in char[] tag, in char[] data)
 	{
 		notice(targetNick, ctcpMessage(tag, data).array());
 	}
-	
+
 	/**
 	 * Send a CTCP _error message reply.
 	 * Params:
@@ -335,7 +335,7 @@ class IrcClient
 	{
 		notice(targetNick, ctcpMessage("ERRMSG", format("%s :%s", invalidData, error)).array());
 	}
-	
+
 	/**
 	 * Check if this client is _connected.
 	 */
@@ -343,7 +343,7 @@ class IrcClient
 	{
 		return _connected;
 	}
-	
+
 	/**
 	 * Address of the server this client is currently connected to,
 	 * or null if this client is not connected.
@@ -352,7 +352,7 @@ class IrcClient
 	{
 		return m_address;
 	}
-	
+
 	/**
 	 * Real name of the user for this client.
 	 *
@@ -362,15 +362,15 @@ class IrcClient
 	{
 		return m_name;
 	}
-	
-	/// Ditto	
+
+	/// Ditto
 	void realName(string newRealName) @property
 	{
 		enforce(!connected, "cannot change real name while connected");
 		enforce(!newRealName.empty);
 		m_name = newRealName;
 	}
-	
+
 	/**
 	 * User name of the user for this client.
 	 *
@@ -380,7 +380,7 @@ class IrcClient
 	{
 		return m_user;
 	}
-	
+
 	/// Ditto
 	void userName(string newUserName) @property
 	{
@@ -388,7 +388,7 @@ class IrcClient
 		enforce(!newUserName.empty);
 		m_user = newUserName;
 	}
-	
+
 	/**
 	 * Nick name of the user for this client.
 	 *
@@ -398,7 +398,7 @@ class IrcClient
 	{
 		return m_nick;
 	}
-	
+
 	/// Ditto
 	void nickName(in char[] newNick) @property
 	{
@@ -408,7 +408,7 @@ class IrcClient
 		else
 			m_nick = newNick.idup;
 	}
-	
+
 	/// Ditto
 	// Duplicated to show up nicer in DDoc - previously used a template and aliases
 	void nickName(string newNick) @property
@@ -421,7 +421,7 @@ class IrcClient
 	}
 
 	deprecated alias nick = nickName;
-	
+
 	/**
 	 * Join a _channel.
 	 * Params:
@@ -433,7 +433,7 @@ class IrcClient
 	{
 		writef("JOIN %s", channel);
 	}
-	
+
 	/**
 	 * Join a passworded _channel.
 	 * Params:
@@ -446,7 +446,7 @@ class IrcClient
 	{
 		writef("JOIN %s :%s", channel, key);
 	}
-	
+
 	/**
 	 * Leave a _channel.
 	 * Params:
@@ -459,7 +459,7 @@ class IrcClient
 		writef("PART %s", channel);
 		fireEvent(onMePart, channel);
 	}
-	
+
 	/**
 	 * Leave a _channel with a parting _message.
 	 * Params:
@@ -487,7 +487,7 @@ class IrcClient
 	{
 		writef("KICK %s %s", channel, user);
 	}
-	
+
 	/// Ditto
 	void kick()(in char[] channel, in char[] user, in char[] comment)
 	{
@@ -560,7 +560,7 @@ class IrcClient
 	{
 		writef("WHOIS %s", nick);
 	}
-	
+
 	/**
 	 * Leave and disconnect from the server.
 	 * Params:
@@ -574,10 +574,10 @@ class IrcClient
 		socket.close();
 		_connected = false;
 	}
-	
+
 	/// Invoked when this client has successfully connected to a server.
 	void delegate()[] onConnect;
-	
+
 	/**
 	 * Invoked when a message is picked up by the user for this client.
 	 * Params:
@@ -664,7 +664,7 @@ class IrcClient
 	 *    nickNames = list of member nicknames
 	 */
 	void delegate(in char[] channel, in char[][] nickNames)[] onNameList;
-	
+
 	/**
 	 * Invoked when the complete list of members of a _channel have been received.
 	 * All invocations of $(D onNameList) between invocations of this event
@@ -685,7 +685,7 @@ class IrcClient
 	 *   $(MREF IrcClient.onMessage) with $(DPREF ctcp, ctcpExtract).
 	 */
 	void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] onCtcpQuery;
-	
+
 	/**
 	 * Invoked when a CTCP reply is received in a notice.
 	 * $(MREF IrcClient.onNotice) is not invoked for the given notice
@@ -697,10 +697,10 @@ class IrcClient
 	 *   $(MREF IrcClient.onNotice) with $(DPREF ctcp, ctcpExtract).
 	 */
 	void delegate(IrcUser user, in char[] source, in char[] tag, in char[] data)[] onCtcpReply;
-	
+
 	/**
 	 * Invoked when the requested nick name of the user for this client is already in use.
-	 * 
+	 *
 	 * Return a non-null string to provide a new nick. No further callbacks in the list
 	 * are called once a callback provides a nick.
 	 * Params:
@@ -768,7 +768,7 @@ class IrcClient
 	{
 		return IrcUser.fromPrefix(prefix);
 	}
-	
+
 	private:
 	void fireEvent(T, U...)(T[] event, U args)
 	{
@@ -777,7 +777,7 @@ class IrcClient
 			cb(args);
 		}
 	}
-	
+
 	bool ctcpCheck(void delegate(IrcUser, in char[], in char[], in char[])[] event,
 	               in char[] prefix,
 	               in char[] target,
@@ -785,19 +785,19 @@ class IrcClient
 	{
 		if(event.empty || message[0] != CtcpToken.delimiter)
 			return false;
-		
+
 		auto extractor = message.ctcpExtract();
-		
+
 		if(extractor.empty)
 			return false;
-		
+
 		// TODO: re-use buffer
 		auto ctcpMessage = cast(string)extractor.front.array();
 		auto tag = ctcpMessage.munch("^ ");
-		
+
 		if(!ctcpMessage.empty && ctcpMessage.front == ' ')
 			ctcpMessage.popFront();
-		
+
 		fireEvent(
 		    event,
 		    getUser(prefix),
@@ -805,10 +805,10 @@ class IrcClient
 		    tag,
 		    ctcpMessage
 		);
-		
+
 		return true;
 	}
-	
+
 	// TODO: Switch getting large, change to something more performant?
 	void handle(ref IrcLine line)
 	{
@@ -827,7 +827,7 @@ class IrcClient
 
 				auto failedNick = line.arguments[0];
 				bool handled = false;
-				
+
 				foreach(cb; onNickInUse)
 				{
 					const(char)[] newNick;
@@ -843,7 +843,7 @@ class IrcClient
 						break;
 					}
 				}
-				
+
 				if(!handled)
 					failed433(null);
 
@@ -852,19 +852,19 @@ class IrcClient
 				auto prefix = line.prefix;
 				auto target = line.arguments[0];
 				auto message = line.arguments[1];
-				
+
 				if(!ctcpCheck(onCtcpQuery, prefix, target, message))
 					fireEvent(onMessage, getUser(prefix), target, message);
-				
+
 				break;
 			case "NOTICE":
 				auto prefix = line.prefix;
 				auto target = line.arguments[0];
 				auto notice = line.arguments[1];
-				
+
 				if(!ctcpCheck(onCtcpReply, prefix, target, notice))
 					fireEvent(onNotice, getUser(prefix), target, notice);
-				
+
 				break;
 			case "NICK":
 				auto user = getUser(line.prefix);
@@ -890,7 +890,7 @@ class IrcClient
 			case "353": // TODO: operator/voice status etc. should be propagated to callbacks
 				version(none) auto type = line.arguments[0];
 				auto channelName = line.arguments[1];
-				
+
 				auto names = line.arguments[2].split();
 				foreach(ref name; names)
 				{
@@ -898,7 +898,7 @@ class IrcClient
 					if(prefix == '@' || prefix == '+') // TODO: smarter handling that allows for non-standard stuff
 						name = name[1 .. $];
 				}
-				
+
 				fireEvent(onNameList, channelName, names);
 				break;
 			case "366":
@@ -920,7 +920,7 @@ class IrcClient
 			case "302":
 				IrcUser[5] users;
 				auto n = IrcUser.parseUserhostReply(users, line.arguments[1]);
-				
+
 				fireEvent(onUserhostReply, users[0 .. n]);
 				break;
 			case "332":

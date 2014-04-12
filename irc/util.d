@@ -19,30 +19,30 @@ auto values(Elems...)(auto ref Elems elems) if(is(CommonType!Elems))
 	{
 		ElemType[Elems.length] data = void;
 		size_t i = 0;
-		
+
 		bool empty() const
 		{
 			return i == data.length;
 		}
-		
+
 		ElemType front() const pure
 		{
 			return data[i];
 		}
-		
+
 		void popFront() pure
 		{
 			++i;
 		}
-		
+
 		enum length = data.length;
 	}
-	
+
 	StaticArray arr;
-	
+
 	foreach(i, ref elem; elems)
 		arr.data[i] = elem;
-	
+
 	return arr;
 }
 
@@ -59,15 +59,15 @@ auto castRange(T, R)(R range)
 	static struct Casted
 	{
 		R r;
-		
+
 		T front()
 		{
 			return cast(T)r.front;
 		}
-		
+
 		alias r this;
 	}
-	
+
 	return Casted(range);
 }
 
