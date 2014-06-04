@@ -121,9 +121,42 @@ struct IrcUser
 	deprecated alias nick = nickName;
 
 	// TODO: Change to use sink once formattedWrite supports them
-	string toString() const
+	version(none) string toString() const
 	{
 		return format("%s!%s@%s", nickName, userName, hostName);
+	}
+
+	void toString(scope void delegate(const(char)[]) sink) const
+	{
+		if(nickName)
+			sink(nickName);
+
+		if(userName)
+		{
+			sink("!");
+			sink(userName);
+		}
+
+		if(hostName)
+		{
+			sink("@");
+			sink(hostName);
+		}
+	}
+
+	unittest
+	{
+		auto user = IrcUser("nick", "user", "host");
+		assert(format("%s", user) == "nick!user@host");
+
+		user.hostName = null;
+		assert(format("%s", user) == "nick!user");
+
+		user.userName = null;
+		assert(format("%s", user) == "nick");
+
+		user.hostName = "host";
+		assert(format("%s", user) == "nick@host");
 	}
 
 	static:
