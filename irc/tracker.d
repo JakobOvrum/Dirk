@@ -319,6 +319,10 @@ class IrcTracker
 
 	/**
 	 * Initiate or restart tracking, or do nothing if the tracker is already tracking.
+	 *
+	 * If the associated client is unconnected, tracking starts immediately.
+	 * If it is connected, information about the client's current channels will be queried,
+	 * and tracking starts as soon as the information has been received.
 	 */
 	void start()
 	{
@@ -370,12 +374,12 @@ class IrcTracker
 	 * $(D InputRange) (with $(D length)) of all _channels the associated client is currently
 	 * a member of.
 	 * Throws:
-	 *    $(MREF IrcTrackingException) if tracking is currently disabled
+	 *    $(MREF IrcTrackingException) if the tracker is disabled or not yet ready
 	 */
 	auto channels() @property
 	{
 		import std.range : takeExactly;
-		enforceEx!IrcTrackingException(_isTracking, "the tracker is currently disabled");
+		enforceEx!IrcTrackingException(_isTracking, "not currently tracking");
 		return _channels.byValue.takeExactly(_channels.length);
 	}
 
@@ -394,13 +398,13 @@ class IrcTracker
 	 * of the channels the associated client is a member of, but have sent a private message to
 	 * the associated client, are $(I not) included.
 	 * Throws:
-	 *    $(MREF IrcTrackingException) if tracking is currently disabled
+	 *    $(MREF IrcTrackingException) if the tracker is disabled or not yet ready
 	 */
 	auto users() @property
 	{
 		import std.algorithm : map;
 		import std.range : takeExactly;
-		enforceEx!IrcTrackingException(_isTracking, "the tracker is currently disabled");
+		enforceEx!IrcTrackingException(_isTracking, "not currently tracking");
 		return _users.byValue.takeExactly(_users.length);
 	}
 
@@ -414,33 +418,38 @@ class IrcTracker
 
 	/**
 	 * Lookup a channel on this tracker by name.
-	 * The channel name must include the channel name prefix.
 	 *
-	 * If the associated client is not a member of the given channel,
-	 * the returned $(MREF TrackedChannel) is in the invalid state.
+	 * The channel name must include the channel name prefix. Returns $(D null)
+	 * if the associated client is not currently a member of the given channel.
 	 * Params:
 	 *    channelName = name of channel to lookup
+	 * Throws:
+	 *    $(MREF IrcTrackingException) if the tracker is disabled or not yet ready
 	 * See_Also:
-	 *    $(MREF IrcChannel)
+	 *    $(MREF TrackedChannel)
 	 */
 	TrackedChannel* findChannel(in char[] channelName)
 	{
+		enforceEx!IrcTrackingException(_isTracking, "not currently tracking");
 		return channelName in _channels;
 	}
 
 	/**
 	 * Lookup a user on this tracker by nick name.
 	 *
-	 * If the target user does not share membership in any channel
-	 * with the associated client for this tracker, the returned
-	 * $(MREF TrackedUser) is in the invalid state.
+	 * Users are searched among the members of all channels the associated
+	 * client is currently a member of. The set includes the user for the
+	 * associated client.
 	 * Params:
-	 *    channelName = name of channel to lookup
+	 *    nickName = nick name of user to lookup
+	 * Throws:
+	 *    $(MREF IrcTrackingException) if the tracker is disabled or not yet ready
 	 * See_Also:
-	 *    $(MREF IrcChannel)
+	 *    $(MREF TrackedUser)
 	 */
 	TrackedUser* findUser(in char[] nickName)
 	{
+		enforceEx!IrcTrackingException(_isTracking, "not currently tracking");
 		if(auto user = nickName in _users)
 			return *user;
 		else
@@ -451,12 +460,9 @@ class IrcTracker
 /**
  * Represents an IRC channel and its member users for use by $(MREF IrcTracker).
  *
- * Has an invalid state that can be checked by coercion to $(D bool).
- * $(D TrackedChannel.init) is also in the invalid state.
- *
  * The list of members includes the user associated with the tracking object.
  * If the $(D IrcTracker) used to access an instance of this type
- * is since stopped, the channel presents the list of members as it were
+ * was since stopped, the channel presents the list of members as it were
  * at the time of the tracker being stopped.
  */
 struct TrackedChannel
@@ -507,9 +513,6 @@ struct TrackedChannel
 
 /**
  * Represents an IRC user for use by $(MREF IrcTracker).
- *
- * Has an invalid state that can be checked by coercion to $(D bool).
- * $(D TrackedUser.init) is also in the invalid state.
  */
 struct TrackedUser
 {
@@ -553,6 +556,23 @@ struct TrackedUser
 	{
 		import std.format;
 		user.toString(sink);
+
+		if(realName)
+		{
+			sink("$");
+			sink(realName);
+		}
+
 		formattedWrite(sink, "(%(%s%|,%))", channels);
+	}
+
+	unittest
+	{
+		import std.string : format;
+		auto user = TrackedUser("nick");
+		user.userName = "user";
+		user.realName = "Foo Bar";
+		user.channels = ["#a", "#b"];
+		assert(format("%s", user) == `nick!user$Foo Bar("#a","#b")`);
 	}
 }
