@@ -14,7 +14,7 @@ class TestConnection
 {
 	private:
 	Socket clientSocket, server;
-	static static char[512] _lineBuffer;
+	static char[512] _lineBuffer;
 
 	public:
 	IrcClient client;
