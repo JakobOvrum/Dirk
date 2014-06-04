@@ -1,4 +1,4 @@
-// TODO: users/channels API and finish integrity check
+// TODO: more accurate/atomic tracking starting procedure
 module irc.tracker;
 
 import irc.client;
@@ -8,26 +8,21 @@ import std.exception : enforceEx;
 import std.traits : Unqual;
 import std.typetuple : TypeTuple;
 
-/// Can be thrown by $(MREF IrcTracker.channels).
+///
 class IrcTrackingException : Exception
 {
 	mixin ExceptionConstructor!();
 }
 
+// TODO: Add example
 /**
  * Create a new channel and user tracking object for the given
  * $(DPREF _client, IrcClient). Tracking for the new object
- * is disabled; use $(MREF IrcTracker.start) to commence tracking.
- *
- * Bug:
- *    The given $(D client) must not be a member of any channels
- *    when tracking is started. There is an elegant fix for this,
- *    which is planned for the future.
+ * is initially disabled; use $(MREF IrcTracker.start) to commence tracking.
  *
  * See_Also:
  *    $(MREF IrcTracker)
  */
-// TODO: Add example
 IrcTracker track(IrcClient client)
 {
 	return new IrcTracker(client);
@@ -37,15 +32,17 @@ IrcTracker track(IrcClient client)
  * Keeps track of all channels and channel members
  * visible to the associated $(DPREF client, IrcClient) connection.
  */
-// TODO: mode tracking
 class IrcTracker
 {
+	// TODO: mode tracking
 	private:
 	IrcClient _client;
 	TrackedChannel[string] _channels;
 	TrackedUser*[string] _users;
 	TrackedUser* thisUser;
-	bool _isTracking = false;
+
+	enum State { disabled, starting, enabled }
+	auto _isTracking = State.disabled;
 
 	debug(IrcTracker) import std.stdio;
 
@@ -88,7 +85,7 @@ class IrcTracker
 		}
 
 		auto channel = TrackedChannel(channelName.idup);
-		channel._users = [client.nickName: thisUser];
+		channel._users = [_client.nickName: thisUser];
 		_channels[channel.name] = channel;
 
 		debug(IrcTracker)
@@ -304,12 +301,63 @@ class IrcTracker
 	this(IrcClient client)
 	{
 		this._client = client;
-		start();
 	}
 
 	alias eventHandlers = TypeTuple!(
 		onSuccessfulJoin, onNameList, onJoin, onPart, onKick, onQuit, onNickChange
 	);
+
+	// Start tracking functions
+	void onMyChannelsReply(in char[] nick, in char[][] channels)
+	{
+		if(nick != client.nickName)
+			return;
+
+		_client.onWhoisChannelsReply.unsubscribeHandler(&onMyChannelsReply);
+		_client.onWhoisEnd.unsubscribeHandler(&onWhoisEnd);
+
+		if(_isTracking != State.starting)
+			return;
+
+		startNow();
+
+		foreach(channel; channels)
+			onSuccessfulJoin(channel);
+
+		_client.queryNames(channels);
+	}
+
+	void onWhoisEnd(in char[] nick)
+	{
+		if(nick != client.nickName)
+			return;
+
+		// Weren't in any channels.
+
+		_client.onWhoisChannelsReply.unsubscribeHandler(&onMyChannelsReply);
+		_client.onWhoisEnd.unsubscribeHandler(&onWhoisEnd);
+
+		if(_isTracking != State.starting)
+			return;
+
+		startNow();
+	}
+
+	private void startNow()
+	{
+		assert(_isTracking != State.enabled);
+
+		foreach(handler; eventHandlers)
+			mixin("client." ~ __traits(identifier, handler)) ~= &handler;
+
+		auto thisNick = _client.nickName;
+		thisUser = new TrackedUser(thisNick);
+		thisUser.userName = _client.userName;
+		thisUser.realName = _client.realName;
+		_users[thisNick] = thisUser;
+
+		_isTracking = State.enabled;
+	}
 
 	public:
 	~this()
@@ -326,19 +374,18 @@ class IrcTracker
 	 */
 	void start()
 	{
-		if(_isTracking)
+		if(_isTracking != State.disabled)
 			return;
 
-		foreach(handler; eventHandlers)
-			mixin("client." ~ __traits(identifier, handler)) ~= &handler;
-
-		auto thisNick = _client.nickName;
-		thisUser = new TrackedUser(thisNick);
-		thisUser.userName = _client.userName;
-		thisUser.realName = _client.realName;
-		_users[thisNick] = thisUser;
-
-		_isTracking = true;
+		if(_client.connected)
+		{
+			_client.onWhoisChannelsReply ~= &onMyChannelsReply;
+			_client.onWhoisEnd ~= &onWhoisEnd;
+			_client.queryWhois(_client.nickName);
+			_isTracking = State.starting;
+		}
+		else
+			startNow();
 	}
 
 	/**
@@ -346,22 +393,30 @@ class IrcTracker
 	 */
 	void stop()
 	{
-		if(!_isTracking)
-			return;
+		final switch(_isTracking)
+		{
+			case State.enabled:
+				_users = null;
+				thisUser = null;
+				_channels = null;
+				foreach(handler; eventHandlers)
+					mixin("client." ~ __traits(identifier, handler)).unsubscribeHandler(&handler);
+				break;
+			case State.starting:
+				_client.onWhoisChannelsReply.unsubscribeHandler(&onMyChannelsReply);
+				_client.onWhoisEnd.unsubscribeHandler(&onWhoisEnd);
+				break;
+			case State.disabled:
+				return;
+		}
 
-		_users = null;
-		thisUser = null;
-		_channels = null;
-		_isTracking = false;
-
-		foreach(handler; eventHandlers)
-			mixin("client." ~ __traits(identifier, handler)).unsubscribeHandler(&handler);
+		_isTracking = State.disabled;
 	}
 
 	/// Boolean whether or not the tracker is currently tracking.
 	bool isTracking() const @property @safe pure nothrow
 	{
-		return _isTracking;
+		return _isTracking == State.enabled;
 	}
 
 	/// $(DPREF _client, IrcClient) that this tracker is tracking for.
