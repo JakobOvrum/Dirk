@@ -889,10 +889,11 @@ class IrcClient
 
 				break;
 			case "353": // TODO: operator/voice status etc. should be propagated to callbacks
-				version(none) auto type = line.arguments[0];
-				auto channelName = line.arguments[1];
+				// line.arguments[0] == client.nick
+				version(none) auto type = line.arguments[1];
+				auto channelName = line.arguments[2];
 
-				auto names = line.arguments[2].split();
+				auto names = line.arguments[3].split();
 				foreach(ref name; names)
 				{
 					auto prefix = name[0];
