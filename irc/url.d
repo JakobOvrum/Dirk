@@ -14,7 +14,7 @@ struct ConnectionInfo
 	/// Server address.
 	string address;
 
-	/// Explicitly specified server port. Is $(D 0) when unspecified.
+	/// Explicitly specified server port, or $(D 0) when unspecified.
 	ushort explicitPort;
 
 	/**
@@ -32,7 +32,7 @@ struct ConnectionInfo
 	/// and $(D false) for no security.
 	bool secure;
 
-	/// Channels to join. Can be empty.
+	/// Channels to join immediately after a successful connect. Can be empty.
 	string[] channels;
 
 	/// Key/passphrase to use when joining channels.

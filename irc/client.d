@@ -457,7 +457,7 @@ class IrcClient
 	void part(in char[] channel)
 	{
 		writef("PART %s", channel);
-		fireEvent(onMePart, channel);
+		//fireEvent(onMePart, channel);
 	}
 
 	/**
@@ -623,7 +623,8 @@ class IrcClient
 	void delegate(IrcUser user, in char[] channel)[] onJoin;
 
 	/**
-	 * Invoked when another user parts a channel that this user is a member of.
+	 * Invoked when a user parts a channel that this user is a member of.
+	 * Also invoked when this user parts a channel.
 	 * Params:
 	 *   user = parting user
 	 *   channel = channel that was parted
@@ -631,7 +632,7 @@ class IrcClient
 	void delegate(IrcUser user, in char[] channel)[] onPart;
 
 	// TODO: public?
-	package void delegate(in char[] channel)[] onMePart;
+	// package void delegate(in char[] channel)[] onMePart;
 
 	/**
 	* Invoked when another user disconnects from the network.
@@ -680,7 +681,7 @@ class IrcClient
 	 * when onCtcpQuery has a non-zero number of registered handlers.
 	 * Note:
 	 *   This callback is only invoked when there is a CTCP message at the start
-	 *   of the message, and any subsequent CTCP messages in the same notice are
+	 *   of the message, and any subsequent CTCP messages in the same message are
 	 *   discarded. To handle multiple CTCP queries in one message, use
 	 *   $(MREF IrcClient.onMessage) with $(DPREF ctcp, ctcpExtract).
 	 */
