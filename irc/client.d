@@ -538,15 +538,21 @@ class IrcClient
 	}
 
 	/**
-	 * Query the username and hostname of up to 5 users.
+	 * Query the user name and host name of up to 5 users.
 	 * Params:
-	 *   nicks = up to 5 nick names to query
+	 *   nicks = between 1 and 5 nick names to query
 	 * See_Also:
 	 *   $(MREF IrcClient.onUserhostReply)
 	 */
-	void queryUserhost(const(char)[][] nicks...)
+	void queryUserhost(in char[][] nicks...)
 	{
-		writef("USERHOST %s", nicks.joiner(" ").castRange!char);
+		version(assert)
+		{
+			import core.exception;
+			if(nicks.length < 1 || nicks.length > 5)
+				throw new RangeError();
+		}
+		writef("USERHOST %s", nicks.map!(nick => nick[]).joiner(" "));
 	}
 
 	/**
@@ -559,6 +565,17 @@ class IrcClient
 	void queryWhois(in char[] nick)
 	{
 		writef("WHOIS %s", nick);
+	}
+
+	/**
+	 * Query the list of members in the given channels.
+	 * See_Also:
+	 *   $(MREF IrcClient.onNameList)
+	 */
+	void queryNames(in char[][] channels...)
+	{
+		// TODO: support automatic splitting of messages
+		writef("NAMES %s", channels.map!(channel => channel[]).joiner(","));
 	}
 
 	/**
@@ -653,12 +670,14 @@ class IrcClient
 	void delegate(IrcUser kicker, in char[] channel, in char[] kickedNick, in char[] comment)[] onKick;
 
 	/**
-	 * Invoked when a list of member nicknames for a channel are received.
+	 * Invoked when a list of member nick names for a channel are received.
 	 *
-	 * The list is sent after a successful join to a channel by this user.
+	 * The list is received after a successful join to a channel by this user,
+	 * or when explicitly queried with $(MREF IrcClient.queryNames).
+	 *
 	 * The list for a single invocation is partial;
 	 * the event can be invoked several times for the same channel
-	 * as a response to a single trigger. The complete list is terminated
+	 * as a response to a single trigger. The list is signaled complete
 	 * when $(MREF IrcClient.onNameListEnd) is invoked.
 	 * Params:
 	 *    channel = channel of which the users are members
