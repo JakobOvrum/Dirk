@@ -287,7 +287,6 @@
    <File path="..\extlib\ev.obj" />
   </Folder>
   <Folder name="irc">
-   <File path="..\irc\cachingclient.d" />
    <File path="..\irc\client.d" />
    <File path="..\irc\ctcp.d" />
    <File path="..\irc\dcc.d" />
