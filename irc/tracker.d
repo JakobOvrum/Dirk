@@ -39,9 +39,6 @@ CustomIrcTracker!Payload track(Payload = void)(IrcClient client)
  * See_Also:
  *   $(MREF CustomTrackedUser.payload)
  */
-alias IrcTracker = CustomIrcTracker!void;
-
-/// Ditto
 class CustomIrcTracker(Payload = void)
 {
 	// TODO: mode tracking
@@ -522,6 +519,9 @@ class CustomIrcTracker(Payload = void)
 	}
 }
 
+/// Ditto
+alias IrcTracker = CustomIrcTracker!void;
+
 /**
  * Represents an IRC channel and its member users for use by $(MREF IrcTracker).
  *
@@ -548,7 +548,6 @@ struct CustomTrackedChannel(Payload = void)
 	}
 
 	public:
-	///
 	@disable this();
 
 	/// Name of the channel, including the channel prefix.
@@ -607,7 +606,6 @@ struct TrackedUser
 	}
 
 	public:
-	///
 	@disable this();
 
 	/**
@@ -675,21 +673,22 @@ struct TrackedUser
  */
 align(1) struct CustomTrackedUser(Payload)
 {
-	private TrackedUser _user;
-
-	///
-	this(string nickName)
-	{
-		_user = TrackedUser(nickName);
-	}
-
 	/// $(D CustomTrackedUser) is a super-type of $(MREF TrackedUser).
-	alias _user this;
+	TrackedUser user;
+
+	/// Ditto
+	alias user this;
 
 	/**
 	 * Extra data attached to this user for per-application data.
      */
 	Payload payload;
+
+	///
+	this(string nickName)
+	{
+		user = TrackedUser(nickName);
+	}
 }
 
 ///
