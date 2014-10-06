@@ -20,26 +20,36 @@ class IrcTrackingException : Exception
  * $(DPREF _client, IrcClient). Tracking for the new object
  * is initially disabled; use $(MREF IrcTracker.start) to commence tracking.
  *
+ * Params:
+ *   Payload = type of extra storage per $(MREF TrackedUser) object
  * See_Also:
- *    $(MREF IrcTracker)
+ *    $(MREF IrcTracker), $(MREF TrackedUser.payload)
  */
-IrcTracker track(IrcClient client)
+CustomIrcTracker!Payload track(Payload = void)(IrcClient client)
 {
-	return new IrcTracker(client);
+	return new typeof(return)(client);
 }
 
 /**
  * Keeps track of all channels and channel members
  * visible to the associated $(DPREF client, IrcClient) connection.
+ *
+ * Params:
+ *   Payload = type of extra storage per $(MREF TrackedUser) object
+ * See_Also:
+ *   $(MREF CustomTrackedUser.payload)
  */
-class IrcTracker
+alias IrcTracker = CustomIrcTracker!void;
+
+/// Ditto
+class CustomIrcTracker(Payload = void)
 {
 	// TODO: mode tracking
 	private:
 	IrcClient _client;
-	TrackedChannel[string] _channels;
-	TrackedUser*[string] _users;
-	TrackedUser* thisUser;
+	CustomTrackedChannel!Payload[string] _channels;
+	CustomTrackedUser!Payload*[string] _users;
+	CustomTrackedUser!Payload* thisUser;
 
 	enum State { disabled, starting, enabled }
 	auto _isTracking = State.disabled;
@@ -84,7 +94,7 @@ class IrcTracker
 			checkIntegrity();
 		}
 
-		auto channel = TrackedChannel(channelName.idup);
+		auto channel = CustomTrackedChannel!Payload(channelName.idup);
 		channel._users = [_client.nickName: thisUser];
 		_channels[channel.name] = channel;
 
@@ -118,7 +128,7 @@ class IrcTracker
 			{
 				auto immNick = nickName.idup;
 
-				auto user = new TrackedUser(immNick);
+				auto user = new CustomTrackedUser!Payload(immNick);
 				user.channels = [channel.name];
 
 				channel._users[immNick] = user;
@@ -161,7 +171,7 @@ class IrcTracker
 		{
 			auto immNick = user.nickName.idup;
 
-			auto newUser = new TrackedUser(immNick);
+			auto newUser = new CustomTrackedUser!Payload(immNick);
 			newUser.userName = user.userName.idup;
 			newUser.hostName = user.hostName.idup;
 			newUser.channels = [channel.name];
@@ -298,11 +308,6 @@ class IrcTracker
 		}
 	}
 
-	this(IrcClient client)
-	{
-		this._client = client;
-	}
-
 	alias eventHandlers = TypeTuple!(
 		onSuccessfulJoin, onNameList, onJoin, onPart, onKick, onQuit, onNickChange
 	);
@@ -351,7 +356,7 @@ class IrcTracker
 			mixin("client." ~ __traits(identifier, handler)) ~= &handler;
 
 		auto thisNick = _client.nickName;
-		thisUser = new TrackedUser(thisNick);
+		thisUser = new CustomTrackedUser!Payload(thisNick);
 		thisUser.userName = _client.userName;
 		thisUser.realName = _client.realName;
 		_users[thisNick] = thisUser;
@@ -360,6 +365,11 @@ class IrcTracker
 	}
 
 	public:
+	this(IrcClient client)
+	{
+		this._client = client;
+	}
+
 	~this()
 	{
 		stop();
@@ -442,7 +452,7 @@ class IrcTracker
 	{
 		import std.range;
 		static assert(isInputRange!(typeof(IrcTracker.init.channels)));
-		static assert(is(ElementType!(typeof(IrcTracker.init.channels)) == TrackedChannel));
+		static assert(is(ElementType!(typeof(IrcTracker.init.channels)) == CustomTrackedChannel!Payload));
 		static assert(hasLength!(typeof(IrcTracker.init.channels)));
 	}
 
@@ -467,7 +477,7 @@ class IrcTracker
 	{
 		import std.range;
 		static assert(isInputRange!(typeof(IrcTracker.init.users)));
-		static assert(is(ElementType!(typeof(IrcTracker.init.users)) == TrackedUser*));
+		static assert(is(ElementType!(typeof(IrcTracker.init.users)) == CustomTrackedUser!Payload*));
 		static assert(hasLength!(typeof(IrcTracker.init.users)));
 	}
 
@@ -483,7 +493,7 @@ class IrcTracker
 	 * See_Also:
 	 *    $(MREF TrackedChannel)
 	 */
-	TrackedChannel* findChannel(in char[] channelName)
+	CustomTrackedChannel!Payload* findChannel(in char[] channelName)
 	{
 		enforceEx!IrcTrackingException(_isTracking, "not currently tracking");
 		return channelName in _channels;
@@ -502,7 +512,7 @@ class IrcTracker
 	 * See_Also:
 	 *    $(MREF TrackedUser)
 	 */
-	TrackedUser* findUser(in char[] nickName)
+	CustomTrackedUser!Payload* findUser(in char[] nickName)
 	{
 		enforceEx!IrcTrackingException(_isTracking, "not currently tracking");
 		if(auto user = nickName in _users)
@@ -519,12 +529,20 @@ class IrcTracker
  * If the $(D IrcTracker) used to access an instance of this type
  * was since stopped, the channel presents the list of members as it were
  * at the time of the tracker being stopped.
+ *
+ * Params:
+ *   Payload = type of extra storage per $(MREF TrackedUser) object
+ * See_Also:
+ *   $(MREF CustomTrackedUser.payload)
  */
-struct TrackedChannel
+alias TrackedChannel = CustomTrackedChannel!void;
+
+/// Ditto
+struct CustomTrackedChannel(Payload = void)
 {
 	private:
 	immutable string _name;
-	TrackedUser*[string] _users;
+	CustomTrackedUser!Payload*[string] _users;
 
 	this(string name)
 	{
@@ -556,7 +574,7 @@ struct TrackedChannel
 	 * Params:
 	 *   nick = nick name of member to lookup
 	 */
-	TrackedUser* opBinary(string op : "in")(in char[] nick)
+	CustomTrackedUser!Payload* opBinary(string op : "in")(in char[] nick)
 	{
 		enforceEx!IrcTrackingException(cast(bool)this, "the TrackedChannel is invalid");
 		if(auto pUser = nick in _users)
@@ -584,6 +602,8 @@ struct TrackedUser
 	/**
 	 * Nick name, user name and host name of the _user.
 	 *
+	 * $(D TrackedUser) is a super-type of $(DPREF protocol, IrcUser).
+	 *
 	 * Only the nick name is guaranteed to be non-null.
 	 * See_Also:
 	 *   $(DPREF protocol, IrcUser)
@@ -593,8 +613,13 @@ struct TrackedUser
 	/// Ditto
 	alias user this;
 
-    /// Real name of the user. Is $(D null) unless a whois-query
-    /// has been successfully issued for the user.
+    /**
+     * Real name of the user. Is $(D null) unless a whois-query
+     * has been successfully issued for the user.
+     *
+     * See_Also:
+     *   $(DPREF client, IrcClient.queryWhois)
+     */
 	string realName;
 
 	/**
@@ -631,3 +656,30 @@ struct TrackedUser
 		assert(format("%s", user) == `nick!user$Foo Bar("#a","#b")`);
 	}
 }
+
+/**
+ * Represents an IRC user for use by $(MREF CustomIrcTracker).
+ * Params:
+ *   Payload = type of extra data per user.
+ */
+align(1) struct CustomTrackedUser(Payload)
+{
+	private TrackedUser _user;
+
+	///
+	this(string nickName)
+	{
+		_user = TrackedUser(nickName);
+	}
+
+	/// $(D CustomTrackedUser) is a super-type of $(MREF TrackedUser).
+	alias _user this;
+
+	/**
+	 * Extra data attached to this user for per-application data.
+     */
+	Payload payload;
+}
+
+///
+alias CustomTrackedUser(Payload : void) = TrackedUser;
