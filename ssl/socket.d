@@ -50,7 +50,7 @@ class SslSocket : Socket
 	}
 
 	override:
-	void connect(Address to)
+	void connect(Address to) @trusted
 	{
 		super.connect(to);
 		sslEnforce(ssl, SSL_connect(ssl));
@@ -61,7 +61,7 @@ class SslSocket : Socket
 		return receive(buf, SocketFlags.NONE);
 	}
 
-	ptrdiff_t receive(void[] buf, SocketFlags flags)
+	ptrdiff_t receive(void[] buf, SocketFlags flags) @trusted
 	{
 		auto result = sslEnforce(ssl, SSL_read(ssl, buf.ptr, cast(int)buf.length));
 		return cast(ptrdiff_t)result;
@@ -72,7 +72,7 @@ class SslSocket : Socket
 		return send(buf, SocketFlags.NONE);
 	}
 
-	ptrdiff_t send(const(void)[] buf, SocketFlags flags)
+	ptrdiff_t send(const(void)[] buf, SocketFlags flags) @trusted
 	{
 		auto result = sslEnforce(ssl, SSL_write(ssl, buf.ptr, cast(int)buf.length));
 		return cast(ptrdiff_t)result;

@@ -30,8 +30,8 @@ extern(C)
 	int function(SSL* s, int fd) SSL_set_fd;
 	void function(SSL *s, int mode, VerifyCallback verify_callback) SSL_set_verify;
 	int function(SSL* ssl) SSL_connect;
-	int function(SSL* ssl,void* buf,int num) SSL_read;
-	int function(SSL* ssl,const(void)* buf,int num) SSL_write;
+	int function(SSL* ssl, void* buf, int num) SSL_read;
+	int function(SSL* ssl, const(void)* buf, int num) SSL_write;
 
 
 }
@@ -50,7 +50,7 @@ void loadOpenSSL()
 
 	ssl.resolve!SSL_CTX_new;
 	ssl.resolve!SSLv3_client_method;
-	
+
 	ssl.resolve!SSL_new;
 	ssl.resolve!SSL_set_fd;
 	ssl.resolve!SSL_set_verify;
