@@ -535,18 +535,16 @@ class CustomIrcTracker(Payload = void)
  * See_Also:
  *   $(MREF CustomTrackedUser.payload)
  */
-alias TrackedChannel = CustomTrackedChannel!void;
-
-/// Ditto
 struct CustomTrackedChannel(Payload = void)
 {
 	private:
 	immutable string _name;
 	CustomTrackedUser!Payload*[string] _users;
 
-	this(string name)
+	this(string name, CustomTrackedUser!Payload*[string] users = null)
 	{
 		_name = name;
+		_users = users;
 	}
 
 	public:
@@ -582,7 +580,20 @@ struct CustomTrackedChannel(Payload = void)
 		else
 			return null;
 	}
+
+	static if(!is(Payload == void))
+	{
+		TrackedChannel erasePayload() @property
+		{
+			return TrackedChannel(_name, cast(TrackedUser*[string])_users);
+		}
+
+		alias erasePayload this;
+	}
 }
+
+/// Ditto
+alias TrackedChannel = CustomTrackedChannel!void;
 
 /**
  * Represents an IRC user for use by $(MREF IrcTracker).
