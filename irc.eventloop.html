@@ -134,12 +134,10 @@
 <hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="IrcEventLoop">&nbsp;</span><a class="symbol-link" href="#IrcEventLoop">IrcEventLoop</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>A collection of <a href="irc.client.html#IrcClient"><span class="inlinecode">irc.client.IrcClient</span></a> objects for efficiently handling incoming data.</p>
-
 </dl>
-<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3> this();
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>this();
 </h3></div>
 <div class="declaration-content"><dl><p>Create a new event loop.</p>
-
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void delegate(IrcClient, Exception)[] <span class="symbol-target" id="onError">&nbsp;</span><a class="symbol-link" href="#onError">onError</a>;
@@ -147,7 +145,6 @@
 <div class="declaration-content"><dl><p>Invoked when an error occurs for a client
  in the set.
 </p>
-
 <p>If no handlers are registered,
  the error will be propagated out of
  <a class="symbol-link" href="#IrcEventLoop.run"><span class="inlinecode">IrcEventLoop.run</span></a>. The client
@@ -163,7 +160,6 @@
 <div class="declaration-content"><dl><p>Add a connected client to the set, or do nothing
  if the client is already in the set.
 </p>
-
 <p>The client is automatically removed
  if it is disconnected inside an event
  callback registered on the client.
@@ -172,8 +168,7 @@
  responsibility to call <a class="symbol-link" href="#IrcEventLoop.remove"><span class="inlinecode">IrcEventLoop.remove</span></a>.
 </p>
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>IrcClient <i>client</i></td>
-<td>client to add</td>
-</tr>
+<td>client to add</td></tr>
 </table></dd>
 <dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if <i>client</i> is not connected.</dd>
 </dl>
@@ -182,17 +177,14 @@
 </h3></div>
 <div class="declaration-content"><dl><p>Remove a client from the set, or do nothing if the client is not in the set.
 </p>
-
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>IrcClient <i>client</i></td>
-<td>client to remove</td>
-</tr>
+<td>client to remove</td></tr>
 </table></dd>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="post">&nbsp;</span><a class="symbol-link" href="#post">post</a>(void delegate() <i>callback</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Run the specified <i>callback</i> at the next idle event.</p>
-
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>Timer <span class="symbol-target" id="post">&nbsp;</span><a class="symbol-link" href="#post">post</a>(void delegate() <i>callback</i>, double <i>time</i>);
@@ -200,7 +192,6 @@
 <div class="declaration-content"><dl><p>Run the specified <i>callback</i> as soon as possible after <span class="inlinecode"><i>time</i></span>
  has elapsed.
 </p>
-
 <p>Equivalent to <span class="inlinecode">postTimer(<i>callback</i>, <i>time</i>, TimerRepeat.no)</span>.</p>
 </dl>
 </div>
@@ -208,14 +199,12 @@
 </h3></div>
 <div class="declaration-content"><dl><p>Run <span class="inlinecode"><i>callback</i></span> at every <span class="inlinecode"><i>interval</i></span>, or just once after <span class="inlinecode"><i>interval</i></span>
  time has elapsed if <span class="inlinecode"><i>repeat</i></span> is <span class="inlinecode">TimerRepeat.no</span>.</p>
-
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="run">&nbsp;</span><a class="symbol-link" href="#run">run</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Handle incoming data for the clients in the set.
 </p>
-
 <p>The incoming data is handled by the respective client,
  and callbacks are called.
  Returns when all clients are no longer connected,
@@ -235,8 +224,7 @@
 				</footer>
 				
 				<footer class="pull-right">
-					<p>&copy; Jakob Ovrum 2011-2014
-</p>
+					<p>&copy; Jakob Ovrum 2011-2014</p>
 				</footer>
 			</div>
 		</div>
@@ -254,4 +242,3 @@
 	
 	</body>
 </html>
-

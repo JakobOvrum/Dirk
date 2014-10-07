@@ -134,7 +134,6 @@
 <hr><div class="row-fluid declaration"><h3>struct <span class="symbol-target" id="IrcLine">&nbsp;</span><a class="symbol-link" href="#IrcLine">IrcLine</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Structure representing a parsed IRC message.</p>
-
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>const(char)[] <span class="symbol-target" id="prefix">&nbsp;</span><a class="symbol-link" href="#prefix">prefix</a>;
 </h3></div>
@@ -155,14 +154,13 @@
 <hr><div class="row-fluid declaration"><h3>alias <span class="symbol-target" id="channelPrefixes">&nbsp;</span><a class="symbol-link" href="#channelPrefixes">channelPrefixes</a> = TList;
 </h3></div>
 <div class="declaration-content"><dl><p>List of the four valid channel prefixes;
- &amp;, #, + and !.</p>
-
+</p>
+<p>&amp;, #, + and !.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>struct <span class="symbol-target" id="IrcUser">&nbsp;</span><a class="symbol-link" href="#IrcUser">IrcUser</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Structure representing an IRC user.</p>
-
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>const(char)[] <span class="symbol-target" id="nickName">&nbsp;</span><a class="symbol-link" href="#nickName">nickName</a>;
 </h3></div>
@@ -179,13 +177,11 @@
 <hr><div class="row-fluid declaration"><h3>static IrcUser <span class="symbol-target" id="fromPrefix">&nbsp;</span><a class="symbol-link" href="#fromPrefix">fromPrefix</a>(const(char)[] <i>prefix</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Create an IRC user from a message <i>prefix</i>.</p>
-
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>static size_t <span class="symbol-target" id="parseUserhostReply">&nbsp;</span><a class="symbol-link" href="#parseUserhostReply">parseUserhostReply</a>(ref IrcUser[5] <i>users</i>, in char[] <i>reply</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Create <i>users</i> from userhost <i>reply</i>.</p>
-
 </dl>
 </div>
 </div>
@@ -201,8 +197,7 @@
 				</footer>
 				
 				<footer class="pull-right">
-					<p>&copy; Jakob Ovrum 2011-2014
-</p>
+					<p>&copy; Jakob Ovrum 2011-2014</p>
 				</footer>
 			</div>
 		</div>
@@ -220,4 +215,3 @@
 	
 	</body>
 </html>
-

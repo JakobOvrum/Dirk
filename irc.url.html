@@ -134,26 +134,23 @@
 <hr><div class="row-fluid declaration"><h3>struct <span class="symbol-target" id="ConnectionInfo">&nbsp;</span><a class="symbol-link" href="#ConnectionInfo">ConnectionInfo</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Result of the <a class="symbol-link" href="#parse"><span class="inlinecode">parse</span></a> and <a class="symbol-link" href="#tryParse"><span class="inlinecode">tryParse</span></a> functions,
- containing the parsed connection information.</p>
-
+</p>
+<p>containing the parsed connection information.</p>
 </dl>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="address">&nbsp;</span><a class="symbol-link" href="#address">address</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Server <span class="symbol-target" id="address">&nbsp;</span><a class="symbol-link" href="#address">address</a>.</p>
-
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>ushort <span class="symbol-target" id="explicitPort">&nbsp;</span><a class="symbol-link" href="#explicitPort">explicitPort</a>;
 </h3></div>
-<div class="declaration-content"><dl><p>Explicitly specified server port. Is <span class="inlinecode">0</span> when unspecified.</p>
-
+<div class="declaration-content"><dl><p>Explicitly specified server port, or <span class="inlinecode">0</span> when unspecified.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>pure nothrow @property @safe ushort <span class="symbol-target" id="port">&nbsp;</span><a class="symbol-link" href="#port">port</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Server <span class="symbol-target" id="port">&nbsp;</span><a class="symbol-link" href="#port">port</a>.
 </p>
-
 <p>Evaluates to <a class="symbol-link" href="#ConnectionInfo.explicitPort"><span class="inlinecode">ConnectionInfo.explicitPort</span></a> when an explicit
  <span class="symbol-target" id="port">&nbsp;</span><a class="symbol-link" href="#port">port</a> was specified, and <a class="symbol-link" href="#ConnectionInfo.defaultPort"><span class="inlinecode">ConnectionInfo.defaultPort</span></a> otherwise.</p>
 </dl>
@@ -161,39 +158,37 @@
 <hr><div class="row-fluid declaration"><h3>bool <span class="symbol-target" id="secure">&nbsp;</span><a class="symbol-link" href="#secure">secure</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Security protocol. Is <span class="inlinecode"><span class="d_keyword">true</span></span> for TLS/SSL,
- and <span class="inlinecode"><span class="d_keyword">false</span></span> for no security.</p>
-
+</p>
+<p>and <span class="inlinecode"><span class="d_keyword">false</span></span> for no security.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>string[] <span class="symbol-target" id="channels">&nbsp;</span><a class="symbol-link" href="#channels">channels</a>;
 </h3></div>
-<div class="declaration-content"><dl><p>Channels to join. Can be empty.</p>
-
+<div class="declaration-content"><dl><p>Channels to join immediately after a successful connect. Can be empty.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="channelKey">&nbsp;</span><a class="symbol-link" href="#channelKey">channelKey</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Key/passphrase to use when joining channels.
- Is <span class="inlinecode"><span class="d_keyword">null</span></span> when unspecified.</p>
-
+</p>
+<p>Is <span class="inlinecode"><span class="d_keyword">null</span></span> when unspecified.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>pure nothrow @property @safe ushort <span class="symbol-target" id="defaultPort">&nbsp;</span><a class="symbol-link" href="#defaultPort">defaultPort</a>();
 </h3></div>
 <div class="declaration-content"><dl><p>Default port for the specified security protocol.
- <span class="inlinecode">6697</span> for TLS/SSL, and <span class="inlinecode">6667</span> otherwise.</p>
-
+</p>
+<p><span class="inlinecode">6697</span> for TLS/SSL, and <span class="inlinecode">6667</span> otherwise.</p>
 </dl>
 </div>
 </div>
 </div>
-<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="IrcUrlException">&nbsp;</span><a class="symbol-link" href="#IrcUrlException">IrcUrlException</a>: object.Exception;
+<hr><div class="row-fluid declaration"><h3>class <span class="symbol-target" id="IrcUrlException">&nbsp;</span><a class="symbol-link" href="#IrcUrlException">IrcUrlException</a>: <u>object.Exception</u>;
 </h3></div>
 <div class="declaration-content"><br><br>
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>size_t <span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Same as <a class="symbol-link" href="#ParseError.<span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a>"><span class="inlinecode">ParseError.<span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a></span></a>.</p>
-
 </dl>
 </div>
 </div>
@@ -202,29 +197,27 @@
 </h3></div>
 <div class="declaration-content"><dl><p>Parse IRC URLs (also known as "chat links").
 </p>
-
 <p>Channels without a valid prefix are automatically
  prefixed with '#'.</p>
 <dt>Examples</dt><dd><pre class="d_code">
-	ConnectionInfo info;
+ConnectionInfo info;
 
-	info = <u>parse</u>(<span class="d_string">"ircs://irc.example.com:6697/foo,bar"</span>);
+info = <u>parse</u>(<span class="d_string">"ircs://irc.example.com:6697/foo,bar"</span>);
 
-	<span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.com"</span>);
-	<span class="d_keyword">assert</span>(info.explicitPort == 6697);
-	<span class="d_keyword">assert</span>(info.port == 6697);
-	<span class="d_keyword">assert</span>(info.secure);
-	<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"#foo"</span>, <span class="d_string">"#bar"</span>]);
+<span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.com"</span>);
+<span class="d_keyword">assert</span>(info.explicitPort == 6697);
+<span class="d_keyword">assert</span>(info.port == 6697);
+<span class="d_keyword">assert</span>(info.secure);
+<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"#foo"</span>, <span class="d_string">"#bar"</span>]);
 
-	info = <u>parse</u>(<span class="d_string">"irc://irc.example.org/foo?pass"</span>);
+info = <u>parse</u>(<span class="d_string">"irc://irc.example.org/foo?pass"</span>);
 
-	<span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.org"</span>);
-	<span class="d_keyword">assert</span>(info.explicitPort == 0);
-	<span class="d_keyword">assert</span>(info.port == 6667); <span class="d_comment">// No explicit port, so it falls back to the default IRC port
-</span>
-	<span class="d_keyword">assert</span>(!info.secure);
-	<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"#foo"</span>]);
-	<span class="d_keyword">assert</span>(info.channelKey == <span class="d_string">"pass"</span>);
+<span class="d_keyword">assert</span>(info.address == <span class="d_string">"irc.example.org"</span>);
+<span class="d_keyword">assert</span>(info.explicitPort == 0);
+<span class="d_keyword">assert</span>(info.port == 6667); <span class="d_comment">// No explicit port, so it falls back to the default IRC port
+</span><span class="d_keyword">assert</span>(!info.secure);
+<span class="d_keyword">assert</span>(info.channels == [<span class="d_string">"#foo"</span>]);
+<span class="d_keyword">assert</span>(info.channelKey == <span class="d_string">"pass"</span>);
 </pre>
 </dd></dl>
 </div>
@@ -234,26 +227,24 @@
 <div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>string <span class="symbol-target" id="message">&nbsp;</span><a class="symbol-link" href="#message">message</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Error <span class="symbol-target" id="message">&nbsp;</span><a class="symbol-link" href="#message">message</a>.</p>
-
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>size_t <span class="symbol-target" id="location">&nbsp;</span><a class="symbol-link" href="#location">location</a>;
 </h3></div>
 <div class="declaration-content"><dl><p>Location in input (zero-based column) the error occured.
- Ranges from <span class="inlinecode">0 .. $ - 1</span>, where the <span class="inlinecode">$</span> symbol is the length of the input. </p>
-
+</p>
+<p>Ranges from <span class="inlinecode">0 .. $ - 1</span>, where the <span class="inlinecode">$</span> symbol is the length of the input.</p>
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>pure @safe bool <span class="symbol-target" id="opCast">&nbsp;</span><a class="symbol-link" href="#opCast">opCast</a>(T)() if (is(T == bool));
 </h3></div>
 <div class="declaration-content"><dl><p>Boolean whether or not an error occured. If an error did not occur,
- <span class="inlinecode">message</span> and <span class="inlinecode">location</span> will not have meaningful values.</p>
-
+</p>
+<p><span class="inlinecode">message</span> and <span class="inlinecode">location</span> will not have meaningful values.</p>
 <dt>Examples</dt><dd><pre class="d_code">
-		<span class="d_keyword">auto</span> error = ParseError(<span class="d_string">"error occured!"</span>, 0);
-		<span class="d_keyword">assert</span>(error); <span class="d_comment">// conversion to $(D bool)
-</span>
-</pre>
+<span class="d_keyword">auto</span> error = ParseError(<span class="d_string">"error occured!"</span>, 0);
+<span class="d_keyword">assert</span>(error); <span class="d_comment">// conversion to $(D bool)
+</span></pre>
 </dd></dl>
 </div>
 </div>
@@ -262,27 +253,27 @@
 </h3></div>
 <div class="declaration-content"><dl><p>Same as <a class="symbol-link" href="#parse"><span class="inlinecode">parse</span></a>, but returning an error message instead of throwing.
  Useful for high-volume parsing.</p>
-
 <dt>Examples</dt><dd>Parse list of URLs and write any errors to <span class="inlinecode">stderr</span>
- with column information.
+<br><br>
+
+with column information.
 <pre class="d_code">
-	<span class="d_keyword">import</span> std.stdio : stderr;
+<span class="d_keyword">import</span> std.stdio : stderr;
 
-	<span class="d_keyword">auto</span> urls = [<span class="d_string">"irc://example.com"</span>, <span class="d_string">"ircs://example.org/foo?pass"</span>];
+<span class="d_keyword">auto</span> urls = [<span class="d_string">"irc://example.com"</span>, <span class="d_string">"ircs://example.org/foo?pass"</span>];
 
-	<span class="d_keyword">foreach</span>(<b>url</b>; urls)
+<span class="d_keyword">foreach</span>(<b>url</b>; urls)
+{
+	ConnectionInfo <b>info</b>;
+
+	<span class="d_keyword">if</span>(<span class="d_keyword">auto</span> error = <b>url</b>.<u>tryParse</u>(<b>info</b>))
 	{
-		ConnectionInfo <b>info</b>;
-
-		<span class="d_keyword">if</span>(<span class="d_keyword">auto</span> error = <b>url</b>.<u>tryParse</u>(<b>info</b>))
-		{
-			stderr.writefln(<span class="d_string">"Error parsing URL:\n%s\n%*s\n%s"</span>, <b>url</b>, error.location + 1, <span class="d_string">"^"</span>, error.message);
-			<span class="d_keyword">continue</span>;
-		}
-
-		<span class="d_comment">// Use `info`
-</span>
+		stderr.writefln(<span class="d_string">"Error parsing URL:\n%s\n%*s\n%s"</span>, <b>url</b>, error.location + 1, <span class="d_string">"^"</span>, error.message);
+		<span class="d_keyword">continue</span>;
 	}
+
+	<span class="d_comment">// Use `info`
+</span>}
 </pre>
 </dd></dl>
 </div>
@@ -297,8 +288,7 @@
 				</footer>
 				
 				<footer class="pull-right">
-					<p>&copy; Jakob Ovrum 2011-2014
-</p>
+					<p>&copy; Jakob Ovrum 2011-2014</p>
 				</footer>
 			</div>
 		</div>
@@ -316,4 +306,3 @@
 	
 	</body>
 </html>
-
