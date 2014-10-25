@@ -448,9 +448,9 @@ class CustomIrcTracker(Payload = void)
 	unittest
 	{
 		import std.range;
-		static assert(isInputRange!(typeof(IrcTracker.init.channels)));
-		static assert(is(ElementType!(typeof(IrcTracker.init.channels)) == CustomTrackedChannel!Payload));
-		static assert(hasLength!(typeof(IrcTracker.init.channels)));
+		static assert(isInputRange!(typeof(CustomIrcTracker.init.channels)));
+		static assert(is(ElementType!(typeof(CustomIrcTracker.init.channels)) : CustomTrackedChannel!Payload));
+		static assert(hasLength!(typeof(CustomIrcTracker.init.channels)));
 	}
 
 	/**
@@ -473,9 +473,9 @@ class CustomIrcTracker(Payload = void)
 	unittest
 	{
 		import std.range;
-		static assert(isInputRange!(typeof(IrcTracker.init.users)));
-		static assert(is(ElementType!(typeof(IrcTracker.init.users)) == CustomTrackedUser!Payload*));
-		static assert(hasLength!(typeof(IrcTracker.init.users)));
+		static assert(isInputRange!(typeof(CustomIrcTracker.init.users)));
+		static assert(is(ElementType!(typeof(CustomIrcTracker.init.users)) == CustomTrackedUser!Payload*));
+		static assert(hasLength!(typeof(CustomIrcTracker.init.users)));
 	}
 
 	/**
