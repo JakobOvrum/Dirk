@@ -18,3 +18,10 @@ void* loadSymbol(void* handle, in char* sym)
 {
 	return cast(void*)GetProcAddress(cast(HMODULE)handle, sym);
 }
+
+const(char)[] libraryError()
+{
+	import std.windows.syserror;
+	return sysErrorString();
+}
+

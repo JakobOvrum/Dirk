@@ -18,3 +18,11 @@ void* loadSymbol(void* handle, in char* sym)
 {
 	return dlsym(handle, sym);
 }
+
+const(char)[] libraryError()
+{
+	import core.stdc.string : strlen;
+	char* pstr = dlerror();
+	return pstr[0 .. strlen(pstr)];
+}
+

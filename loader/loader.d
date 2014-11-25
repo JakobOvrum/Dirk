@@ -33,13 +33,17 @@ struct DynamicLibrary
 
 		handle = loadLibrary(zName);
 
-		enforce(handle, new DynamicLoaderException(format(`failed to load library: %s`, libraryName)));
+		enforce(handle, new DynamicLoaderException(format(`failed to load library: %s`, libraryError())));
 	}
 
 	void resolve(alias funcPtr)(string file = __FILE__, size_t line = __LINE__)
 	{
-		enum name = __traits(identifier, funcPtr);
-		
+		static if(__traits(identifier, funcPtr).length >= 2 &&
+			__traits(identifier, funcPtr)[$ -2 .. $] == "_p")
+			enum name = __traits(identifier, funcPtr)[0 .. $ - 2];
+		else
+			enum name = __traits(identifier, funcPtr);
+
 		funcPtr = cast(typeof(funcPtr))loadSymbol(handle, name);
 
 		enforce(funcPtr, new DynamicLoaderException(
@@ -47,3 +51,4 @@ struct DynamicLibrary
 			file, line));
 	}
 }
+

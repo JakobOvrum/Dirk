@@ -15,7 +15,7 @@ private SSL_CTX* sslContext;
 void initSslContext()
 {
 	if(!sslContext)
-		sslContext = SSL_CTX_new(SSLv3_client_method());
+		sslContext = SSL_CTX_new_p(SSLv3_client_method_p());
 }
 
 version(force_ssl_load) static this()
@@ -44,16 +44,16 @@ class SslSocket : Socket
 
 		super(af, SocketType.STREAM, ProtocolType.TCP);
 
-		ssl = SSL_new(sslContext);
-		SSL_set_fd(ssl, super.handle);
-		SSL_set_verify(ssl, SSL_VERIFY_NONE, null);
+		ssl = SSL_new_p(sslContext);
+		SSL_set_fd_p(ssl, super.handle);
+		SSL_set_verify_p(ssl, SSL_VERIFY_NONE, null);
 	}
 
 	override:
 	void connect(Address to) @trusted
 	{
 		super.connect(to);
-		sslEnforce(ssl, SSL_connect(ssl));
+		sslEnforce(ssl, SSL_connect_p(ssl));
 	}
 
 	ptrdiff_t receive(void[] buf)
@@ -63,7 +63,7 @@ class SslSocket : Socket
 
 	ptrdiff_t receive(void[] buf, SocketFlags flags) @trusted
 	{
-		auto result = sslEnforce(ssl, SSL_read(ssl, buf.ptr, cast(int)buf.length));
+		auto result = sslEnforce(ssl, SSL_read_p(ssl, buf.ptr, cast(int)buf.length));
 		return cast(ptrdiff_t)result;
 	}
 
@@ -74,9 +74,10 @@ class SslSocket : Socket
 
 	ptrdiff_t send(const(void)[] buf, SocketFlags flags) @trusted
 	{
-		auto result = sslEnforce(ssl, SSL_write(ssl, buf.ptr, cast(int)buf.length));
+		auto result = sslEnforce(ssl, SSL_write_p(ssl, buf.ptr, cast(int)buf.length));
 		return cast(ptrdiff_t)result;
 	}
 
 	// TODO: What about sendTo? Throwing stub?
 }
+
