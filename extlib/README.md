@@ -9,6 +9,9 @@ It is built as follows:
     gcc -c -O2 -D EV_STANDALONE -D EV_SELECT_IS_WINSOCKET=1 -D EV_USE_SELECT=1 -o ev.o.coff ev.c
     objconv -fomf32 ev.o.coff ev.obj
 
+libev.a
+============
+[Issue 10671](https://issues.dlang.org/show_bug.cgi?id=10671) necessitates [libev](http://software.schmorp.de/pkg/libev.html) to be built with `-fno-omit-frame-pointer`, so a distribution-agnostic `libev.a` is included and used by default for both x86-32 and x86-64 Linux targets. For other targets that are hit by [issue 10671](https://issues.dlang.org/show_bug.cgi?id=10671), an appropriately compiled library needs to be supplied by the user.
 
 libev license
 ============

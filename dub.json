@@ -13,7 +13,11 @@
 	"importPaths": [".", "libev"],
 	"mainSourceFile": "irc/testing.d",
 
-	"libs-posix": ["dl", "ev"],
+	"libs-posix": ["dl"],
 	"libs-windows-gnu-ldc": ["ev"],
+	
 	"sourceFiles-windows-x86-dmd": ["extlib/ev.obj"],
+	"sourceFiles-linux-x86": ["extlib/x86_32-linux-gnu/libev.a"],
+	"sourceFiles-linux-x86_64": ["extlib/x86_64-linux-gnu/libev.a"]
 }
+
