@@ -579,7 +579,11 @@ class IrcClient
 	void queryNames(in char[][] channels...)
 	{
 		// TODO: support automatic splitting of messages
-		writef("NAMES %s", channels.map!(channel => channel[]).joiner(","));
+		//writef("NAMES %s", channels.map!(channel => channel[]).joiner(","));
+
+		// NOTE: one message per channel because some servers ignore subsequent channels (confirmed: IRCd-Hybrid)
+		foreach(channel; channels)
+			writef("NAMES %s", channel);
 	}
 
 	/**
