@@ -16,7 +16,7 @@ import std.algorithm;
 import std.array;
 import std.range;
 import std.regex; // TEMP: For EOL identification
-import std.string : format, sformat, munch;
+import std.string : format, indexOf, sformat, munch;
 import std.traits;
 
 //debug=Dirk;
@@ -72,6 +72,10 @@ class IrcClient
 
 	char[] buffer;
 	LineBuffer lineBuffer;
+
+	// ISUPPORT data
+	static immutable char[2][] defaultChannelModes = [['@', 'o'], ['+', 'v']];
+	const(char[2])[] channelModes = defaultChannelModes; // [[prefix, mode], ...]
 
 	package:
 	Socket socket;
@@ -913,10 +917,11 @@ class IrcClient
 				auto channelName = line.arguments[2];
 
 				auto names = line.arguments[3].split();
+
+				// Strip channel modes from nick names (TODO: present them to the user in some way)
 				foreach(ref name; names)
 				{
-					auto prefix = name[0];
-					if(prefix == '@' || prefix == '+') // TODO: smarter handling that allows for non-standard stuff
+					while(channelModes.map!(pair => pair[0]).canFind(name[0]))
 						name = name[1 .. $];
 				}
 
@@ -969,7 +974,17 @@ class IrcClient
 				fireEvent(onWhoisIdleReply, line.arguments[1], to!int(line.arguments[2]));
 				break;
 			case "319":
-				fireEvent(onWhoisChannelsReply, line.arguments[1], split(line.arguments[2]));
+				auto nickName = line.arguments[1];
+				auto channels = split(line.arguments[2]);
+
+				// Strip channel modes from channel names (TODO: present them to the user in some way)
+				foreach(ref channel; channels)
+				{
+					while(channelModes.map!(pair => pair[0]).canFind(channel[0]))
+						channel = channel[1 .. $];
+				}
+
+				fireEvent(onWhoisChannelsReply, nickName, channels);
 				break;
 			case "318":
 				fireEvent(onWhoisEnd, line.arguments[1]);
@@ -985,6 +1000,61 @@ class IrcClient
 			case "ERROR":
 				_connected = false;
 				throw new IrcErrorException(this, line.arguments[0].idup);
+			case "005": // ISUPPORT
+				// TODO: handle "\xHH" sequences
+				auto tokens = line.arguments[1 .. $ - 1]; // trim nick name and "are supported by this server"
+				foreach(const token; tokens)
+				{
+					if(token[0] == '-') // Negation
+					{
+						//auto parameter = token[1 .. $];
+						// TODO
+					}
+					else
+					{
+						auto sepPos = token.indexOf('=');
+						const(char)[] parameter, value;
+						if(sepPos == -1)
+						{
+							parameter = token;
+							value = null;
+						}
+						else
+						{
+							parameter = token[0 .. sepPos];
+							value = token[sepPos + 1 .. $]; // May be empty
+						}
+
+						debug(Dirk) std.stdio.writefln(`ISUPPORT parameter "%s" has value "%s"`, parameter, value);
+
+						switch(parameter)
+						{
+							case "PREFIX":
+								if(value.empty)
+									channelModes = defaultChannelModes;
+								else
+								{
+									assert(value[0] == '(');
+									auto endParenPos = value.indexOf(')');
+									assert(endParenPos != -1 && endParenPos != value.length - 1);
+									auto modes = value[1 .. endParenPos];
+									auto prefixes = value[endParenPos + 1 .. $];
+									assert(modes.length == prefixes.length);
+									auto newChannelModes = new char[2][](modes.length);
+									foreach(immutable i, ref pair; newChannelModes)
+										pair = [prefixes[i], modes[i]];
+									channelModes = newChannelModes;
+									debug(Dirk) std.stdio.writefln("ISUPPORT PREFIX: %s", channelModes);
+								}
+								break;
+							default:
+								debug(Dirk) std.stdio.writefln(`Unhandled ISUPPORT parameter "%s"`, parameter);
+								break;
+						}
+					}
+				}
+
+				break;
 			case "001":
 				m_nick = line.arguments[0].idup;
 				fireEvent(onConnect);
