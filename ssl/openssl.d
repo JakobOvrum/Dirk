@@ -109,8 +109,7 @@ int sslEnforce(const SSL* ssl, int result, string file = __FILE__, size_t line =
 
 		char* zMsg = ERR_error_string_p(error, null);
 
-		//auto msg = zMsg[0 .. strlen(zMsg)].idup;
-		auto msg = "test replace";
+		auto msg = zMsg[0 .. strlen(zMsg)].idup;
 		throw new OpenSSLException(msg, error, file, line);
 	}
 
