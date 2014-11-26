@@ -306,7 +306,12 @@ class CustomIrcTracker(Payload = void)
 			checkIntegrity();
 		}
 
-		_users[user.nickName].nickName = newNick.idup;
+		auto userInSet = _users[user.nickName];
+		_users.remove(cast(immutable)user.nickName);
+
+		auto immNewNick = newNick.idup;
+		userInSet.nickName = immNewNick;
+		_users[immNewNick] = userInSet;
 
 		debug(IrcTracker)
 		{
