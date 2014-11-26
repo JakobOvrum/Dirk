@@ -10,7 +10,11 @@ struct SSL;
 struct SSL_METHOD;
 struct X509_STORE_CTX;
 
-enum SSL_VERIFY_NONE = 0x00; // From Deimos bindings
+// Constants from Deimos bindings
+enum SSL_VERIFY_NONE = 0x00;
+enum SSL_ERROR_WANT_READ = 2;
+enum SSL_ERROR_WANT_WRITE = 3;
+// End of Deimos bindings
 
 extern(C)
 {
@@ -121,10 +125,14 @@ int sslEnforce(const SSL* ssl, int result, string file = __FILE__, size_t line =
 	{
 		auto error = SSL_get_error_p(ssl, result);
 
-		char* zMsg = ERR_error_string_p(error, null);
-
-		auto msg = zMsg[0 .. strlen(zMsg)].idup;
-		throw new OpenSSLException(msg, error, file, line);
+		// std.socket.wouldHaveBlocked is true when the following errors
+		// are reported, so defer to that.
+		if(error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE)
+		{
+			char* zMsg = ERR_error_string_p(error, null);
+			auto msg = zMsg[0 .. strlen(zMsg)].idup;
+			throw new OpenSSLException(msg, error, file, line);
+		}
 	}
 
 	return result;
