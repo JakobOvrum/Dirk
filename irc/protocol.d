@@ -32,23 +32,25 @@ bool parse(const(char)[] raw, out IrcLine line)
 {
 	if(raw[0] == ':')
 	{
-		raw = raw[1..$];
+		raw = raw[1 .. $];
 		line.prefix = raw.munch("^ ");
 		raw.munch(" ");
 	}
 
 	line.command = raw.munch("^ ");
-	raw.munch(" ");
 
-	const(char)[] params = raw.munch("^:");
-	while(params.length > 0)
+	auto result = raw.findSplit(" :");
+
+	const(char)[] args = result[0];
+	args.munch(" ");
+	while(args.length)
 	{
-		line.arguments ~= params.munch("^ ");
-		params.munch(" ");
+		line.arguments ~= args.munch("^ ");
+		args.munch(" ");
 	}
 
-	if(raw.length > 0)
-		line.arguments ~= raw[1..$];
+	if(!result[2].empty)
+		line.arguments ~= result[2];
 
 	return true;
 }
@@ -62,23 +64,35 @@ unittest
 {
 	struct InputOutput
 	{
-		char[] input;
+		string input;
 		IrcLine output;
 		bool valid = true;
 	}
 
 	static InputOutput[] testData = [
 		{
-			input: "PING 123456".dup,
+			input: "PING 123456",
 			output: {command: "PING", arguments: ["123456"]}
 		},
 		{
-			input: ":foo!bar@baz PRIVMSG #channel hi!".dup,
+			input: ":foo!bar@baz PRIVMSG #channel hi!",
 			output: {prefix: "foo!bar@baz", command: "PRIVMSG", arguments: ["#channel", "hi!"]}
 		},
 		{
-			input: ":foo!bar@baz PRIVMSG #channel :hello, world!".dup,
+			input: ":foo!bar@baz PRIVMSG #channel :hello, world!",
 			output: {prefix: "foo!bar@baz", command: "PRIVMSG", arguments: ["#channel", "hello, world!"]}
+		},
+		{
+			input: ":foo!bar@baz 005 testnick CHANLIMIT=#:120 :are supported by this server",
+			output: {prefix: "foo!bar@baz", command: "005", arguments: ["testnick", "CHANLIMIT=#:120", "are supported by this server"]}
+		},
+		{
+			input: ":nick!~ident@00:00:00:00::00 PRIVMSG #some.channel :some message",
+			output: {prefix: "nick!~ident@00:00:00:00::00", command: "PRIVMSG", arguments: ["#some.channel", "some message"]}
+		},
+		{
+			input: ":foo!bar@baz JOIN :#channel",
+			output: {prefix: "foo!bar@baz", command: "JOIN", arguments: ["#channel"]}
 		}
 	];
 
