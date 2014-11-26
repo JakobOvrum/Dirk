@@ -22,6 +22,5 @@ void* loadSymbol(void* handle, in char* sym)
 const(char)[] libraryError()
 {
 	import std.windows.syserror;
-	return sysErrorString();
+	return sysErrorString(GetLastError());
 }
-
