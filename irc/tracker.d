@@ -78,9 +78,20 @@ class CustomIrcTracker(Payload = void)
 			}
 		}
 
+		assert(thisUser == _users[thisUser.nickName]);
+
 		foreach(user; users)
-			if(user.nickName != client.nickName)
-				assert(channels.map!(chan => chan.users).joiner().canFind(user));
+			if(user != thisUser)
+				assert(channels.map!(chan => chan.users).joiner().canFind(user), "unable to find " ~ user.nickName ~ " in any channels");
+	}
+
+	void onConnect()
+	{
+		thisUser.nickName = _client.nickName;
+		thisUser.userName = _client.userName;
+		thisUser.realName = _client.realName;
+
+		debug(IrcTracker) writeln("tracker connected; thisUser = ", *thisUser);
 	}
 
 	void onSuccessfulJoin(in char[] channelName)
@@ -306,7 +317,7 @@ class CustomIrcTracker(Payload = void)
 	}
 
 	alias eventHandlers = TypeTuple!(
-		onSuccessfulJoin, onNameList, onJoin, onPart, onKick, onQuit, onNickChange
+		onConnect, onSuccessfulJoin, onNameList, onJoin, onPart, onKick, onQuit, onNickChange
 	);
 
 	// Start tracking functions
