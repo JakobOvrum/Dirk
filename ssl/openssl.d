@@ -36,16 +36,31 @@ extern(C)
 
 version(Windows)
 {
-	immutable libsslName = "ssleay32";
-	immutable libcryptoName = "libeay32";
+	immutable libsslNames = ["ssleay32"];
+	immutable libcryptoNames = ["libeay32"];
 }
 else version(Posix)
 {
-	immutable libsslName = "libssl.so";
-	immutable libcryptoName = "libcrypto.so";
+	immutable libsslNames = ["libssl.so.1.0.0", "libssl.so"];
+	immutable libcryptoNames = ["libcrypto.so.1.0.0", "libcrypto.so"];
 }
 else
 	static assert(false, "unrecognized platform");
+
+private DynamicLibrary tryLibraries(in string[] names)
+{
+	if(names.length > 1)
+	{
+		foreach(name; names[0 .. $ - 1])
+		{
+			try
+				return DynamicLibrary(name);
+			catch(DynamicLoaderException) {}
+		}
+	}
+	
+	return DynamicLibrary(names[$ - 1]);
+}
 
 void loadOpenSSL()
 {
@@ -53,8 +68,7 @@ void loadOpenSSL()
 	if(loaded)
 		return;
 
-	auto ssl = DynamicLibrary(libsslName);
-
+	auto ssl = tryLibraries(libsslNames);
 	ssl.resolve!SSL_library_init_p;
 	ssl.resolve!SSL_load_error_strings_p;
 	ssl.resolve!SSL_get_error_p;
@@ -69,9 +83,9 @@ void loadOpenSSL()
 	ssl.resolve!SSL_read_p;
 	ssl.resolve!SSL_write_p;
 
-	auto lib = DynamicLibrary(libcryptoName);
-	lib.resolve!OPENSSL_add_all_algorithms_noconf_p;
-	lib.resolve!ERR_error_string_p;
+	auto crypto = tryLibraries(libcryptoNames);
+	crypto.resolve!OPENSSL_add_all_algorithms_noconf_p;
+	crypto.resolve!ERR_error_string_p;
 
 	SSL_library_init_p();
 	OPENSSL_add_all_algorithms_noconf_p();
