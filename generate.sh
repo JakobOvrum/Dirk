@@ -1,1 +1,1 @@
-bootDoc/generate .. -I../libev --extra=index.d
+rdmd bootDoc/generate.d .. -I../libev --extra=index.d
