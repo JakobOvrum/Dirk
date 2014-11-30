@@ -28,6 +28,7 @@ install:
 
 script:
   - dub test
+  - dub test --arch=x86
 
 after_success:
   - ./push-ddoc.sh
