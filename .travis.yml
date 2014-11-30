@@ -6,9 +6,8 @@ language: d
 notifications:
   email: false
 
-env:
-  global:
-    - secure: "kFhU+DZjhq/KbDt0DIDWnlskXMa12miNelmhhy30fQGgVIdiibDGKMNGyLahWp8CnPu1DARb5AZWK2TDfARdnURT2pgcsG83M7bYIY6cR647BWjL7oAhJ6CYEzTWJTBjeUjpN/o4vIgfXSDR0c7vboDi7Xz8ilfrBujPL2Oi/og="
+dd:
+  secure: Xa3ZSmQPQytDFrMBMdhO0ObnrIb0GdvUsz0LEKxHerQN/+qSos5In5WI7ATddJyCxK1RvvzaxWdiMRurfQSSW5vAW0KCRpXnEIZ1q70+WGgXH7eOT5ZVt0bHo3L2Jo9kYXwCSWxEfiQsREliEj5RXyD4SCbGFbeP2a/4x9A1VuI=
 
 install:
   # dmd
