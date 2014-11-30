@@ -26,7 +26,7 @@ install:
   - wget http://code.dlang.org/files/${DUB}.tar.gz
   - sudo tar -C /usr/local/bin -zxf ${DUB}.tar.gz
   # 32-bit deps
-  - sudo apt-get install libc6-dev:i386
+  - sudo apt-get install libc6-dev:i386 gcc-multilib
 
 script:
   - dub test
