@@ -6,8 +6,9 @@ language: d
 notifications:
   email: false
 
-dd:
-  secure: Xa3ZSmQPQytDFrMBMdhO0ObnrIb0GdvUsz0LEKxHerQN/+qSos5In5WI7ATddJyCxK1RvvzaxWdiMRurfQSSW5vAW0KCRpXnEIZ1q70+WGgXH7eOT5ZVt0bHo3L2Jo9kYXwCSWxEfiQsREliEj5RXyD4SCbGFbeP2a/4x9A1VuI=
+env:
+  global:
+    - secure: "Xa3ZSmQPQytDFrMBMdhO0ObnrIb0GdvUsz0LEKxHerQN/+qSos5In5WI7ATddJyCxK1RvvzaxWdiMRurfQSSW5vAW0KCRpXnEIZ1q70+WGgXH7eOT5ZVt0bHo3L2Jo9kYXwCSWxEfiQsREliEj5RXyD4SCbGFbeP2a/4x9A1VuI="
 
 install:
   # dmd
@@ -28,5 +29,5 @@ install:
 script:
   - dub test
 
-after_script:
+after_success:
   - ./push-ddoc.sh

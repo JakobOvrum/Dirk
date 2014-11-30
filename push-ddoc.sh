@@ -5,9 +5,9 @@ if [ "$TRAVIS_REPO_SLUG" == "JakobOvrum/Dirk" ] && [ "$TRAVIS_PULL_REQUEST" == "
 	cd gh-pages
 	git config credential.helper "store --file=.git/credentials"
 	echo "https://${TOKEN}:@github.com" > .git/credentials
-	git config user.name "travis-ci"
-	git config user.email "travis@travis-ci.org"
-	git config push.default simple
+	git config --global user.name "travis-ci"
+	git config --global user.email "travis@travis-ci.org"
+	git config --global push.default simple
 
 	echo -e "Generating DDoc...\n"
 	sh ./generate.sh
