@@ -25,6 +25,8 @@ install:
   - sudo dpkg -i ${DMD}
   - wget http://code.dlang.org/files/${DUB}.tar.gz
   - sudo tar -C /usr/local/bin -zxf ${DUB}.tar.gz
+  # 32-bit deps
+  - sudo apt-get install ia32-libs ia32-libs-multiarch
 
 script:
   - dub test
