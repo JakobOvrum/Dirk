@@ -27,4 +27,6 @@ install:
 
 script:
   - dub test
+
+after_script:
   - ./push-ddoc.sh
