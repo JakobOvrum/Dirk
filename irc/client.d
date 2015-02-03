@@ -938,7 +938,8 @@ class IrcClient
 				fireEvent(onPart, getUser(line.prefix), line.arguments[0]);
 				break;
 			case "QUIT":
-				fireEvent(onQuit, getUser(line.prefix), line.arguments[0]);
+				fireEvent(onQuit, getUser(line.prefix),
+					line.arguments.length? line.arguments[0] : null);
 				break;
 			case "KICK":
 				fireEvent(onKick,
