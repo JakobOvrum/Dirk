@@ -853,7 +853,7 @@ class IrcClient
 					throw new IrcErrorException(this, `"433 Nick already in use" was unhandled`, cause);
 				}
 
-				auto failedNick = line.arguments[0];
+				auto failedNick = line.arguments[1];
 				bool handled = false;
 
 				foreach(cb; onNickInUse)
