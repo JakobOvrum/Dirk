@@ -995,9 +995,10 @@ class IrcClient
 				fireEvent(onWhoisEnd, line.arguments[1]);
 				break;
 			// Non-standard WHOIS replies
-			//case "307": // UnrealIRCd?
-			//	fireEvent(onWhoisAccountReply, line.arguments[0], line.arguments[1]);
-			//	break;
+			case "307": // UnrealIRCd?
+				if(line.arguments[0] == m_nick)
+					fireEvent(onWhoisAccountReply, line.arguments[1], line.arguments[1]);
+				break;
 			case "330": // Freenode
 				fireEvent(onWhoisAccountReply, line.arguments[1], line.arguments[2]);
 				break;
