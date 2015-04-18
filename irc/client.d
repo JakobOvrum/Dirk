@@ -89,6 +89,7 @@ class IrcClient
 	// NICKLEN
 	enum defaultMaxNickLength = 9;
 	ushort _maxNickLength = defaultMaxNickLength;
+	bool enforceMaxNickLength = false; // Only enforce max nick length when server has specified one
 
 	// NETWORK
 	string _networkName = null;
@@ -427,9 +428,11 @@ class IrcClient
 	void nickName(in char[] newNick) @property
 	{
 		enforce(!newNick.empty);
-		enforce(newNick.length <= _maxNickLength,
-			`desired nick name "%s" (%s bytes) is too long; nick name must be within %s bytes`
-			.format(newNick, newNick.length, _maxNickLength));
+
+		if(enforceMaxNickLength)
+			enforce(newNick.length <= _maxNickLength,
+				`desired nick name "%s" (%s bytes) is too long; nick name must be within %s bytes`
+				.format(newNick, newNick.length, _maxNickLength));
 
 		if(connected) // m_nick will be set later if the nick is accepted.
 			writef("NICK %s", newNick);
@@ -442,9 +445,11 @@ class IrcClient
 	void nickName(string newNick) @property
 	{
 		enforce(!newNick.empty);
-		enforce(newNick.length <= _maxNickLength,
-			`desired nick name "%s" (%s bytes) is too long; nick name must be within %s bytes`
-			.format(newNick, newNick.length, _maxNickLength));
+
+		if(enforceMaxNickLength)
+			enforce(newNick.length <= _maxNickLength,
+				`desired nick name "%s" (%s bytes) is too long; nick name must be within %s bytes`
+				.format(newNick, newNick.length, _maxNickLength));
 
 		if(connected) // m_nick will be set later if the nick is accepted.
 			writef("NICK %s", newNick);
@@ -1000,20 +1005,20 @@ class IrcClient
 					throw new IrcErrorException(this, `"433 Nick already in use" was unhandled`, cause);
 				}
 
-				auto failedNick = line.arguments[0];
+				auto failedNick = line.arguments[1];
 				bool handled = false;
 
 				foreach(cb; onNickInUse)
 				{
-					const(char)[] newNick;
+					const(char)[] nextNickToTry;
 
-					try newNick = cb(failedNick);
+					try nextNickToTry = cb(failedNick);
 					catch(Exception e)
 						failed433(e);
 
-					if(newNick)
+					if(nextNickToTry)
 					{
-						writef("NICK %s", newNick);
+						writef("NICK %s", nextNickToTry);
 						handled = true;
 						break;
 					}
@@ -1165,6 +1170,7 @@ class IrcClient
 						{
 							case "NICKLEN":
 								_maxNickLength = defaultMaxNickLength;
+								enforceMaxNickLength = false;
 								break;
 							default:
 								debug(Dirk) std.stdio.writefln(`Unhandled negation of ISUPPORT parameter "%s"`, parameter);
@@ -1210,29 +1216,28 @@ class IrcClient
 								break;
 							case "CHANMODES":
 								assert(!value.empty);
-								auto split = value.splitter(',');
-								auto typeA = split.front;
-								if(channelListModes != typeA)
-									channelListModes = typeA.idup;
+								const(char)[][4] modeTypes; // Types A, B, C and D
 
-								split.popFront();
-								auto typeB = split.front;
-								if(channelParameterizedModes != typeB)
-									channelParameterizedModes = typeB.idup;
+								value.splitter(',')
+									.takeExactly(4)
+									.copy(modeTypes[]);
 
-								split.popFront();
-								auto typeC = split.front;
-								if(channelNullaryRemovableModes != typeC)
-									channelNullaryRemovableModes = typeC.idup;
+								if(channelListModes != modeTypes[0])
+									channelListModes = modeTypes[0].idup;
 
-								split.popFront();
-								auto typeD = split.front;
-								if(channelSettingModes != typeD)
-									channelSettingModes = typeD.idup;
+								if(channelParameterizedModes != modeTypes[1])
+									channelParameterizedModes = modeTypes[1].idup;
+
+								if(channelNullaryRemovableModes != modeTypes[2])
+									channelNullaryRemovableModes = modeTypes[2].idup;
+
+								if(channelSettingModes != modeTypes[3])
+									channelSettingModes = modeTypes[3].idup;
 								break;
 							case "NICKLEN":
 								assert(!value.empty);
 								_maxNickLength = to!(typeof(_maxNickLength))(value);
+								enforceMaxNickLength = true;
 								break;
 							case "NETWORK":
 								assert(!value.empty);
