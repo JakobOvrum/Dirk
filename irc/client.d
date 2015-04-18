@@ -18,6 +18,8 @@ import std.range;
 import std.regex; // TEMP: For EOL identification
 import std.string : format, indexOf, sformat, munch;
 import std.traits;
+import std.typetuple;
+import std.utf : byChar;
 
 //debug=Dirk;
 debug(Dirk) static import std.stdio;
@@ -74,8 +76,26 @@ class IrcClient
 	LineBuffer lineBuffer;
 
 	// ISUPPORT data
-	static immutable char[2][] defaultChannelModes = [['@', 'o'], ['+', 'v']];
-	const(char[2])[] channelModes = defaultChannelModes; // [[prefix, mode], ...]
+	// PREFIX
+	static immutable char[2][] defaultPrefixedChannelModes = [['@', 'o'], ['+', 'v']]; // RFC2812
+	const(char[2])[] prefixedChannelModes = defaultPrefixedChannelModes; // [[prefix, mode], ...]
+
+	// CHANMODES
+	string channelListModes = "b"; // Type A
+	string channelParameterizedModes = null; // Type B
+	string channelNullaryRemovableModes = null; // Type C
+	string channelSettingModes = null; // Type D
+
+	// NICKLEN
+	enum defaultMaxNickLength = 9;
+	ushort _maxNickLength = defaultMaxNickLength;
+
+	// NETWORK
+	string _networkName = null;
+
+	// MODES
+	enum defaultMessageModeLimit = 3; // RFC2812
+	ubyte messageModeLimit = defaultMessageModeLimit;
 
 	package:
 	Socket socket;
@@ -407,6 +427,10 @@ class IrcClient
 	void nickName(in char[] newNick) @property
 	{
 		enforce(!newNick.empty);
+		enforce(newNick.length <= _maxNickLength,
+			`desired nick name "%s" (%s bytes) is too long; nick name must be within %s bytes`
+			.format(newNick, newNick.length, _maxNickLength));
+
 		if(connected) // m_nick will be set later if the nick is accepted.
 			writef("NICK %s", newNick);
 		else
@@ -418,13 +442,134 @@ class IrcClient
 	void nickName(string newNick) @property
 	{
 		enforce(!newNick.empty);
+		enforce(newNick.length <= _maxNickLength,
+			`desired nick name "%s" (%s bytes) is too long; nick name must be within %s bytes`
+			.format(newNick, newNick.length, _maxNickLength));
+
 		if(connected) // m_nick will be set later if the nick is accepted.
 			writef("NICK %s", newNick);
 		else
 			m_nick = newNick;
 	}
 
+	/// Ditto
 	deprecated alias nick = nickName;
+
+	/**
+	 * The name of the IRC network the server is part of, or $(D null)
+	 * if the server has not advertised the network name.
+	 */
+	string networkName() const @property nothrow @nogc pure
+	{
+		return _networkName;
+	}
+
+	/**
+	 * The maximum number of characters (bytes) allowed in this user's nick name.
+	 *
+	 * The limit is network-specific.
+	 */
+	ushort maxNickNameLength() const @property nothrow @nogc pure
+	{
+		return _maxNickLength;
+	}
+
+	/**
+	 * Add or remove user modes to/from this user.
+	 */
+	void addUserModes(in char[] modes...)
+	{
+		writef("MODE %s +%s", m_nick, modes);
+	}
+
+	/// Ditto
+	void removeUserModes(in char[] modes...)
+	{
+		writef("MODE %s -%s", m_nick, modes);
+	}
+
+	private void editChannelModes(Modes, Args)(char editAction, in char[] channel, Modes modes, Args args)
+		if(allSatisfy!(isInputRange, Modes, Args) && isSomeChar!(ElementType!Modes) && isSomeString!(ElementType!Args))
+	in {
+		assert(modes.length == args.length);
+		assert(modes.length <= messageModeLimit);
+	} body {
+ 		writef("MODE %s %c%s %-(%s%| %)", editAction, channel, modes, args);
+	}
+
+	private void editChannelList(char editAction, in char[] channel, char list, in char[][] addresses...)
+	{
+		import std.range : chunks;
+
+		enforce(channelListModes.canFind(list),
+			`specified channel mode "` ~ list ~ `" is not a list mode`);
+
+		foreach(chunk; addresses.chunks(messageModeLimit)) // TODO: split up if too long
+		{
+			if(messageModeLimit <= 16) // arbitrary number
+			{
+				char[16] modeBuffer = list;
+				editChannelModes(editAction, channel, modeBuffer[0 .. chunk.length], chunk);
+			}
+			else
+				editChannelModes(editAction, channel, list.repeat(chunk.length).byChar(), chunk);
+		}
+	}
+
+	/**
+	 * Add or remove an address to/from a _channel list.
+	Examples:
+	Ban Alice and Bob from _channel #foo:
+	------
+	client.addToChannelList("#foo", 'b', "Alice!*@*", "Bob!*@*");
+	------
+	 */
+	void addToChannelList(in char[] channel, char list, in char[][] addresses...)
+	{
+		editChannelList('+', channel, list, addresses);
+	}
+
+	/// Ditto
+	void removeFromChannelList(in char[] channel, char list, in char[][] addresses...)
+	{
+		editChannelList('-', channel, list, addresses);
+	}
+
+	/**
+	 * Add or remove channel modes in the given channel.
+	 * Examples:
+	 Give channel operator status (+o) to Alice and voice status (+v) to Bob in channel #foo:
+	 ------
+	client.addChannelModes("#foo", ChannelMode('o', "Alice"), ChannelMode('v', "Bob"));
+	 ------
+	 */
+	struct ChannelMode
+	{
+		char mode; ///
+		const(char)[] argument; /// Ditto
+	}
+
+	/// Ditto
+	 void addChannelModes(in char[] channel, ChannelMode[] modes...)
+	 {
+	 	import std.range : chunks;
+
+	 	foreach(chunk; modes.chunks(messageModeLimit)) // TODO: split up if too long
+	 		writef("MODE %s +%s %-(%s%| %)", channel,
+	 			modes.map!(pair => pair.mode),
+	 			modes.map!(pair => pair.argument).filter!(arg => !arg.empty));
+	 }
+
+	 /// Ditto
+	 void removeChannelModes(in char[] channel, ChannelMode[] modes...)
+	 {
+	 	import std.range : chunks;
+
+	 	foreach(chunk; modes.chunks(messageModeLimit)) // TODO: split up if too long
+	 		writef("MODE %s -%s %-(%s%| %)", channel,
+	 			modes.map!(pair => pair.mode),
+	 			modes.map!(pair => pair.argument));
+	 }
 
 	/**
 	 * Join a _channel.
@@ -556,7 +701,7 @@ class IrcClient
 			if(nicks.length < 1 || nicks.length > 5)
 				throw new RangeError();
 		}
-		writef("USERHOST %s", nicks.map!(nick => nick[]).joiner(" "));
+		writef("USERHOST %-(%s%| %)", nicks);
 	}
 
 	/**
@@ -840,6 +985,8 @@ class IrcClient
 	// TODO: Switch getting large, change to something more performant?
 	void handle(ref IrcLine line)
 	{
+		import std.conv : to;
+
 		switch(line.command)
 		{
 			case "PING":
@@ -925,7 +1072,7 @@ class IrcClient
 				// Strip channel modes from nick names (TODO: present them to the user in some way)
 				foreach(ref name; names)
 				{
-					while(channelModes.map!(pair => pair[0]).canFind(name[0]))
+					while(prefixedChannelModes.map!(pair => pair[0]).canFind(name[0]))
 						name = name[1 .. $];
 				}
 
@@ -985,7 +1132,7 @@ class IrcClient
 				// Strip channel modes from channel names (TODO: present them to the user in some way)
 				foreach(ref channel; channels)
 				{
-					while(channelModes.map!(pair => pair[0]).canFind(channel[0]))
+					while(prefixedChannelModes.map!(pair => pair[0]).canFind(channel[0]))
 						channel = channel[1 .. $];
 				}
 
@@ -1013,8 +1160,16 @@ class IrcClient
 				{
 					if(token[0] == '-') // Negation
 					{
-						//auto parameter = token[1 .. $];
-						// TODO
+						auto parameter = token[1 .. $];
+						switch(parameter)
+						{
+							case "NICKLEN":
+								_maxNickLength = defaultMaxNickLength;
+								break;
+							default:
+								debug(Dirk) std.stdio.writefln(`Unhandled negation of ISUPPORT parameter "%s"`, parameter);
+								break;
+						}
 					}
 					else
 					{
@@ -1037,7 +1192,7 @@ class IrcClient
 						{
 							case "PREFIX":
 								if(value.empty)
-									channelModes = defaultChannelModes;
+									prefixedChannelModes = defaultPrefixedChannelModes;
 								else
 								{
 									assert(value[0] == '(');
@@ -1049,9 +1204,39 @@ class IrcClient
 									auto newChannelModes = new char[2][](modes.length);
 									foreach(immutable i, ref pair; newChannelModes)
 										pair = [prefixes[i], modes[i]];
-									channelModes = newChannelModes;
-									debug(Dirk) std.stdio.writefln("ISUPPORT PREFIX: %s", channelModes);
+									prefixedChannelModes = newChannelModes;
+									debug(Dirk) std.stdio.writefln("ISUPPORT PREFIX: %s", prefixedChannelModes);
 								}
+								break;
+							case "CHANMODES":
+								assert(!value.empty);
+								auto split = value.splitter(',');
+								auto typeA = split.front;
+								if(channelListModes != typeA)
+									channelListModes = typeA.idup;
+
+								split.popFront();
+								auto typeB = split.front;
+								if(channelParameterizedModes != typeB)
+									channelParameterizedModes = typeB.idup;
+
+								split.popFront();
+								auto typeC = split.front;
+								if(channelNullaryRemovableModes != typeC)
+									channelNullaryRemovableModes = typeC.idup;
+
+								split.popFront();
+								auto typeD = split.front;
+								if(channelSettingModes != typeD)
+									channelSettingModes = typeD.idup;
+								break;
+							case "NICKLEN":
+								assert(!value.empty);
+								_maxNickLength = to!(typeof(_maxNickLength))(value);
+								break;
+							case "NETWORK":
+								assert(!value.empty);
+								_networkName = value.idup;
 								break;
 							default:
 								debug(Dirk) std.stdio.writefln(`Unhandled ISUPPORT parameter "%s"`, parameter);

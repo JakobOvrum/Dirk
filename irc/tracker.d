@@ -554,7 +554,7 @@ alias IrcTracker = CustomIrcTracker!void;
 struct CustomTrackedChannel(Payload = void)
 {
 	private:
-	immutable string _name;
+	string _name;
 	CustomTrackedUser!Payload*[string] _users;
 
 	this(string name, CustomTrackedUser!Payload*[string] users = null)
