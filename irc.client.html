@@ -162,12 +162,15 @@
 <dt>See Also</dt><dd><a class="symbol-link" href="#IrcClient.connect"><span class="inlinecode">IrcClient.connect</span></a></dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="connect">&nbsp;</span><a class="symbol-link" href="#connect">connect</a>(Address <i>serverAddress</i>);
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="connect">&nbsp;</span><a class="symbol-link" href="#connect">connect</a>(Address <i>serverAddress</i>, in char[] <i>password</i>);
+<br>void <span class="symbol-target" id="connect">&nbsp;</span><a class="symbol-link" href="#connect">connect</a>(Address <i>serverAddress</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Connect this client to a server.
 </p>
 <dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>Address <i>serverAddress</i></td>
 <td>address of server</td></tr>
+<tr><td>char[] <i>password</i></td>
+<td>server password, or <span class="inlinecode"><span class="d_keyword">null</span></span> to specify no password</td></tr>
 </table></dd>
 </dl>
 </div>
