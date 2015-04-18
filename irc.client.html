@@ -320,11 +320,60 @@
 <hr><div class="row-fluid declaration"><h3>const pure @property string <span class="symbol-target" id="nickName">&nbsp;</span><a class="symbol-link" href="#nickName">nickName</a>();
 <br>@property void <span class="symbol-target" id="nickName">&nbsp;</span><a class="symbol-link" href="#nickName">nickName</a>(in char[] <i>newNick</i>);
 <br>@property void <span class="symbol-target" id="nickName">&nbsp;</span><a class="symbol-link" href="#nickName">nickName</a>(string <i>newNick</i>);
+<br>deprecated alias <span class="symbol-target" id="nick">&nbsp;</span><a class="symbol-link" href="#nick">nick</a> = nickName;
 </h3></div>
 <div class="declaration-content"><dl><p>Nick name of the user for this client.
 </p>
 <p>Setting this property when connected can cause the <a class="symbol-link" href="#IrcClient.onNickInUse"><span class="inlinecode">IrcClient.onNickInUse</span></a> event to fire.</p>
 </dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const pure nothrow @nogc @property string <span class="symbol-target" id="networkName">&nbsp;</span><a class="symbol-link" href="#networkName">networkName</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>The name of the IRC network the server is part of, or <span class="inlinecode"><span class="d_keyword">null</span></span>
+ if the server has not advertised the network name.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>const pure nothrow @nogc @property ushort <span class="symbol-target" id="maxNickNameLength">&nbsp;</span><a class="symbol-link" href="#maxNickNameLength">maxNickNameLength</a>();
+</h3></div>
+<div class="declaration-content"><dl><p>The maximum number of characters (bytes) allowed in this user's nick name.
+</p>
+<p>The limit is network-specific.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="addUserModes">&nbsp;</span><a class="symbol-link" href="#addUserModes">addUserModes</a>(in char[] <i>modes</i>...);
+<br>void <span class="symbol-target" id="removeUserModes">&nbsp;</span><a class="symbol-link" href="#removeUserModes">removeUserModes</a>(in char[] <i>modes</i>...);
+</h3></div>
+<div class="declaration-content"><dl><p>Add or remove user <i>modes</i> to/from this user.</p>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="addToChannelList">&nbsp;</span><a class="symbol-link" href="#addToChannelList">addToChannelList</a>(in char[] <i>channel</i>, char <i>list</i>, in char[][] <i>addresses</i>...);
+<br>void <span class="symbol-target" id="removeFromChannelList">&nbsp;</span><a class="symbol-link" href="#removeFromChannelList">removeFromChannelList</a>(in char[] <i>channel</i>, char <i>list</i>, in char[][] <i>addresses</i>...);
+</h3></div>
+<div class="declaration-content"><dl><p>Add or remove an address to/from a channel <i>list</i>.
+</p>
+<dt>Examples</dt><dd>	Ban Alice and Bob from channel #foo:
+<pre class="d_code">client.<u>addToChannelList</u>(<span class="d_string">"#foo"</span>, 'b', <span class="d_string">"Alice!*@*"</span>, <span class="d_string">"Bob!*@*"</span>);
+</pre>
+</dd>
+</dl>
+</div>
+<hr><div class="row-fluid declaration"><h3>struct <span class="symbol-target" id="ChannelMode">&nbsp;</span><a class="symbol-link" href="#ChannelMode">ChannelMode</a>;
+<br>void <span class="symbol-target" id="addChannelModes">&nbsp;</span><a class="symbol-link" href="#addChannelModes">addChannelModes</a>(in char[] <i>channel</i>, ChannelMode[] <i>modes</i>...);
+<br>void <span class="symbol-target" id="removeChannelModes">&nbsp;</span><a class="symbol-link" href="#removeChannelModes">removeChannelModes</a>(in char[] <i>channel</i>, ChannelMode[] <i>modes</i>...);
+</h3></div>
+<div class="declaration-content"><dl><p>Add or remove channel modes in the given channel.
+</p>
+<dt>Examples</dt><dd>	 Give channel operator status (+o) to Alice and voice status (+v) to Bob in channel #foo:
+<pre class="d_code">client.addChannelModes(<span class="d_string">"#foo"</span>, <u>ChannelMode</u>('o', <span class="d_string">"Alice"</span>), <u>ChannelMode</u>('v', <span class="d_string">"Bob"</span>));
+</pre>
+</dd>
+</dl>
+<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>char <span class="symbol-target" id="mode">&nbsp;</span><a class="symbol-link" href="#mode">mode</a>;
+<br>const(char)[] <span class="symbol-target" id="argument">&nbsp;</span><a class="symbol-link" href="#argument">argument</a>;
+</h3></div>
+<div class="declaration-content"><br><br>
+</div>
+</div>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="join">&nbsp;</span><a class="symbol-link" href="#join">join</a>(in char[] <i>channel</i>);
 </h3></div>
