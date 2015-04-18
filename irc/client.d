@@ -145,8 +145,9 @@ class IrcClient
 	 * Connect this client to a server.
 	 * Params:
 	 *   serverAddress = address of server
+	 *   password = server _password, or $(D null) to specify no _password
 	 */
-	void connect(Address serverAddress)
+	void connect(Address serverAddress, in char[] password)
 	{
 		enforceEx!UnconnectedClientException(!connected, "IrcClient is already connected");
 
@@ -155,10 +156,17 @@ class IrcClient
 		m_address = serverAddress;
 		_connected = true;
 
-		// TODO: Implement `PASS`
+		if(password.length)
+			writef("PASS %s", password);
 
 		writef("NICK %s", nickName);
 		writef("USER %s * * :%s", userName, realName); // TODO: Initial user-mode argument
+	}
+
+	/// Ditto
+	void connect(Address serverAddress)
+	{
+		connect(serverAddress, null);
 	}
 
 	/**
