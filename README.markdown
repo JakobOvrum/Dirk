@@ -1,4 +1,4 @@
-Dirk [![dub](https://img.shields.io/dub/v/dirk.svg)](http://code.dlang.org/packages/dirk)[![Build Status](https://img.shields.io/travis/JakobOvrum/Dirk.svg)](https://travis-ci.org/JakobOvrum/Dirk)
+Dirk [![dub](https://img.shields.io/dub/v/dirk.svg)](http://code.dlang.org/packages/dirk) [![Build Status](https://img.shields.io/travis/JakobOvrum/Dirk.svg)](https://travis-ci.org/JakobOvrum/Dirk)
 ============================================
 Dirk is an IRC client library for the D programming language.
 
