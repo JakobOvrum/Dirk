@@ -44,7 +44,7 @@ struct DynamicLibrary
 		else
 			enum name = __traits(identifier, funcPtr);
 
-		funcPtr = cast(typeof(funcPtr))loadSymbol(handle, name);
+		funcPtr = cast(typeof(funcPtr))loadSymbol(handle, name.ptr);
 
 		enforce(funcPtr, new DynamicLoaderException(
 			format(`unable to find symbol "%s" in library "%s"`, name, libraryName),
