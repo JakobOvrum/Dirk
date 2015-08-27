@@ -21,6 +21,11 @@
 
 # Dub
 /.dub
+/dub.selections.json
 
 # Scripts
 /list_sources.d
+
+# Temporary files
+*.swp
+
