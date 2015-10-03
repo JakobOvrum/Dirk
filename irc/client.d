@@ -26,6 +26,12 @@ debug(Dirk) static import std.stdio;
 debug(Dirk) import std.conv;
 
 enum IRC_MAX_LEN = 510;
+/*
+ * 63 is the maximum hostname length defined by the protocol.  10 is a common
+ * username limit on many networks.  1 is for the `@'.
+ * Shamelessly stolen from IRSSI, irc/core/irc-servers.c
+ */
+enum MAX_USERHOST_LEN = (63 + 10 + 1);
 
 /**
  * Thrown if the server sends an error message to the client.
@@ -246,7 +252,7 @@ class IrcClient
 	{
 		static linePattern = ctRegex!(`[^\r\n]+`, "g");
 
-		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2;
+		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2 - MAX_USERHOST_LEN;
 		static immutable lineHead = method ~ " %s :%s";
 
 		foreach(m; match(message, linePattern))
