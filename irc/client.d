@@ -265,12 +265,26 @@ class IrcClient
 		socket.send("\r\n");
 	}
 
+	enum additionalMsgLens{
+		PRIVMSG=MAX_USERHOST_LEN,
+		NOTICE=MAX_USERHOST_LEN
+	}
+	
+	private static uint additionalMsgLen(string method)(){
+		static if(staticIndexOf!(method, __traits(allMembers, additionalMsgLens))==-1){
+			return 0;
+		}
+		else{
+			mixin("return additionalMsgLens."~method~";");
+		}
+	}
+	
 	// Takes care of splitting 'message' into multiple messages when necessary
 	private void sendMessage(string method)(in char[] target, in char[] message)
 	{
 		static linePattern = ctRegex!(`[^\r\n]+`, "g");
 
-		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2 - MAX_USERHOST_LEN;
+		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2 - additionalMsgLen!(method)();
 		static immutable lineHead = method ~ " %s :%s";
 
 		foreach(m; match(message, linePattern))
