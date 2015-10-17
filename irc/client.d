@@ -270,6 +270,14 @@ class IrcClient
 		NOTICE=MAX_USERHOST_LEN
 	}
 	
+	/**
+	 * Returns the additional lengthrequirements of a method.
+	 * 
+	 * Params:
+	 * 	method = The method to query.
+	 * Returns:
+	 * 	The additional lengthrequirements.
+	 */
 	private static uint additionalMsgLen(string method)(){
 		static if(staticIndexOf!(method, __traits(allMembers, additionalMsgLens))==-1){
 			return 0;
