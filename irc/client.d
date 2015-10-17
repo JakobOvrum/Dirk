@@ -278,6 +278,12 @@ class IrcClient
 			mixin("return additionalMsgLens."~method~";");
 		}
 	}
+
+	unittest{
+		assert(additionalMsgLen!("PRIVMSG")()==MAX_USERHOST_LEN);
+		assert(additionalMsgLen!("NOTICE")()==MAX_USERHOST_LEN);
+		assert(additionalMsgLen!("JOIN")()==0);
+	}
 	
 	// Takes care of splitting 'message' into multiple messages when necessary
 	private void sendMessage(string method)(in char[] target, in char[] message)
