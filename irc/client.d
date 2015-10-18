@@ -247,7 +247,7 @@ class IrcClient
 		socket.send("\r\n"); // TODO: should be in one call to send?
 	}
 
-	enum ADDITIONAL_MSG_LENS
+	private enum ADDITIONAL_MSG_LENS
 	{
 		PRIVMSG=MAX_USERHOST_LEN,
 		NOTICE=MAX_USERHOST_LEN
