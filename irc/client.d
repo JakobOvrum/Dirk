@@ -265,7 +265,8 @@ class IrcClient
 		socket.send("\r\n");
 	}
 
-	enum additionalMsgLens{
+	enum additionalMsgLens
+	{
 		PRIVMSG=MAX_USERHOST_LEN,
 		NOTICE=MAX_USERHOST_LEN
 	}
@@ -278,11 +279,14 @@ class IrcClient
 	 * Returns:
 	 * 	The additional lengthrequirements.
 	 */
-	private static uint additionalMsgLen(string method)(){
-		static if(staticIndexOf!(method, __traits(allMembers, additionalMsgLens))==-1){
+	private static uint additionalMsgLen(string method)()
+	{
+		static if(staticIndexOf!(method, __traits(allMembers, additionalMsgLens))==-1)
+		{
 			return 0;
 		}
-		else{
+		else
+		{
 			mixin("return additionalMsgLens."~method~";");
 		}
 	}
