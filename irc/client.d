@@ -261,22 +261,22 @@ class IrcClient
 	 * Returns:
 	 * 	The additional lengthrequirements.
 	 */
-	private static uint additionalMsgLen(string method)()
+	template additionalMsgLen(string method)
 	{
 		static if(staticIndexOf!(method, __traits(allMembers, ADDITIONAL_MSG_LENS))==-1)
 		{
-			return 0;
+			enum additionalMsgLen = 0;
 		}
 		else
 		{
-			mixin("return ADDITIONAL_MSG_LENS."~method~";");
+			enum additionalMsgLen = mixin("ADDITIONAL_MSG_LENS."~method~"");
 		}
 	}
 
 	unittest{
-		static assert(additionalMsgLen!("PRIVMSG")()==MAX_USERHOST_LEN);
-		static assert(additionalMsgLen!("NOTICE")()==MAX_USERHOST_LEN);
-		static assert(additionalMsgLen!("JOIN")()==0);
+		static assert(additionalMsgLen!"PRIVMSG"==MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!"NOTICE"==MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!"JOIN"==0);
 	}
 	
 	// Takes care of splitting 'message' into multiple messages when necessary
@@ -284,7 +284,7 @@ class IrcClient
 	{
 		static linePattern = ctRegex!(`[^\r\n]+`, "g");
 
-		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2 - additionalMsgLen!(method)();
+		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2 - additionalMsgLen!method;
 		static immutable lineHead = method ~ " %s :%s";
 
 		foreach(m; match(message, linePattern))
