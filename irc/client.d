@@ -292,9 +292,9 @@ class IrcClient
 	}
 
 	unittest{
-		assert(additionalMsgLen!("PRIVMSG")()==MAX_USERHOST_LEN);
-		assert(additionalMsgLen!("NOTICE")()==MAX_USERHOST_LEN);
-		assert(additionalMsgLen!("JOIN")()==0);
+		static assert(additionalMsgLen!("PRIVMSG")()==MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!("NOTICE")()==MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!("JOIN")()==0);
 	}
 	
 	// Takes care of splitting 'message' into multiple messages when necessary
