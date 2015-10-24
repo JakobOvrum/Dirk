@@ -14,9 +14,8 @@ d:
 
 matrix:
   allow_failures:
-    d: gdc-5.2.0
-   - env: ARCH=x86
-    d: gdc-5.2.0
+    - env: ARCH=x86
+        d: gdc-5.2.0
 
 addons:
   apt:
