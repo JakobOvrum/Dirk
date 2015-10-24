@@ -12,11 +12,6 @@ d:
  - ldc-0.15.1
  - gdc-5.2.0
 
-matrix:
-  allow_failures:
-    - env: ARCH=x86
-        d: gdc-5.2.0
-
 addons:
   apt:
     packages:
