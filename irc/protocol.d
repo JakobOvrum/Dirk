@@ -9,6 +9,10 @@ import std.exception;
 import std.string;
 import std.typetuple : TypeTuple;
 
+@safe:
+
+enum IRC_MAX_COMMAND_PARAMETERS = 15; // RFC2812
+
 /**
  * Structure representing a parsed IRC message.
  */
@@ -19,7 +23,13 @@ struct IrcLine
 	///
 	const(char)[] command;
 	///
-	const(char)[][] arguments;
+	const(char)[][] arguments() @property pure nothrow @nogc
+	{
+		return argumentBuffer[0 .. numArguments];
+	}
+
+	private const(char)[][IRC_MAX_COMMAND_PARAMETERS] argumentBuffer;
+	private size_t numArguments;
 }
 
 /// List of the four valid channel prefixes;
@@ -28,7 +38,7 @@ alias channelPrefixes = TypeTuple!('&', '#', '+', '!');
 
 // [:prefix] <command> <parameters ...> [:long parameter]
 // TODO: do something about the allocation of the argument array
-bool parse(const(char)[] raw, out IrcLine line)
+bool parse(const(char)[] raw, out IrcLine line) pure @nogc
 {
 	if(raw[0] == ':')
 	{
@@ -43,14 +53,19 @@ bool parse(const(char)[] raw, out IrcLine line)
 
 	const(char)[] args = result[0];
 	args.munch(" ");
+
 	while(args.length)
 	{
-		line.arguments ~= args.munch("^ ");
+		assert(line.numArguments < line.argumentBuffer.length);
+		line.argumentBuffer[line.numArguments++] = args.munch("^ ");
 		args.munch(" ");
 	}
 
 	if(!result[2].empty)
-		line.arguments ~= result[2];
+	{
+		assert(line.numArguments < line.argumentBuffer.length);
+		line.argumentBuffer[line.numArguments++] = result[2];
+	}
 
 	return true;
 }
@@ -65,7 +80,14 @@ unittest
 	struct InputOutput
 	{
 		string input;
-		IrcLine output;
+
+		struct Output
+		{
+			string prefix, command;
+			string[] arguments;
+		}
+		Output output;
+
 		bool valid = true;
 	}
 
@@ -140,7 +162,7 @@ struct IrcUser
 		return format("%s!%s@%s", nickName, userName, hostName);
 	}
 
-	void toString(scope void delegate(const(char)[]) sink) const
+	void toString(scope void delegate(const(char)[]) @safe sink) const
 	{
 		if(nickName)
 			sink(nickName);

@@ -657,7 +657,7 @@ struct TrackedUser
 	 */
 	string[] channels;
 
-	void toString(scope void delegate(const(char)[]) sink) const
+	void toString(scope void delegate(const(char)[]) @safe sink) const
 	{
 		import std.format;
 		user.toString(sink);
