@@ -125,20 +125,19 @@ class IrcClient
 	{
 		this.socket = socket;
 		this.buffer = new char[](2048);
-
-		void onReceivedLine(in char[] rawLine)
-		{
-			debug(Dirk) std.stdio.writefln(`>> "%s" pos: %s`, rawLine, lineBuffer.position);
-
-			IrcLine line;
-
-			auto succeeded = parse(rawLine, line);
-			assert(succeeded);
-
-			handle(line);
-		}
-
 		this.lineBuffer = LineBuffer(buffer, &onReceivedLine);
+	}
+
+	private void onReceivedLine(in char[] rawLine)
+	{
+		debug(Dirk) std.stdio.writefln(`>> "%s" pos: %s`, rawLine, lineBuffer.position);
+
+		IrcLine line;
+
+		auto succeeded = parse(rawLine, line);
+		assert(succeeded);
+
+		handle(line);
 	}
 
 	/**
