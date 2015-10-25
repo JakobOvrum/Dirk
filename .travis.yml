@@ -17,6 +17,11 @@ addons:
     packages:
      - gcc-multilib
 
+matrix:
+  allow_failures:
+   - env: ARCH=x86
+     d: gdc
+
 notifications:
   email: false
 
