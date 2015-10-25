@@ -50,7 +50,7 @@ class IrcErrorException : Exception
 void unsubscribeHandler(T)(ref T[] event, T handler)
 {
 	enum strategy =
-	    is(ReturnType!T == void)? SwapStrategy.unstable : SwapStrategy.stable;
+		is(ReturnType!T == void)? SwapStrategy.unstable : SwapStrategy.stable;
 
 	event = event.remove!(e => e == handler, strategy);
 }
@@ -506,7 +506,7 @@ class IrcClient
 		assert(modes.length == args.length);
 		assert(modes.length <= messageModeLimit);
 	} body {
- 		writef("MODE %s %c%s %-(%s%| %)", editAction, channel, modes, args);
+		writef("MODE %s %c%s %-(%s%| %)", editAction, channel, modes, args);
 	}
 
 	private void editChannelList(char editAction, in char[] channel, char list, in char[][] addresses...)
@@ -562,26 +562,26 @@ class IrcClient
 	}
 
 	/// Ditto
-	 void addChannelModes(in char[] channel, ChannelMode[] modes...)
-	 {
-	 	import std.range : chunks;
+	void addChannelModes(in char[] channel, ChannelMode[] modes...)
+	{
+		import std.range : chunks;
 
-	 	foreach(chunk; modes.chunks(messageModeLimit)) // TODO: split up if too long
-	 		writef("MODE %s +%s %-(%s%| %)", channel,
-	 			modes.map!(pair => pair.mode),
-	 			modes.map!(pair => pair.argument).filter!(arg => !arg.empty));
-	 }
+		foreach(chunk; modes.chunks(messageModeLimit)) // TODO: split up if too long
+			writef("MODE %s +%s %-(%s%| %)", channel,
+				modes.map!(pair => pair.mode),
+				modes.map!(pair => pair.argument).filter!(arg => !arg.empty));
+	}
 
-	 /// Ditto
-	 void removeChannelModes(in char[] channel, ChannelMode[] modes...)
-	 {
-	 	import std.range : chunks;
+	/// Ditto
+	void removeChannelModes(in char[] channel, ChannelMode[] modes...)
+	{
+		import std.range : chunks;
 
-	 	foreach(chunk; modes.chunks(messageModeLimit)) // TODO: split up if too long
-	 		writef("MODE %s -%s %-(%s%| %)", channel,
-	 			modes.map!(pair => pair.mode),
-	 			modes.map!(pair => pair.argument));
-	 }
+		foreach(chunk; modes.chunks(messageModeLimit)) // TODO: split up if too long
+			writef("MODE %s -%s %-(%s%| %)", channel,
+				modes.map!(pair => pair.mode),
+				modes.map!(pair => pair.argument));
+	}
 
 	/**
 	 * Join a _channel.
@@ -964,9 +964,9 @@ class IrcClient
 	}
 
 	bool ctcpCheck(void delegate(IrcUser, in char[], in char[], in char[])[] event,
-	               in char[] prefix,
-	               in char[] target,
-	               in char[] message)
+				   in char[] prefix,
+				   in char[] target,
+				   in char[] message)
 	{
 		if(event.empty || message[0] != CtcpToken.delimiter)
 			return false;
@@ -984,11 +984,11 @@ class IrcClient
 			ctcpMessage.popFront();
 
 		fireEvent(
-		    event,
-		    getUser(prefix),
-		    target,
-		    tag,
-		    ctcpMessage
+			event,
+			getUser(prefix),
+			target,
+			tag,
+			ctcpMessage
 		);
 
 		return true;
