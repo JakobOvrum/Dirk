@@ -1091,7 +1091,7 @@ class IrcClient
 				fireEvent(onNameList, channelName, names);
 				break;
 			case "366":
-				fireEvent(onNameListEnd, line.arguments[0]);
+				fireEvent(onNameListEnd, line.arguments[1]);
 				break;
 			case "PART":
 				fireEvent(onPart, getUser(line.prefix), line.arguments[0]);
@@ -1131,7 +1131,7 @@ class IrcClient
 				fireEvent(onWhoisServerReply, line.arguments[1], line.arguments[2], line.arguments[3]);
 				break;
 			case "313":
-				fireEvent(onWhoisOperatorReply, line.arguments[0]);
+				fireEvent(onWhoisOperatorReply, line.arguments[1]);
 				break;
 			case "317":
 				import std.conv : to;
