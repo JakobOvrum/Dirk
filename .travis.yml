@@ -20,7 +20,7 @@ addons:
 matrix:
   allow_failures:
    - env: ARCH=x86
-     d: gdc
+     d: gdc-5.2.0
 
 notifications:
   email: false
