@@ -212,32 +212,51 @@ class IrcClient
 	static char[1540] formatBuffer;
 
 	/**
-	 * Write a raw message to the connection stream.
+	 * Write a raw IRC protocol message to the connection stream.
 	 *
-	 * If there is more than one argument, then the first argument is formatted with the subsequent ones.
-	 * Arguments must not contain newlines.
+	 * If there is more than one argument, then the first argument is formatted
+	 * with subsequent arguments. Arguments must not contain newlines.
 	 * Messages longer than 510 characters (UTF-8 code units) will be cut off.
-	 * Params:
-	 *   rawline = line to send
-	 *   fmtArgs = format arguments for the first argument
+	 * It is the caller's responsibility to ensure a cut-off message is valid.
 	 * See_Also:
 	 *   $(STDREF format, formattedWrite)
 	 * Throws:
 	 *   $(DPREF exception, UnconnectedClientException) if this client is not connected.
 	 */
-	void writef(T...)(const(char)[] rawline, T fmtArgs)
+	void writef(T...)(in char[] messageFormat, T formatArgs)
+		if(T.length)
 	{
+		import std.format : formattedWrite;
+
 		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
 
-		static if(fmtArgs.length > 0)
+		char[512] formatBuffer = void;
+
+		auto tail = formatBuffer[0 .. $ - 2];
+		formattedWrite((const(char)[] chunk) {
+			immutable chunkSize = min(chunk.length, tail.length);
+			tail[0 .. chunkSize] = chunk[0 .. chunkSize];
+			tail = tail[chunkSize .. $];
+		}, messageFormat, formatArgs);
+
+		auto message = formatBuffer[0 .. $ - tail.length];
+		message[$ - 2 .. $] = "\r\n";
+
+		debug(Dirk)
 		{
-			rawline = sformat(formatBuffer, rawline, fmtArgs);
+			auto sansNewline = message[0 .. $ - 2];
+			std.stdio.writefln(`<< "%s" (length: %d)`, sansNewline, sansNewline.length);
 		}
 
-		debug(Dirk) std.stdio.writefln(`<< "%s" (length: %d)`, rawline, rawline.length);
+		socket.send(message);
+	}
 
-		socket.send(rawline);
-		socket.send("\r\n"); // TODO: should be in one call to send?
+	/// Ditto
+	void writef(in char[] rawline)
+	{
+		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
+		socket.send(rawline[0 .. min($, 510)]);
+		socket.send("\r\n");
 	}
 
 	// Takes care of splitting 'message' into multiple messages when necessary
