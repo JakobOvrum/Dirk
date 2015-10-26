@@ -8,6 +8,9 @@ import irc.util : alloc, dealloc;
 import std.array;
 import std.exception;
 import std.socket;
+import std.stdio : File;
+
+import core.memory : GC;
 
 // libev is a world of pain on Windows - where it just
 // uses select() internally anyway - but it pays off on
@@ -63,9 +66,21 @@ class IrcEventLoop
 		DccWatcher* _next, _prev;
 	}
 
+	static struct FileWatcher
+	{
+		Watcher watcher;
+		alias watcher this;
+
+		File file;
+		void delegate(File) callback;
+
+		FileWatcher* _next, _prev;
+	}
+
 	ev_loop_t* ev;
 	Watcher[IrcClient] watchers;
 	DccWatcher* dccWatchers;
+	FileWatcher* fileWatchers;
 
 	ev_idle idleWatcher;
 	void delegate()[] customMessages;
@@ -94,6 +109,17 @@ class IrcEventLoop
 			ev_io_stop(ev, &watcher.io);
 
 			auto next = watcher._next;
+			dealloc(watcher);
+			watcher = next;
+		}
+
+		for(auto watcher = fileWatchers; watcher != null;)
+		{
+			ev_io_stop(ev, &watcher.io);
+
+			auto next = watcher._next;
+			GC.removeRoot(watcher);
+			destroy(*watcher);
 			dealloc(watcher);
 			watcher = next;
 		}
@@ -170,6 +196,71 @@ class IrcEventLoop
 
 		ev_io_init(&watcher.io, &callback, getHandle(client.socket), EV_READ);
 		ev_io_start(ev, &watcher.io);
+	}
+
+	enum EventType { read = 0b01, write = 0b10, readWrite = read | write }
+
+	private extern(C) static void fileCallback(ev_loop_t* ev, ev_io* io, int revents)
+	{
+		auto watcher = cast(FileWatcher*)io;
+		watcher.callback(watcher.file);
+	}
+
+	void add(File file, EventType events, void delegate(File) onEvent)
+	{
+		auto watcher = alloc!FileWatcher();
+		watcher.file = file;
+		watcher.callback = onEvent;
+		watcher.eventLoop = this;
+		GC.addRoot(watcher);
+
+		int evEvents;
+		final switch(events) with(EventType)
+		{
+			case read:
+				evEvents = EV_READ;
+				break;
+			case write:
+				evEvents = EV_WRITE;
+				break;
+			case readWrite:
+				evEvents = EV_READ | EV_WRITE;
+				break;
+		}
+
+		ev_io_init(&watcher.io, &fileCallback, file.fileno, evEvents);
+		ev_io_start(ev, &watcher.io);
+
+		auto prevHead = fileWatchers;
+		fileWatchers = watcher;
+
+		watcher._next = prevHead;
+		if(prevHead) prevHead._prev = watcher;
+	}
+
+	void remove(File file)
+	{
+		for(auto watcher = fileWatchers; watcher;)
+		{
+			if(watcher.file == file)
+			{
+				if(watcher._prev)
+					watcher._prev._next = watcher._next;
+
+				auto next = watcher._next;
+				if(next)
+					next._prev = watcher._prev;
+
+				ev_io_stop(ev, &watcher.io);
+				GC.removeRoot(watcher);
+				destroy(*watcher);
+				dealloc(watcher);
+
+				watcher = next;
+			}
+			else
+				watcher = watcher._next;
+		}
 	}
 
 	/*
