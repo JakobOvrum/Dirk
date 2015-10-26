@@ -1,6 +1,6 @@
 module irc.testing;
 
-version(dirk_unittest):
+version(unittest):
 
 import std.socket;
 
@@ -106,7 +106,7 @@ class TestConnection
 
 		if(line.prefix)
 		{
-			import std.exception : AssertError;
+			import core.exception : AssertError;
 
 			try assertOriginator(IrcUser.fromPrefix(line.prefix));
 			catch(AssertError e)
@@ -187,7 +187,7 @@ unittest
 		TestEvent!"onNickInUse" onNickInUse;
 		auto newNickName = testUser.nickName ~ "_";
 		onNickInUse.prepare(newNickName, testUser.nickName);
-		conn.injectfln(":%s 433 %s :Nickname is already in use", origin, testUser.nickName);
+		conn.injectfln(":%s 433 * %s :Nickname is already in use", origin, testUser.nickName);
 		handleClientEvents();
 		onNickInUse.check();
 		conn.assertLine("NICK", newNickName);
@@ -215,13 +215,13 @@ unittest
 
 	TestEvent!"onNameList" onNameList;
 	onNameList.prepare("#test", ["a", "b", "c"]);
-	conn.injectfln(":%s 353 = #test :a +b @c", origin);
+	conn.injectfln(":%s 353 %s = #test :a +b @c", origin, testUser.nickName);
 	handleClientEvents();
 	onNameList.check();
 
 	TestEvent!"onNameListEnd" onNameListEnd;
 	onNameListEnd.prepare("#test");
-	conn.injectfln(":%s 366 #test :End of NAMES list");
+	conn.injectfln(":%s 366 %s #test :End of NAMES list", origin, testUser.nickName);
 	handleClientEvents();
 	onNameListEnd.check();
 
@@ -264,8 +264,8 @@ unittest
 	handleClientEvents();
 	onPart.check();
 
-	TestEvent!"onMePart" onMePart;
-	onMePart.prepare("#test");
+	TestEvent!"onPart" onMePart;
+	onMePart.prepare(testUser, "#test");
 	client.part("#test");
 	conn.assertLine("PART", "#test");
 	conn.injectfln(":%s PART #test", testUser);
@@ -294,4 +294,3 @@ unittest
 	conn.assertLine("QUIT", "test");
 }
 
-void main() {} // TODO: does VisualD support -main yet?
