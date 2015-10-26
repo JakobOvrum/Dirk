@@ -145,7 +145,7 @@
 </h3></div>
 <div class="declaration-content"><br><br>
 </div>
-<hr><div class="row-fluid declaration"><h3>const(char)[][] <span class="symbol-target" id="arguments">&nbsp;</span><a class="symbol-link" href="#arguments">arguments</a>;
+<hr><div class="row-fluid declaration"><h3>pure nothrow @nogc @property @safe const(char)[][] <span class="symbol-target" id="arguments">&nbsp;</span><a class="symbol-link" href="#arguments">arguments</a>();
 </h3></div>
 <div class="declaration-content"><br><br>
 </div>
@@ -174,12 +174,12 @@
 </h3></div>
 <div class="declaration-content"><br><br>
 </div>
-<hr><div class="row-fluid declaration"><h3>static IrcUser <span class="symbol-target" id="fromPrefix">&nbsp;</span><a class="symbol-link" href="#fromPrefix">fromPrefix</a>(const(char)[] <i>prefix</i>);
+<hr><div class="row-fluid declaration"><h3>static @safe IrcUser <span class="symbol-target" id="fromPrefix">&nbsp;</span><a class="symbol-link" href="#fromPrefix">fromPrefix</a>(const(char)[] <i>prefix</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Create an IRC user from a message <i>prefix</i>.</p>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>static size_t <span class="symbol-target" id="parseUserhostReply">&nbsp;</span><a class="symbol-link" href="#parseUserhostReply">parseUserhostReply</a>(ref IrcUser[5] <i>users</i>, in char[] <i>reply</i>);
+<hr><div class="row-fluid declaration"><h3>static @safe size_t <span class="symbol-target" id="parseUserhostReply">&nbsp;</span><a class="symbol-link" href="#parseUserhostReply">parseUserhostReply</a>(ref IrcUser[5] <i>users</i>, in char[] <i>reply</i>);
 </h3></div>
 <div class="declaration-content"><dl><p>Create <i>users</i> from userhost <i>reply</i>.</p>
 </dl>
