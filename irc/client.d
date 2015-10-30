@@ -26,6 +26,12 @@ debug(Dirk) static import std.stdio;
 debug(Dirk) import std.conv;
 
 enum IRC_MAX_LEN = 510;
+/*
+ * 63 is the maximum hostname length defined by the protocol.  10 is a common
+ * username limit on many networks.  1 is for the `@'.
+ * Shamelessly stolen from IRSSI, irc/core/irc-servers.c
+ */
+enum MAX_USERHOST_LEN = (63 + 10 + 1);
 
 /**
  * Thrown if the server sends an error message to the client.
@@ -259,12 +265,44 @@ class IrcClient
 		socket.send("\r\n");
 	}
 
+	private enum ADDITIONAL_MSG_LENS
+	{
+		PRIVMSG=MAX_USERHOST_LEN,
+		NOTICE=MAX_USERHOST_LEN
+	}
+	
+	/**
+	 * Returns the additional lengthrequirements of a method.
+	 * 
+	 * Params:
+	 * 	method = The method to query.
+	 * Returns:
+	 * 	The additional lengthrequirements.
+	 */
+	template additionalMsgLen(string method)
+	{
+		static if(staticIndexOf!(method, __traits(allMembers, ADDITIONAL_MSG_LENS))==-1)
+		{
+			enum additionalMsgLen = 0;
+		}
+		else
+		{
+			enum additionalMsgLen = mixin("ADDITIONAL_MSG_LENS."~method~"");
+		}
+	}
+
+	unittest{
+		static assert(additionalMsgLen!"PRIVMSG"==MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!"NOTICE"==MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!"JOIN"==0);
+	}
+	
 	// Takes care of splitting 'message' into multiple messages when necessary
 	private void sendMessage(string method)(in char[] target, in char[] message)
 	{
 		static linePattern = ctRegex!(`[^\r\n]+`, "g");
 
-		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2;
+		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2 - additionalMsgLen!method;
 		static immutable lineHead = method ~ " %s :%s";
 
 		foreach(m; match(message, linePattern))
