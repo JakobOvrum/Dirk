@@ -19,37 +19,19 @@ event loop.
 Directory Structure
 ============================================
 
- * `irc` - the Dirk source package.
- * `visuald` - [VisualD](http://www.dsource.org/projects/visuald) project files.
- * `test` - unittest executable (when built).
+ * `source` - the Dirk source package.
+ * `libev` - the Deimos bindings for libev.
  * `lib` - Dirk library files (when built).
- * `extlib/ev.obj` - libev object file in OMF format for convenience on Windows.
- * `ssl` - utility package for lazily loading OpenSSL at runtime for SSL/TLS connections.
+ * `extlib` - libev object files; see [extlib/README.md](https://github.com/JakobOvrum/Dirk/blob/master/extlib/README.md) for details.
 
-[Documentation](http://jakobovrum.github.com/Dirk/)
+[Documentation](https://jakobovrum.github.io/Dirk/)
 ============================================
-You can find automatically generated documentation on the [gh-pages](https://github.com/JakobOvrum/Dirk/tree/gh-pages) branch, or you can [browse it online](http://jakobovrum.github.com/Dirk/).
+You can find automatically generated documentation on the [gh-pages](https://github.com/JakobOvrum/Dirk/tree/gh-pages) branch, or you can [browse it online](https://jakobovrum.github.io/Dirk/).
 
 Usage
 ============================================
-Once built, add the top directory (with the `irc` sub-directory) and the `libev` directory
-as include directories when compiling the user program, and
-link to `lib/dirk` (release build) or `lib/dirk-d` (debug build).
-
-Example:
-
-    dmd main.d -IDirk -IDirk/libev -L-lev Dirk/lib/dirk.a
-
-(Note: on Windows, the file extension for the static libraries may be `.lib` in many cases)
-
-Building on Windows
-============================================
-The included [VisualD](http://www.dsource.org/projects/visuald) project files (see the `visuald` sub-directory)
-can be used to build the library files on Windows.
-
-Building in General
-============================================
-Use the included [makefile](http://github.com/JakobOvrum/Dirk/blob/master/Makefile).
+Dirk works with [dub](http://code.dlang.org/) out of the box.
+See [Dirk on the package repository](http://code.dlang.org/packages/dirk) for details.
 
 License
 ============================================

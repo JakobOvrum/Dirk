@@ -2,7 +2,6 @@ ev.obj
 ============
 This object file is [libev](http://software.schmorp.de/pkg/libev.html) in
 OMF format required by DMD on 32-bit Windows, provided for convenience.
-Used by the VisualD project files.
 
 It is built as follows:
 
