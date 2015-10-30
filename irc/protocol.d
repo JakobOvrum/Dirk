@@ -6,7 +6,7 @@ import std.algorithm;
 import std.array;
 import std.exception;
 import std.string;
-import std.meta : staticIndexOf, AliasSeq;
+import std.typetuple : staticIndexOf, TypeTuple;
 
 @safe:
 
@@ -71,7 +71,7 @@ struct IrcLine
 
 /// List of the four valid channel prefixes;
 /// &, #, + and !.
-alias channelPrefixes = AliasSeq!('&', '#', '+', '!');
+alias channelPrefixes = TypeTuple!('&', '#', '+', '!');
 
 // [:prefix] <command> <parameters ...> [:long parameter]
 // TODO: do something about the allocation of the argument array

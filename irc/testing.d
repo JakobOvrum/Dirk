@@ -131,7 +131,7 @@ unittest
 {
 	import std.algorithm : joiner;
 	import std.range : chain, iota, only, repeat;
-	import std.meta : AliasSeq;
+	import std.typetuple : TypeTuple;
 
 	auto conn = new TestConnection();
 	auto origin = "testserver";
@@ -150,7 +150,7 @@ unittest
 		@disable this(this);
 
 		static if(is(Ret == void))
-			alias ExpectedRet = AliasSeq!();
+			alias ExpectedRet = TypeTuple!();
 		else
 			alias ExpectedRet = Ret;
 
@@ -306,7 +306,7 @@ unittest
 		client.sendf("#test", "%s", msg);
 	}
 
-	foreach(sender; AliasSeq!(send, sendFormatted))
+	foreach(sender; TypeTuple!(send, sendFormatted))
 	{
 		sender("hello world");
 		conn.assertLine("PRIVMSG", "#test", "hello world");
