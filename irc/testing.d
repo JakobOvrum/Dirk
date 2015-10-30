@@ -150,7 +150,7 @@ unittest
 		@disable this(this);
 
 		static if(is(Ret == void))
-			alias ExpectedRet = TypeTuple!();
+			alias ExpectedRet = AliasSeq!();
 		else
 			alias ExpectedRet = Ret;
 

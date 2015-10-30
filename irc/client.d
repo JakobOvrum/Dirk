@@ -25,15 +25,6 @@ import std.utf : byChar;
 debug(Dirk) static import std.stdio;
 debug(Dirk) import std.conv;
 
-private enum IRC_MAX_LEN = 512;
-
-/*
- * 63 is the maximum hostname length defined by the protocol.  10 is a common
- * username limit on many networks.  1 is for the `@'.
- * Shamelessly stolen from IRSSI, irc/core/irc-servers.c
- */
-private enum MAX_USERHOST_LEN = 63 + 10 + 1;
-
 // Not using standard library because of auto-decoding issues
 private size_t indexOfNewline(in char[] haystack) pure nothrow @safe @nogc
 {
@@ -278,35 +269,6 @@ class IrcClient
 		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
 		socket.send(rawline[0 .. min($, 510)]);
 		socket.send("\r\n");
-	}
-
-	private enum AdditionalMsgLens
-	{
-		PRIVMSG=MAX_USERHOST_LEN,
-		NOTICE=MAX_USERHOST_LEN
-	}
-
-	/*
-	 * Returns the additional length requirements of a method.
-	 *
-	 * Params:
-	 * 	method = The method to query.
-	 * Returns:
-	 * 	The additional length requirements.
-	 */
-	private template additionalMsgLen(string method)
-	{
-		static if(staticIndexOf!(method, __traits(allMembers, AdditionalMsgLens)) == -1)
-			enum additionalMsgLen = 0;
-		else
-			enum additionalMsgLen = __traits(getMember, AdditionalMsgLens, method);
-	}
-
-	unittest
-	{
-		static assert(additionalMsgLen!"PRIVMSG" == MAX_USERHOST_LEN);
-		static assert(additionalMsgLen!"NOTICE" == MAX_USERHOST_LEN);
-		static assert(additionalMsgLen!"JOIN" == 0);
 	}
 
 	// TODO: attempt not to split lines in the middle of code points or graphemes

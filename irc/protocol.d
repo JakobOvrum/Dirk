@@ -1,15 +1,52 @@
 module irc.protocol;
 
 import irc.exception;
-import irc.linebuffer;
 
 import std.algorithm;
 import std.array;
 import std.exception;
 import std.string;
-import std.typetuple : TypeTuple;
+import std.meta : staticIndexOf, AliasSeq;
 
 @safe:
+
+enum IRC_MAX_LEN = 512;
+
+/*
+ * 63 is the maximum hostname length defined by the protocol.  10 is a common
+ * username limit on many networks.  1 is for the `@'.
+ * Shamelessly stolen from IRSSI, irc/core/irc-servers.c
+ */
+enum MAX_USERHOST_LEN = 63 + 10 + 1;
+
+private enum AdditionalMsgLens
+{
+	PRIVMSG = MAX_USERHOST_LEN,
+	NOTICE = MAX_USERHOST_LEN
+}
+
+/*
+ * Returns the additional length requirements of a method.
+ *
+ * Params:
+ * 	method = The method to query.
+ * Returns:
+ * 	The additional length requirements.
+ */
+template additionalMsgLen(string method)
+{
+	static if(staticIndexOf!(method, __traits(allMembers, AdditionalMsgLens)) == -1)
+		enum additionalMsgLen = 0;
+	else
+		enum additionalMsgLen = __traits(getMember, AdditionalMsgLens, method);
+}
+
+unittest
+{
+	static assert(additionalMsgLen!"PRIVMSG" == MAX_USERHOST_LEN);
+	static assert(additionalMsgLen!"NOTICE" == MAX_USERHOST_LEN);
+	static assert(additionalMsgLen!"JOIN" == 0);
+}
 
 enum IRC_MAX_COMMAND_PARAMETERS = 15; // RFC2812
 
@@ -34,7 +71,7 @@ struct IrcLine
 
 /// List of the four valid channel prefixes;
 /// &, #, + and !.
-alias channelPrefixes = TypeTuple!('&', '#', '+', '!');
+alias channelPrefixes = AliasSeq!('&', '#', '+', '!');
 
 // [:prefix] <command> <parameters ...> [:long parameter]
 // TODO: do something about the allocation of the argument array

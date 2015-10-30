@@ -1,6 +1,7 @@
 module irc.linebuffer;
 
 import irc.exception;
+import irc.protocol;
 
 import std.exception;
 import std.socket;
@@ -86,7 +87,7 @@ struct OutgoingLineBuffer
 	version(unittest)
 		char["PRIVMSG #test :0123456789ABCDEF\r\n".length] lineBuffer;
 	else
-		char[IRC_MAX_LEN] lineBuffer = void;
+		char[IRC_MAX_LEN - MAX_USERHOST_LEN] lineBuffer = void;
 
 	char[] _messageBuffer, bufferTail;
 
