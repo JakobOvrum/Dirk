@@ -25,13 +25,30 @@ import std.utf : byChar;
 debug(Dirk) static import std.stdio;
 debug(Dirk) import std.conv;
 
-enum IRC_MAX_LEN = 510;
+private enum IRC_MAX_LEN = 512;
+
 /*
  * 63 is the maximum hostname length defined by the protocol.  10 is a common
  * username limit on many networks.  1 is for the `@'.
  * Shamelessly stolen from IRSSI, irc/core/irc-servers.c
  */
-enum MAX_USERHOST_LEN = (63 + 10 + 1);
+private enum MAX_USERHOST_LEN = 63 + 10 + 1;
+
+// Not using standard library because of auto-decoding issues
+private size_t indexOfNewline(in char[] haystack) pure nothrow @safe @nogc
+{
+	foreach(i, char c; haystack)
+		if(c == '\r' || c == '\n')
+			return i;
+	return -1;
+}
+
+private inout(char)[] stripNewlinesLeft(inout(char)[] haystack)
+{
+	while(!haystack.empty && (haystack[0] == '\r' || haystack[0] == '\n'))
+		haystack = haystack[1 .. $];
+	return haystack;
+}
 
 /**
  * Thrown if the server sends an error message to the client.
@@ -79,7 +96,7 @@ class IrcClient
 	bool _connected = false;
 
 	char[] buffer;
-	LineBuffer lineBuffer;
+	IncomingLineBuffer lineBuffer;
 
 	// ISUPPORT data
 	// PREFIX
@@ -131,7 +148,7 @@ class IrcClient
 	{
 		this.socket = socket;
 		this.buffer = new char[](2048);
-		this.lineBuffer = LineBuffer(buffer, &onReceivedLine);
+		this.lineBuffer = IncomingLineBuffer(buffer, &onReceivedLine);
 	}
 
 	private void onReceivedLine(in char[] rawLine)
@@ -215,8 +232,6 @@ class IrcClient
 		return !connected;
 	}
 
-	static char[1540] formatBuffer;
-
 	/**
 	 * Write a raw IRC protocol message to the connection stream.
 	 *
@@ -265,52 +280,145 @@ class IrcClient
 		socket.send("\r\n");
 	}
 
-	private enum ADDITIONAL_MSG_LENS
+	private enum AdditionalMsgLens
 	{
 		PRIVMSG=MAX_USERHOST_LEN,
 		NOTICE=MAX_USERHOST_LEN
 	}
-	
-	/**
-	 * Returns the additional lengthrequirements of a method.
-	 * 
+
+	/*
+	 * Returns the additional length requirements of a method.
+	 *
 	 * Params:
 	 * 	method = The method to query.
 	 * Returns:
-	 * 	The additional lengthrequirements.
+	 * 	The additional length requirements.
 	 */
-	template additionalMsgLen(string method)
+	private template additionalMsgLen(string method)
 	{
-		static if(staticIndexOf!(method, __traits(allMembers, ADDITIONAL_MSG_LENS))==-1)
-		{
+		static if(staticIndexOf!(method, __traits(allMembers, AdditionalMsgLens)) == -1)
 			enum additionalMsgLen = 0;
+		else
+			enum additionalMsgLen = __traits(getMember, AdditionalMsgLens, method);
+	}
+
+	unittest
+	{
+		static assert(additionalMsgLen!"PRIVMSG" == MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!"NOTICE" == MAX_USERHOST_LEN);
+		static assert(additionalMsgLen!"JOIN" == 0);
+	}
+
+	// TODO: attempt not to split lines in the middle of code points or graphemes
+	private void sendMessage(in char[] command, in char[] target, in char[] message)
+	{
+		auto buffer = OutgoingLineBuffer(this.socket, command, target);
+		const(char)[] messageTail = message.stripNewlinesLeft;
+
+		while(messageTail.length)
+		{
+			immutable maxChunkSize = min(messageTail.length, buffer.capacity);
+			immutable newlinePos = messageTail[0 .. maxChunkSize].indexOfNewline;
+			immutable hasNewline = newlinePos != -1;
+			immutable chunkEnd = hasNewline? newlinePos : maxChunkSize;
+
+			buffer.consume(messageTail, chunkEnd);
+			buffer.flush();
+
+			if(hasNewline)
+				messageTail = messageTail.stripNewlinesLeft;
+		}
+	}
+
+	private void sendMessage(Range)(in char[] command, in char[] target, Range message)
+		if(isInputRange!Range && isSomeChar!(ElementType!Range))
+	{
+		static if(!is(Unqual!(ElementType!Range) == char))
+		{
+			import std.utf : byChar;
+			auto r = message.byChar;
 		}
 		else
+			alias r = message;
+
+		r = r.stripLeft!(c => c == '\r' || c == '\n');
+
+		auto buffer = OutgoingLineBuffer(this.socket, command, target);
+		auto messageBuffer = buffer.messageBuffer;
+		size_t i = 0;
+
+		while(!r.empty)
 		{
-			enum additionalMsgLen = mixin("ADDITIONAL_MSG_LENS."~method~"");
+			auto c = r.front;
+
+			if(c == '\r' || c == '\n')
+			{
+				buffer.commit(i);
+				buffer.flush();
+				i = 0;
+				r = r.stripLeft!(c => c == '\r' || c == '\n');
+			}
+			else
+			{
+				messageBuffer[i++] = c;
+				r.popFront();
+				if(i == messageBuffer.length)
+				{
+					buffer.commit(i);
+					buffer.flush();
+					i = 0;
+				}
+			}
+		}
+
+		if(i != 0)
+		{
+			buffer.commit(i);
+			buffer.flush();
 		}
 	}
 
-	unittest{
-		static assert(additionalMsgLen!"PRIVMSG"==MAX_USERHOST_LEN);
-		static assert(additionalMsgLen!"NOTICE"==MAX_USERHOST_LEN);
-		static assert(additionalMsgLen!"JOIN"==0);
-	}
-	
-	// Takes care of splitting 'message' into multiple messages when necessary
-	private void sendMessage(string method)(in char[] target, in char[] message)
+	private void sendMessage(T...)(in char[] command, in char[] target, in char[] messageFormat, T formatArgs)
+		if(T.length)
 	{
-		static linePattern = ctRegex!(`[^\r\n]+`, "g");
+		import std.format : formattedWrite;
 
-		immutable maxMsgLength = IRC_MAX_LEN - method.length - 1 - target.length - 2 - additionalMsgLen!method;
-		static immutable lineHead = method ~ " %s :%s";
+		auto buffer = OutgoingLineBuffer(this.socket, command, target);
 
-		foreach(m; match(message, linePattern))
-		{
-			auto line = cast(const ubyte[])m.hit;
-			foreach(chunk; line.chunks(maxMsgLength))
-				writef(lineHead, target, cast(const char[])chunk);
-		}
+		formattedWrite((const(char)[] chunk) {
+			if(!chunk.length)
+				return;
+
+			if(!buffer.hasMessage)
+				chunk = chunk.stripNewlinesLeft;
+
+			while(chunk.length > buffer.capacity)
+			{
+				immutable newlinePos = chunk[0 .. buffer.capacity].indexOfNewline;
+				immutable hasNewline = newlinePos != -1;
+				immutable chunkEnd = hasNewline? newlinePos : buffer.capacity;
+
+				buffer.consume(chunk, chunkEnd);
+				buffer.flush();
+
+				if(hasNewline)
+					chunk = chunk.stripNewlinesLeft; // normalize consecutive newline characters
+			}
+
+			auto newlinePos = chunk.indexOfNewline;
+			while(newlinePos != -1)
+			{
+				buffer.consume(chunk, newlinePos);
+				buffer.flush();
+				chunk = chunk.stripNewlinesLeft;
+				newlinePos = chunk.indexOfNewline; // normalize consecutive newline characters
+			}
+
+			buffer.consume(chunk, chunk.length);
+		}, messageFormat, formatArgs);
+
+		if(buffer.hasMessage)
+			buffer.flush();
 	}
 
 	/**
@@ -326,7 +434,14 @@ class IrcClient
 	 */
 	void send(in char[] target, in char[] message)
 	{
-		sendMessage!"PRIVMSG"(target, message);
+		sendMessage("PRIVMSG", target, message);
+	}
+
+	/// Ditto
+	void send(Range)(in char[] target, Range message)
+		if(isInputRange!Range && isSomeChar!(ElementType!Range))
+	{
+		sendMessage("PRIVMSG", target, message);
 	}
 
 	/**
@@ -345,8 +460,7 @@ class IrcClient
 	*/
 	void sendf(FormatArgs...)(in char[] target, in char[] fmt, FormatArgs fmtArgs)
 	{
-		// TODO: use a custom format writer that doesn't necessarily allocate
-		send(target, format(fmt, fmtArgs));
+		sendMessage("PRIVMSG", target, fmt, fmtArgs);
 	}
 
 	/**
@@ -362,7 +476,14 @@ class IrcClient
 	 */
 	void notice(in char[] target, in char[] message)
 	{
-		sendMessage!"NOTICE"(target, message);
+		sendMessage("NOTICE", target, message);
+	}
+
+	/// Ditto
+	void notice(Range)(in char[] target, Range message)
+		if(isInputRange!Range && isSomeChar!(ElementType!Range))
+	{
+		sendMessage("NOTICE", target, message);
 	}
 
 	/**
@@ -381,8 +502,7 @@ class IrcClient
 	 */
 	void noticef(FormatArgs...)(in char[] target, in char[] fmt, FormatArgs fmtArgs)
 	{
-		// TODO: use a custom format writer that doesn't necessarily allocate
-		notice(target, format(fmt, fmtArgs));
+		sendMessage("NOTICE", target, fmt, fmtArgs);
 	}
 
 	/**
@@ -391,13 +511,13 @@ class IrcClient
 	// TODO: reuse buffer for output
 	void ctcpQuery(in char[] target, in char[] query)
 	{
-		send(target, ctcpMessage(query).array());
+		send(target, ctcpMessage(query));
 	}
 
 	/// Ditto
 	void ctcpQuery(in char[] target, in char[] tag, in char[] data)
 	{
-		send(target, ctcpMessage(tag, data).array());
+		send(target, ctcpMessage(tag, data));
 	}
 
 	/**
@@ -405,13 +525,13 @@ class IrcClient
 	 */
 	void ctcpReply(in char[] targetNick, in char[] reply)
 	{
-		notice(targetNick, ctcpMessage(reply).array());
+		notice(targetNick, ctcpMessage(reply));
 	}
 
 	/// Ditto
 	void ctcpReply(in char[] targetNick, in char[] tag, in char[] data)
 	{
-		notice(targetNick, ctcpMessage(tag, data).array());
+		notice(targetNick, ctcpMessage(tag, data));
 	}
 
 	/**
@@ -422,7 +542,7 @@ class IrcClient
 	 */
 	void ctcpError(in char[] targetNick, in char[] invalidData, in char[] error)
 	{
-		notice(targetNick, ctcpMessage("ERRMSG", format("%s :%s", invalidData, error)).array());
+		notice(targetNick, ctcpMessage("ERRMSG", format("%s :%s", invalidData, error)));
 	}
 
 	/**

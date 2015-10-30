@@ -3,9 +3,12 @@ module irc.linebuffer;
 import irc.exception;
 
 import std.exception;
+import std.socket;
 import core.stdc.string : memmove;
 
-struct LineBuffer
+debug(Dirk) static import std.stdio;
+
+struct IncomingLineBuffer
 {
 	private:
 	char[] buffer;
@@ -74,3 +77,71 @@ struct LineBuffer
 		return length;
 	}
 }
+
+struct OutgoingLineBuffer
+{
+	private:
+	Socket socket;
+
+	version(unittest)
+		char["PRIVMSG #test :0123456789ABCDEF\r\n".length] lineBuffer;
+	else
+		char[IRC_MAX_LEN] lineBuffer = void;
+
+	char[] _messageBuffer, bufferTail;
+
+	public:
+	@disable this();
+	@disable this(this);
+
+	this(Socket socket, in char[] command, in char[] target)
+	{
+		this.socket = socket;
+		lineBuffer[0 .. command.length] = command;
+		immutable targetStart = command.length + 1;
+		lineBuffer[command.length .. targetStart] = ' ';
+		lineBuffer[targetStart .. targetStart + target.length] = target;
+		immutable messageStart = targetStart + target.length + 2;
+		lineBuffer[targetStart + target.length .. messageStart] = " :";
+		this._messageBuffer = lineBuffer[messageStart .. $ - 2];
+		this.bufferTail = _messageBuffer;
+	}
+
+	size_t capacity() @property
+	{
+		return bufferTail.length;
+	}
+
+	bool hasMessage() @property
+	{
+		return bufferTail.length != _messageBuffer.length;
+	}
+
+	char[] messageBuffer() @property
+	{
+		return this._messageBuffer;
+	}
+
+	void commit(size_t i)
+	{
+		bufferTail = bufferTail[i .. $];
+	}
+
+	void consume(ref const(char)[] source, size_t n)
+	{
+		bufferTail[0 .. n] = source[0 .. n];
+		bufferTail = bufferTail[n .. $];
+		source = source[n .. $];
+	}
+
+	void flush()
+	{
+		immutable fullLength = lineBuffer.length - bufferTail.length;
+		immutable sansNewlineLength = fullLength - 2;
+		lineBuffer[sansNewlineLength .. fullLength] = "\r\n";
+		debug(Dirk) std.stdio.writefln(`<< "%s" (length: %s)`, lineBuffer[0 .. sansNewlineLength], sansNewlineLength);
+		socket.send(lineBuffer[0 .. fullLength]);
+		bufferTail = _messageBuffer;
+	}
+}
+

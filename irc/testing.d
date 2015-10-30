@@ -129,6 +129,10 @@ class TestConnection
 
 unittest
 {
+	import std.algorithm : joiner;
+	import std.range : chain, iota, only, repeat;
+	import std.meta : AliasSeq;
+
 	auto conn = new TestConnection();
 	auto origin = "testserver";
 	auto client = conn.client;
@@ -289,6 +293,86 @@ unittest
 	conn.injectfln(":%s QUIT :Goodbye!", quittingUser);
 	handleClientEvents();
 	onQuit.check();
+
+	// Test line splitting
+	// Max message size in unit test mode: PRIVMSG #test :0123456789ABCDEF
+	void send(string msg)
+	{
+		client.send("#test", msg);
+	}
+
+	void sendFormatted(string msg)
+	{
+		client.sendf("#test", "%s", msg);
+	}
+
+	foreach(sender; AliasSeq!(send, sendFormatted))
+	{
+		sender("hello world");
+		conn.assertLine("PRIVMSG", "#test", "hello world");
+
+		sender("0123456789ABCDEF");
+		conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+
+		sender("0123456789ABCDEF0123456789ABCDEF");
+		conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+		conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+
+		sender("0123456789ABCDEF0123456789ABCDEFhello");
+		conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+		conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+		conn.assertLine("PRIVMSG", "#test", "hello");
+
+		sender("hello\nworld");
+		conn.assertLine("PRIVMSG", "#test", "hello");
+		conn.assertLine("PRIVMSG", "#test", "world");
+
+		sender("\nhello\r\n\rworld");
+		conn.assertLine("PRIVMSG", "#test", "hello");
+		conn.assertLine("PRIVMSG", "#test", "world");
+
+		sender("hello world\r\n0123456789ABCDEF");
+		conn.assertLine("PRIVMSG", "#test", "hello world");
+		conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+	}
+
+	// Test message formatting
+	client.sendf("#test", "%01d %02d %03d", 1, 2, 3);
+	conn.assertLine("PRIVMSG", "#test", "1 02 003");
+
+	client.sendf("#test", "012%s456789ABCDEF01234567%s9ABCDEF", 3, 8);
+	conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+	conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+
+	client.sendf("#test", "abc%sdef%s%sghi", "\r", "\n", "\r\n");
+	conn.assertLine("PRIVMSG", "#test", "abc");
+	conn.assertLine("PRIVMSG", "#test", "def");
+	conn.assertLine("PRIVMSG", "#test", "ghi");
+
+	client.sendf("#test", "0123456789ABC%sEF\nhello\n\r\n", "\n");
+	conn.assertLine("PRIVMSG", "#test", "0123456789ABC");
+	conn.assertLine("PRIVMSG", "#test", "EF");
+	conn.assertLine("PRIVMSG", "#test", "hello");
+
+	// Test range messages
+	client.send("#test", only('h', 'e', 'l', 'l', 'o'));
+	conn.assertLine("PRIVMSG", "#test", "hello");
+
+	client.send("#test", "日本語"w);
+	conn.assertLine("PRIVMSG", "#test", "日本語");
+
+	client.send("#test", "日本語"d);
+	conn.assertLine("PRIVMSG", "#test", "日本語");
+
+	client.send("#test", "0123456789".chain("ABCDEF"));
+	conn.assertLine("PRIVMSG", "#test", "0123456789ABCDEF");
+
+	client.send("#test", chain("hello", "\r\n", "world"));
+	conn.assertLine("PRIVMSG", "#test", "hello");
+	conn.assertLine("PRIVMSG", "#test", "world");
+
+	client.send("#test", "hello".repeat(2).joiner);
+	conn.assertLine("PRIVMSG", "#test", "hellohello");
 
 	client.quit("test");
 	conn.assertLine("QUIT", "test");

@@ -399,14 +399,14 @@ class DccChat : DccConnection
 	import irc.linebuffer;
 
 	char[] buffer; // TODO: use dynamically expanding buffer?
-	LineBuffer lineBuffer;
+	IncomingLineBuffer lineBuffer;
 
 	this(Socket server, uint timeout)
 	{
 		super(server, timeout, State.preConnect);
 
 		buffer = new char[2048];
-		lineBuffer = LineBuffer(buffer, &handleLine);
+		lineBuffer = IncomingLineBuffer(buffer, &handleLine);
 	}
 
 	protected:
