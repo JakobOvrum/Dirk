@@ -150,8 +150,8 @@
 </h3></div>
 <div class="declaration-content"><dl><p>Create a new unconnected IRC client.
 </p>
-<p>If <span class="inlinecode">socket</span> is provided, it must be an unconnected TCP socket.
- Provide an instance of <a href="ssl.socket.html#SslSocket"><span class="inlinecode">ssl.socket.SslSocket</span></a> to
+<p>If <span class="inlinecode"><i>socket</i></span> is provided, it must be an unconnected TCP <i>socket</i>.
+ Provide an instance of <a href="ssl.<i>socket</i>.html#SslSocket"><span class="inlinecode">ssl.<i>socket</i>.SslSocket</span></a> to
  use SSL/TLS.
 <br><br>
 
@@ -200,6 +200,7 @@
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="send">&nbsp;</span><a class="symbol-link" href="#send">send</a>(in char[] <i>target</i>, in char[] <i>message</i>);
+<br>void <span class="symbol-target" id="send">&nbsp;</span><a class="symbol-link" href="#send">send</a>(Range)(in char[] <i>target</i>, Range <i>message</i>) if (isInputRange!Range &amp;&amp; isSomeChar!(ElementType!Range));
 </h3></div>
 <div class="declaration-content"><dl><p>Send lines of chat to a channel or user.
  Each line in <span class="inlinecode"><i>message</i></span> is sent as one message.
@@ -221,11 +222,11 @@
  Lines exceeding the IRC message length limit will be
  split up into multiple messages.
 </p>
-<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] target</td>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
 <td>channel or nick name to send to</td></tr>
-<tr><td>char[] fmt</td>
+<tr><td>char[] <i>fmt</i></td>
 <td>message format</td></tr>
-<tr><td>FormatArgs fmtArgs</td>
+<tr><td>FormatArgs <i>fmtArgs</i></td>
 <td>format arguments</td></tr>
 </table></dd>
 <dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.
@@ -234,6 +235,7 @@
 </dl>
 </div>
 <hr><div class="row-fluid declaration"><h3>void <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a>(in char[] <i>target</i>, in char[] <i>message</i>);
+<br>void <span class="symbol-target" id="notice">&nbsp;</span><a class="symbol-link" href="#notice">notice</a>(Range)(in char[] <i>target</i>, Range <i>message</i>) if (isInputRange!Range &amp;&amp; isSomeChar!(ElementType!Range));
 </h3></div>
 <div class="declaration-content"><dl><p>Send notices to a channel or user.
  Each line in <span class="inlinecode"><i>message</i></span> is sent as one notice.
@@ -255,11 +257,11 @@
  Lines exceeding the IRC message length limit will be
  split up into multiple notices.
 </p>
-<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] target</td>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>target</i></td>
 <td>channel or nick name to send to</td></tr>
-<tr><td>char[] fmt</td>
+<tr><td>char[] <i>fmt</i></td>
 <td>message format</td></tr>
-<tr><td>FormatArgs fmtArgs</td>
+<tr><td>FormatArgs <i>fmtArgs</i></td>
 <td>format arguments</td></tr>
 </table></dd>
 <dt>Throws</dt><dd><a href="irc.exception.html#UnconnectedClientException"><span class="inlinecode">irc.exception.UnconnectedClientException</span></a> if this client is not connected.
@@ -361,10 +363,10 @@
 <br>void <span class="symbol-target" id="addChannelModes">&nbsp;</span><a class="symbol-link" href="#addChannelModes">addChannelModes</a>(in char[] <i>channel</i>, ChannelMode[] <i>modes</i>...);
 <br>void <span class="symbol-target" id="removeChannelModes">&nbsp;</span><a class="symbol-link" href="#removeChannelModes">removeChannelModes</a>(in char[] <i>channel</i>, ChannelMode[] <i>modes</i>...);
 </h3></div>
-<div class="declaration-content"><dl><p>Add or remove channel modes in the given channel.
+<div class="declaration-content"><dl><p>Add or remove <i>channel</i> <i>modes</i> in the given <i>channel</i>.
 </p>
-<dt>Examples</dt><dd>	 Give channel operator status (+o) to Alice and voice status (+v) to Bob in channel #foo:
-<pre class="d_code">client.addChannelModes(<span class="d_string">"#foo"</span>, <u>ChannelMode</u>('o', <span class="d_string">"Alice"</span>), <u>ChannelMode</u>('v', <span class="d_string">"Bob"</span>));
+<dt>Examples</dt><dd>	 Give <i>channel</i> operator status (+o) to Alice and voice status (+v) to Bob in <i>channel</i> #foo:
+<pre class="d_code">client.<u>addChannelModes</u>(<span class="d_string">"#foo"</span>, <u>ChannelMode</u>('o', <span class="d_string">"Alice"</span>), <u>ChannelMode</u>('v', <span class="d_string">"Bob"</span>));
 </pre>
 </dd>
 </dl>
@@ -426,13 +428,13 @@
 </h3></div>
 <div class="declaration-content"><dl><p>Kick one or more users from a channel.
 </p>
-<p>This user must have channel operator status in <span class="inlinecode">channel</span>.
+<p>This user must have <i>channel</i> operator status in <span class="inlinecode"><i>channel</i></span>.
 </p>
-<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] channel</td>
-<td>channel to <span class="symbol-target" id="kick">&nbsp;</span><a class="symbol-link" href="#kick">kick</a> user(s) from</td></tr>
-<tr><td>users</td>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>char[] <i>channel</i></td>
+<td>channel to <span class="symbol-target" id="kick">&nbsp;</span><a class="symbol-link" href="#kick">kick</a> <i>user</i>(s) from</td></tr>
+<tr><td>Range <i>users</i></td>
 <td>user(s) to <span class="symbol-target" id="kick">&nbsp;</span><a class="symbol-link" href="#kick">kick</a></td></tr>
-<tr><td>comment</td>
+<tr><td>char[] <i>comment</i></td>
 <td>comment to broadcast with the kick message,
       which typically contains the reason the user is being kicked</td></tr>
 </table></dd>
@@ -443,7 +445,7 @@
 </h3></div>
 <div class="declaration-content"><dl><p>Kick users from channels in a single message.
 </p>
-<p><span class="inlinecode">channelUserPairs</span> must be a range of <a href="http://dlang.org/phobos/std_typecons.html#Tuple"><span class="inlinecode">std.typecons.Tuple</span></a>
+<p><span class="inlinecode"><i>channelUserPairs</i></span> must be a range of <a href="http://dlang.org/phobos/std_typecons.html#Tuple"><span class="inlinecode">std.typecons.Tuple</span></a>
  pairs of strings, where the first string is the name of a channel
  and the second string is the user to <span class="symbol-target" id="kick">&nbsp;</span><a class="symbol-link" href="#kick">kick</a> from that channel.</p>
 </dl>
