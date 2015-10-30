@@ -9,8 +9,8 @@
 	"targetType": "library",
 	"targetPath": "lib",
 
-	"sourcePaths": ["irc", "libev", "ssl", "loader"],
-	"importPaths": [".", "libev"],
+	"sourcePaths": ["source", "libev"],
+	"importPaths": ["source", "libev"],
 
 	"libs-posix": ["dl"],
 	"libs-windows-gnu-ldc": ["ev"],
