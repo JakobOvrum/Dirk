@@ -5,12 +5,12 @@ language: d
 os:
  - linux
 
+# Requires DMDFE 2.067+
 d:
  - dmd-2.068.2
  - dmd-2.067.1
- - dmd-2.066.1
- - ldc-0.15.1
- - gdc-5.2.0
+ - ldc-0.16.1
+# - gdc-5.2.0
 
 addons:
   apt:
