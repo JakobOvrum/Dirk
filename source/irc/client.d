@@ -120,7 +120,7 @@ class IrcClient
 	 * Create a new unconnected IRC client.
 	 *
 	 * If $(D socket) is provided, it must be an unconnected TCP socket.
-	 * Provide an instance of $(RREF ssl, socket, SslSocket) to
+	 * Provide an instance of $(RREF ssl, _socket, SslSocket) to
 	 * use SSL/TLS.
 	 *
 	 * User information should be configured before connecting.

@@ -50,7 +50,7 @@ struct ConnectionInfo
 ///
 class IrcUrlException : Exception
 {
-	/// Same as $(MREF ParseError.location).
+	/// Same as $(MREF ParseError._location).
 	size_t location;
 
 	this(string msg, size_t location, string file = __FILE__, size_t line = __LINE__, Throwable next = null) @safe pure nothrow
