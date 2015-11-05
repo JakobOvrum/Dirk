@@ -10,7 +10,8 @@ import std.typecons;
 
 import irc.protocol;
 import irc.client;
-import irc.eventloop;
+
+import eventloop.eventloop, eventloop.interfaces;
 
 //ffs
 version(Windows)
@@ -41,7 +42,7 @@ class DccException : Exception
 class DccServer
 {
 	private:
-	IrcEventLoop eventLoop;
+	EventLoop eventLoop;
 	IrcClient client;
 	uint clientAddress_ = 0;
 
@@ -131,7 +132,7 @@ class DccServer
 	 * the Internet address to advertise for this
 	 * server.
 	 */
-	this(IrcEventLoop eventLoop, IrcClient client)
+	this(EventLoop eventLoop, IrcClient client)
 	{
 		this.eventLoop = eventLoop;
 		this.client = client;
@@ -144,7 +145,7 @@ class DccServer
 		{
 			void onConnect()
 			{
-				if(clientAddress != 0)
+				if(clientAddress == 0)
 					queryUserhost();
 
 				client.onConnect.unsubscribeHandler(&onConnect);
@@ -236,7 +237,7 @@ class DccServer
 	 * Returns:
 	 *   A listening DCC chat session object
 	 */
-	DccChat inviteChat(in char[] nick, uint timeout = 10)
+	DccChat inviteChat(in char[] nick, Duration timeout)
 	{
 		enforce(client.connected, "client must be connected before using DCC CHAT");
 
@@ -249,21 +250,30 @@ class DccServer
 
 		socket.listen(1);
 
-		auto dccChat = new DccChat(socket, timeout);
-		dccChat.eventLoop = eventLoop;
-		dccChat.eventIndex = eventLoop.add(dccChat);
-		return dccChat;
+		return new DccChat(eventLoop, socket, timeout);
+	}
+
+	/// Ditto
+	DccChat inviteChat(in char[] nick)
+	{
+		return this.inviteChat(nick, core.time.seconds(10));
+	}
+
+	deprecated("Please use DccServer.inviteChat(in char[], Duration timeout)")
+	DccChat inviteChat(in char[] nick, uint timeout)
+	{
+		return this.inviteChat(nick, core.time.seconds(timeout));
 	}
 
 	void closeConnection(DccConnection conn)
 	{
-		eventLoop.remove(conn.eventIndex);
+		eventLoop.remove(conn);
 		conn.socket.close();
 	}
 }
 
 /// Represents a DCC connection.
-abstract class DccConnection
+abstract class DccConnection : SocketReady
 {
 	public:
 	/// Current state of the connection.
@@ -276,65 +286,21 @@ abstract class DccConnection
 	}
 
 	/// Ditto
-	State state = State.preConnect;
+	final State state() @property pure nothrow @safe @nogc
+	{
+		return state_;
+	}
 
 	private:
-	IrcEventLoop eventLoop;
-
-	package:
-	Socket socket; // Refers to either a server or client
-	DccEventIndex eventIndex;
-
-	enum Event { none, connectionEstablished, finished }
-
-	final Event read()
-	{
-		final switch(state) with(State)
-		{
-			case preConnect:
-				auto conn = socket.accept();
-				socket.close();
-
-				socket = conn;
-				state = connected;
-
-				onConnected();
-
-				return Event.connectionEstablished;
-			case connected:
-				static ubyte[1024] buffer; // TODO
-
-				auto received = socket.receive(buffer);
-				if(received <= 0)
-				{
-					state = closed;
-					onDisconnected();
-					return Event.finished;
-				}
-
-				auto data = buffer[0 .. received];
-
-				bool finished = onRead(data);
-
-				if(finished)
-				{
-					state = closed;
-					socket.close();
-					onDisconnected();
-					return Event.finished;
-				}
-				break;
-			case closed, timedOut:
-				assert(false);
-		}
-
-		return Event.none;
-	}
+	EventLoop eventLoop;
+	EventLoop.Timer timeoutTimer;
+	Socket socket_; // Refers to either a listener or connection
+	State state_ = State.preConnect;
 
 	final void doTimeout()
 	{
-		state = State.timedOut;
-		socket.close();
+		state_ = State.timedOut;
+		socket_.close();
 
 		foreach(callback; onTimeout)
 			callback();
@@ -344,11 +310,66 @@ abstract class DccConnection
 	/**
 	 * Initialize a DCC resource with the given _socket, timeout value and state.
 	 */
-	this(Socket socket, uint timeout, State initialState)
+	this(EventLoop eventLoop, Socket socket, Duration timeout, State initialState)
 	{
-		this.state = initialState;
+		this.eventLoop = eventLoop;
+		this.state_ = initialState;
 		this.timeout = timeout;
-		this.socket = socket;
+		this.socket_ = socket;
+		this.timeoutTimer = eventLoop.post(&doTimeout, timeout);
+	}
+
+	override SocketReady.EventType eventType()
+	{
+		return SocketReady.EventType.read;
+	}
+
+	override Socket socket()
+	{
+		return this.socket_;
+	}
+
+	override bool onReady()
+	{
+		final switch(state_) with(State)
+		{
+			case preConnect:
+				timeoutTimer.stop();
+
+				auto conn = socket_.accept();
+				socket_.close();
+
+				socket_ = conn;
+				state_ = connected;
+
+				onConnected();
+
+				// Add connection socket and remove listener socket
+				eventLoop.add(this);
+				return true;
+			case connected:
+				static ubyte[1024] buffer; // TODO
+
+				auto received = socket_.receive(buffer[]);
+				bool finished = received <= 0;
+
+				if(!finished)
+				{
+					auto data = buffer[0 .. received];
+					finished = onRead(data);
+				}
+
+				if(finished)
+				{
+					state_ = closed;
+					socket_.close();
+					onDisconnected();
+				}
+
+				return finished;
+			case closed, timedOut:
+				assert(false);
+		}
 	}
 
 	/**
@@ -356,7 +377,7 @@ abstract class DccConnection
 	 */
 	final void write(in void[] data)
 	{
-		socket.send(data);
+		socket_.send(data);
 	}
 
 	/**
@@ -375,8 +396,8 @@ abstract class DccConnection
 	abstract bool onRead(in void[] data);
 
 	public:
-	/// The _timeout value of this connection in seconds.
-	immutable uint timeout;
+	/// The _timeout value for this connection.
+	immutable Duration timeout;
 
 	/// Name of this resource.
 	abstract string name() @property;
@@ -401,9 +422,9 @@ class DccChat : DccConnection
 	char[] buffer; // TODO: use dynamically expanding buffer?
 	IncomingLineBuffer lineBuffer;
 
-	this(Socket server, uint timeout)
+	this(EventLoop eventLoop, Socket server, Duration timeout)
 	{
-		super(server, timeout, State.preConnect);
+		super(eventLoop, server, timeout, State.preConnect);
 
 		buffer = new char[2048];
 		lineBuffer = IncomingLineBuffer(buffer, &handleLine);
@@ -500,8 +521,8 @@ class DccChat : DccConnection
 	 */
 	void finish()
 	{
-		socket.close();
-		eventLoop.remove(eventIndex);
+		socket_.close();
+		eventLoop.remove(this);
 
 		foreach(callback; onFinish)
 			callback();

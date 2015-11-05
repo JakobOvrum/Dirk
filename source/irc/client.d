@@ -8,6 +8,8 @@ public import irc.protocol : IrcUser;
 import irc.ctcp;
 import irc.util;
 
+import eventloop.interfaces : SocketReady;
+
 import std.socket;
 public import std.socket : InternetAddress;
 
@@ -77,7 +79,7 @@ void unsubscribeHandler(T)(ref T[] event, T handler)
  * user for this connection is a member of, and the members of
  * those channels.
  */
-class IrcClient
+class IrcClient : SocketReady
 {
 	private:
 	string m_nick = "dirkuser";
@@ -112,8 +114,23 @@ class IrcClient
 	enum defaultMessageModeLimit = 3; // RFC2812
 	ubyte messageModeLimit = defaultMessageModeLimit;
 
-	package:
-	Socket socket;
+	Socket socket_;
+
+	protected:
+	override SocketReady.EventType eventType()
+	{
+		return SocketReady.EventType.read;
+	}
+
+	override Socket socket()
+	{
+		return this.socket_;
+	}
+
+	override bool onReady()
+	{
+		return read();
+	}
 
 	public:
 	/**
@@ -137,7 +154,7 @@ class IrcClient
 	/// Ditto
 	this(Socket socket)
 	{
-		this.socket = socket;
+		this.socket_ = socket;
 		this.buffer = new char[](2048);
 		this.lineBuffer = IncomingLineBuffer(buffer, &onReceivedLine);
 	}
@@ -164,7 +181,7 @@ class IrcClient
 	{
 		enforceEx!UnconnectedClientException(!connected, "IrcClient is already connected");
 
-		socket.connect(serverAddress);
+		socket_.connect(serverAddress);
 
 		m_address = serverAddress;
 		_connected = true;
@@ -196,27 +213,27 @@ class IrcClient
 
 		while(connected)
 		{
-			socket.blocking = false; // TODO: Make writes non-blocking too, so this isn't needed
-			auto received = socket.receive(buffer[lineBuffer.position .. $]);
+			socket_.blocking = false; // TODO: Make writes non-blocking too, so this isn't needed
+			auto received = socket_.receive(buffer[lineBuffer.position .. $]);
 			if(received == Socket.ERROR)
 			{
 				if(wouldHaveBlocked())
 				{
-					socket.blocking = true;
+					socket_.blocking = true;
 					break;
 				}
 				else
-					throw new Exception("socket read operation failed: " ~ socket.getErrorText());
+					throw new Exception("socket read operation failed: " ~ socket_.getErrorText());
 			}
 			else if(received == 0)
 			{
 				debug(Dirk) std.stdio.writeln("remote ended connection");
-				socket.close();
+				socket_.close();
 				_connected = false;
 				return true;
 			}
 
-			socket.blocking = true;
+			socket_.blocking = true;
 			lineBuffer.commit(received);
 		}
 
@@ -260,21 +277,21 @@ class IrcClient
 			std.stdio.writefln(`<< "%s" (length: %d)`, sansNewline, sansNewline.length);
 		}
 
-		socket.send(message);
+		socket_.send(message);
 	}
 
 	/// Ditto
 	void writef(in char[] rawline)
 	{
 		enforceEx!UnconnectedClientException(connected, "cannot write to unconnected IrcClient");
-		socket.send(rawline[0 .. min($, 510)]);
-		socket.send("\r\n");
+		socket_.send(rawline[0 .. min($, 510)]);
+		socket_.send("\r\n");
 	}
 
 	// TODO: attempt not to split lines in the middle of code points or graphemes
 	private void sendMessage(in char[] command, in char[] target, in char[] message)
 	{
-		auto buffer = OutgoingLineBuffer(this.socket, command, target);
+		auto buffer = OutgoingLineBuffer(this.socket_, command, target);
 		const(char)[] messageTail = message.stripNewlinesLeft;
 
 		while(messageTail.length)
@@ -305,7 +322,7 @@ class IrcClient
 
 		r = r.stripLeft!(c => c == '\r' || c == '\n');
 
-		auto buffer = OutgoingLineBuffer(this.socket, command, target);
+		auto buffer = OutgoingLineBuffer(this.socket_, command, target);
 		auto messageBuffer = buffer.messageBuffer;
 		size_t i = 0;
 
@@ -345,7 +362,7 @@ class IrcClient
 	{
 		import std.format : formattedWrite;
 
-		auto buffer = OutgoingLineBuffer(this.socket, command, target);
+		auto buffer = OutgoingLineBuffer(this.socket_, command, target);
 
 		formattedWrite((const(char)[] chunk) {
 			if(!chunk.length)
@@ -892,7 +909,7 @@ class IrcClient
 	void quit(in char[] message)
 	{
 		writef("QUIT :%s", message);
-		socket.close();
+		socket_.close();
 		_connected = false;
 	}
 
@@ -1146,7 +1163,7 @@ class IrcClient
 			case "433":
 				void failed433(Exception cause)
 				{
-					socket.close();
+					socket_.close();
 					_connected = false;
 					throw new IrcErrorException(this, `"433 Nick already in use" was unhandled`, cause);
 				}
