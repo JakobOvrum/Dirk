@@ -28,7 +28,7 @@ extern(C)
 	char* function(c_ulong e, char* buf) ERR_error_string_p;
 
 	SSL_CTX* function(const(SSL_METHOD)* meth) SSL_CTX_new_p;
-	const(SSL_METHOD)* function() SSLv3_client_method_p; /* SSLv3 */
+	const(SSL_METHOD)* function() SSLv23_client_method_p; /* negotiated */
 
 	SSL* function(SSL_CTX* ctx) SSL_new_p;
 	int function(SSL* s, int fd) SSL_set_fd_p;
@@ -78,7 +78,7 @@ void loadOpenSSL()
 	ssl.resolve!SSL_get_error_p;
 
 	ssl.resolve!SSL_CTX_new_p;
-	ssl.resolve!SSLv3_client_method_p;
+	ssl.resolve!SSLv23_client_method_p;
 
 	ssl.resolve!SSL_new_p;
 	ssl.resolve!SSL_set_fd_p;
