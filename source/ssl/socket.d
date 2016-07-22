@@ -15,7 +15,7 @@ private SSL_CTX* sslContext;
 void initSslContext()
 {
 	if(!sslContext)
-		sslContext = SSL_CTX_new_p(SSLv3_client_method_p());
+		sslContext = SSL_CTX_new_p(SSLv23_client_method_p());
 }
 
 version(force_ssl_load) static this()
