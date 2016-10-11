@@ -1060,6 +1060,13 @@ class IrcClient
 	 *   $(MREF IrcClient.queryUserhost)
 	 */
 	void delegate(in IrcUser[] users)[] onUserhostReply;
+	
+	/**
+	 * Invoked when a user invites us to a channel.
+	 * Params:
+	 *   channel = _channel channel we were invited to
+	 */
+	void delegate(in char[] channel)[] onInvite;
 
 	/**
 	 * Invoked when a WHOIS reply is received.
@@ -1400,6 +1407,9 @@ class IrcClient
 			case "001":
 				m_nick = line.arguments[0].idup;
 				fireEvent(onConnect);
+				break;
+			case "INVITE":
+				fireEvent(onInvite, line.arguments[1]);
 				break;
 			default:
 				debug(Dirk) std.stdio.writefln(`Unhandled command "%s"`, line.command);
