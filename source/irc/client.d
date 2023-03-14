@@ -16,7 +16,7 @@ import std.algorithm;
 import std.array;
 import std.range;
 import std.regex; // TEMP: For EOL identification
-import std.string : format, indexOf, sformat, munch;
+import std.string : format, indexOf, sformat;
 import std.traits;
 import std.typetuple;
 import std.utf : byChar;
@@ -644,7 +644,7 @@ class IrcClient
 	in {
 		assert(modes.length == args.length);
 		assert(modes.length <= messageModeLimit);
-	} body {
+	} do {
 		writef("MODE %s %c%s %-(%s%| %)", editAction, channel, modes, args);
 	}
 
@@ -1124,7 +1124,7 @@ class IrcClient
 
 		// TODO: re-use buffer
 		auto ctcpMessage = cast(string)extractor.front.array();
-		auto tag = ctcpMessage.munch("^ ");
+		auto tag = ctcpMessage.replaceFirst(regex("^ "), "");
 
 		if(!ctcpMessage.empty && ctcpMessage.front == ' ')
 			ctcpMessage.popFront();
